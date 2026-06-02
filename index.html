@@ -3,52 +3,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>大業 AI 程式設計成果展</title>
-    <meta name="description" content="大業 AI 程式設計成果展遊戲選單。" />
-    <link rel="stylesheet" href="./styles.css?v=20260602-compact-cards" />
+    <title>大業 AI 繪圖社期末成果展</title>
+    <meta name="description" content="大業 AI 繪圖社期末成果展：學生遊戲作品瀏覽、匿名投票、建議回饋與統計儀表板。" />
+    <link rel="stylesheet" href="./styles.css?v=20260602-exhibition-spa" />
   </head>
   <body>
-    <main class="console-shell">
-      <header class="console-topbar">
-        <div class="brand-lockup">
-          <a id="clubLogoLink" class="club-logo" href="./" target="_blank" rel="noreferrer" aria-label="大業 AI 繪圖社">
-            <img id="clubLogo" alt="大業 AI 繪圖社" />
-          </a>
-          <div>
-            <p id="clubName" class="system-label">DAYE AI EXHIBITION</p>
-            <h1>Game Library</h1>
-          </div>
-        </div>
-        <div class="library-stats" aria-label="遊戲統計">
-          <span><strong id="totalCount">0</strong> Games</span>
-          <span><strong id="playableCount">0</strong> Ready</span>
-        </div>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="#home" aria-label="回到首頁">
+          <span>
+            <strong>DAYE AI ART CLUB</strong>
+            <small>Final Game Exhibition</small>
+          </span>
+        </a>
+        <nav class="main-nav" aria-label="主要導覽">
+          <a href="#home">Home</a>
+          <a href="#browse">Browse</a>
+          <a href="#results">Results</a>
+          <a href="#about">About</a>
+        </nav>
       </header>
 
-      <section class="hero-stage" aria-label="目前選取遊戲">
-        <div id="heroCover" class="hero-cover tone-forest">
-          <span id="heroShelf">上架中</span>
-          <strong id="heroLetters">REACT.X</strong>
-        </div>
+      <main id="app" tabindex="-1"></main>
+    </div>
 
-        <div class="hero-info">
-          <p id="heroMeta" class="hero-meta"></p>
-          <h2 id="heroTitle"></h2>
-          <p id="heroTagline" class="hero-tagline"></p>
-          <p id="heroDescription" class="hero-description"></p>
-          <div class="hero-actions">
-            <a id="heroLaunch" class="primary-link">開始</a>
-          </div>
-        </div>
-      </section>
-
-      <section class="game-rail" aria-label="遊戲選單">
-        <div id="gallery" class="rail-track"></div>
-      </section>
-    </main>
-
-    <script src="./works.js?v=20260602-compact-cards"></script>
-    <script src="./site-config.js?v=20260602-compact-cards"></script>
-    <script src="./app.js?v=20260602-compact-cards"></script>
+    <script src="./works.js?v=20260602-exhibition-spa"></script>
+    <script src="./site-config.js?v=20260602-exhibition-spa"></script>
+    <script src="./app.js?v=20260602-exhibition-spa"></script>
   </body>
 </html>
