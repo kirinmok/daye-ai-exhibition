@@ -23,6 +23,14 @@ const clubName = document.querySelector("#clubName");
 let works = WORKS;
 let selectedIndex = 0;
 
+function cleanDisplayTitle(title, fallback = "未命名遊戲") {
+  const cleaned = String(title || "")
+    .replace(/^\s*\d{3}-\d{1,3}\s*/u, "")
+    .replace(/原創遊戲/gu, "")
+    .trim();
+  return cleaned || fallback;
+}
+
 function initSiteBranding() {
   const config = window.SITE_CONFIG || {};
   const logoSrc = config.clubLogoSrc || "./assets/daye-ai-art-club-logo.jpg";
@@ -52,7 +60,7 @@ function setSelected(index, shouldFocus = false) {
   heroLetters.textContent = work.coverLetters;
   heroLetters.hidden = Boolean(work.coverWideUrl);
   heroMeta.textContent = `${work.genre} · ${work.statusLabel}`;
-  heroTitle.textContent = work.title;
+  heroTitle.textContent = cleanDisplayTitle(work.title);
   heroTagline.textContent = work.tagline;
   heroDescription.textContent = work.description;
   heroLaunch.textContent = work.launchUrl ? "開始" : "準備中";
@@ -89,7 +97,7 @@ function renderGames() {
     tile.setAttribute("aria-selected", "false");
     tile.innerHTML = `
       <span>${work.statusLabel}</span>
-      <strong>${work.title}</strong>
+      <strong>${cleanDisplayTitle(work.title)}</strong>
       <em>${work.genre}</em>
     `;
     tile.addEventListener("click", () => setSelected(index));
@@ -105,7 +113,7 @@ function renderGames() {
 }
 
 function openPreview(work) {
-  previewTitle.textContent = work.title;
+  previewTitle.textContent = cleanDisplayTitle(work.title);
   previewOwner.textContent = work.genre;
   previewOpen.href = work.launchUrl;
   frame.src = work.launchUrl;
@@ -149,13 +157,15 @@ async function loadSubmittedWorks() {
     submissions.forEach((submission) => {
       if (!submission || !submission.code) return;
       const existing = byCode.get(submission.code) || {};
+      const title = cleanDisplayTitle(submission.title || existing.title || submission.code);
       byCode.set(submission.code, {
         ...existing,
         ...submission,
+        title,
         status: submission.status || existing.status || "published",
         statusLabel: submission.statusLabel || existing.statusLabel || "上架中",
         shelfLabel: submission.shelfLabel || existing.shelfLabel || "PLAY",
-        coverLetters: submission.coverLetters || existing.coverLetters || submission.title || existing.title,
+        coverLetters: submission.coverLetters || existing.coverLetters || title,
         coverTone: submission.coverTone || existing.coverTone || "tone-sky",
       });
     });
