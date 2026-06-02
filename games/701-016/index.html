@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>風味抉擇：漢堡帝國</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #020617;
+            overflow: hidden;
+            color: white;
+            user-select: none;
+        }
+
+        #game-stage {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 100%);
+            display: none; 
+            transition: all 0.8s ease;
+        }
+
+        /* 秘密關卡背景 */
+        #game-stage.secret-mode {
+            background: radial-gradient(circle, #1e1b4b 0%, #020617 100%);
+        }
+
+        #char-selection {
+            position: fixed; inset: 0; z-index: 1000;
+            background: radial-gradient(circle, #1e293b 0%, #020617 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .char-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; border: 2px solid transparent;
+        }
+        .char-card:hover { transform: translateY(-10px); border-color: #f97316; }
+
+        .comment-bullet {
+            position: absolute; white-space: nowrap; color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 20px;
+            pointer-events: none; z-index: 50; animation: moveBullet 10s linear forwards;
+            backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.2);
+            font-weight: 700;
+        }
+
+        /* 金色彈幕樣式 */
+        .comment-bullet.golden {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            border: 3px solid #fef3c7; color: #451a03; font-weight: 900;
+            box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+            z-index: 60;
+        }
+
+        @keyframes moveBullet { from { right: -400px; } to { right: 120vw; } }
+
+        .ground {
+            position: absolute; bottom: 0; width: 100%; height: 200px;
+            background: #0f172a; border-top: 8px solid #334155;
+        }
+
+        #player {
+            position: absolute; bottom: 170px; left: 50%; width: 60px; height: 80px;
+            z-index: 100; transform: translateX(-50%);
+        }
+
+        .player-body {
+            width: 100%; height: 100%; border-radius: 20px;
+            position: relative; box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .player-face { position: absolute; top: 20px; right: 10px; display: flex; gap: 6px; }
+        .eye { width: 10px; height: 10px; background: white; border-radius: 50%; }
+
+        .choice-zone {
+            position: absolute; bottom: 200px; width: 250px; text-align: center;
+            opacity: 0.8; transition: all 0.4s ease; z-index: 80;
+        }
+
+        .portal {
+            width: 100px; height: 100px;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border: 3px dashed rgba(255,255,255,0.4);
+            border-radius: 50%; margin: 0 auto 15px; animation: rotate 15s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #dialogue-box {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 900px; background: rgba(255, 255, 255, 0.98); 
+            color: #1e293b; padding: 25px 40px; border-radius: 24px; 
+            z-index: 300; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center;
+        }
+
+        .score-popup {
+            position: absolute; color: #fbbf24; font-weight: 900; font-size: 28px;
+            pointer-events: none; animation: scoreUp 1s ease-out forwards; z-index: 500;
+        }
+        @keyframes scoreUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-120px); opacity: 0; }
+        }
+
+        .restart-btn {
+            display: inline-block; margin-top: 20px;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white; padding: 12px 30px; border-radius: 12px;
+            font-weight: 900; cursor: pointer;
+        }
+
+        #secret-timer {
+            position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
+            font-size: 6rem; font-weight: 900; color: #fbbf24; opacity: 0; z-index: 400;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 角色選擇 -->
+    <div id="char-selection">
+        <h1 class="text-5xl font-black mb-16 tracking-widest text-orange-500">風味抉擇：漢堡帝國</h1>
+        <div class="flex gap-12">
+            <div class="char-card bg-slate-800 p-10 rounded-3xl text-center" onclick="startGame('#f97316', '熱血創業者')">
+                <div class="w-24 h-32 bg-orange-500 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                    <div class="flex gap-3"><div class="w-3 h-3 bg-white rounded-full"></div><div class="w-3 h-3 bg-white rounded-full"></div></div>
+                </div>
+                <div class="text-xl font-bold">莫凡</div>
+                <div class="text-slate-400 text-sm mt-2">熱血創業者</div>
+            </div>
+            <div class="char-card bg-slate-800 p-10 rounded-3xl text-center" onclick="startGame('#3b82f6', '冷靜分析師')">
+                <div class="w-24 h-32 bg-blue-500 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                    <div class="flex gap-3"><div class="w-3 h-3 bg-white rounded-full"></div><div class="w-3 h-3 bg-white rounded-full"></div></div>
+                </div>
+                <div class="text-xl font-bold">子寒</div>
+                <div class="text-slate-400 text-sm mt-2">冷靜分析師</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊戲場景 -->
+    <div id="secret-timer">15</div>
+    <div id="game-stage">
+        <div id="comments-container"></div>
+        <div id="zones-container"></div>
+        <div class="ground"></div>
+        <div id="player">
+            <div class="player-body" id="player-visual">
+                <div class="player-face">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI 層 -->
+    <div id="ui-layer" style="display:none">
+        <div class="fixed top-10 left-10 right-10 pointer-events-none flex justify-between z-[200]">
+            <div class="bg-slate-900/80 backdrop-blur p-6 rounded-3xl border border-white/10 shadow-2xl">
+                <div class="text-xs uppercase tracking-tighter text-slate-400 mb-1">經營資金</div>
+                <div id="stat-funds" class="text-3xl font-black text-green-400">$100</div>
+                <div id="stat-rep" class="text-lg mt-2 text-yellow-400">★★★★★</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 對話與決策 UI -->
+    <div id="dialogue-box" style="display:none">
+        <div id="dia-title" class="text-sm font-black text-orange-600 uppercase tracking-widest mb-2">載入中...</div>
+        <div id="dia-inner-box">
+            <div id="dia-content" class="text-xl font-bold mb-4"></div>
+            <div class="text-xs text-slate-400">使用 A / D 移動。空白鍵跳躍。接觸傳送門進行抉擇。</div>
+        </div>
+    </div>
+
+    <script>
+        const stage = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            playerX: window.innerWidth / 2,
+            playerY: 0,
+            playerVelX: 0,
+            playerVelY: 0,
+            gravity: 0.7,
+            jumpStrength: -18,
+            isGrounded: true,
+            isLocked: false,
+            step: 1,
+            isSecretMode: false,
+            groundLevel: 170,
+            loopStarted: false
+        };
+
+        let state = { funds: 100, reputation: 50 };
+        const keys = {};
+
+        function startGame(color, type) {
+            state = { funds: 100, reputation: 50 };
+            stage.step = 1;
+            stage.isSecretMode = false;
+            stage.isLocked = false;
+            stage.playerX = window.innerWidth / 2;
+            stage.playerY = 0;
+            
+            document.getElementById('char-selection').style.display = 'none';
+            document.getElementById('game-stage').style.display = 'block';
+            document.getElementById('ui-layer').style.display = 'block';
+            document.getElementById('dialogue-box').style.display = 'block';
+            document.getElementById('player-visual').style.backgroundColor = color;
+            document.getElementById('comments-container').innerHTML = '';
+
+            flowToStep1();
+            updateUI();
+
+            if (!stage.loopStarted) {
+                stage.loopStarted = true;
+                update();
+            }
+        }
+
+        window.onkeydown = (e) => keys[e.key.toLowerCase()] = true;
+        window.onkeyup = (e) => keys[e.key.toLowerCase()] = false;
+
+        function update() {
+            // 移動
+            if (keys['a'] || keys['arrowleft']) stage.playerVelX = -10;
+            else if (keys['d'] || keys['arrowright']) stage.playerVelX = 10;
+            else stage.playerVelX *= 0.8;
+
+            // 跳躍
+            if (keys[' '] && stage.isGrounded) {
+                stage.playerVelY = stage.jumpStrength;
+                stage.isGrounded = false;
+            }
+
+            stage.playerX += stage.playerVelX;
+            stage.playerX = Math.max(50, Math.min(stage.width - 50, stage.playerX));
+
+            stage.playerVelY += stage.gravity;
+            let nextY = stage.playerY - stage.playerVelY;
+
+            // 碰撞檢測：地板與彈幕
+            let platformY = 0;
+            const pRect = document.getElementById('player').getBoundingClientRect();
+            const playerFeet = stage.height - stage.groundLevel - stage.playerY;
+
+            const platforms = document.querySelectorAll('.comment-bullet, .choice-zone');
+            platforms.forEach(plat => {
+                const r = plat.getBoundingClientRect();
+                // 玩家向下落且腳部在平台範圍內
+                if (stage.playerVelY >= 0 &&
+                    pRect.left < r.right && pRect.right > r.left &&
+                    playerFeet <= r.top + 20 && playerFeet >= r.top - 10) {
+                    
+                    if (plat.classList.contains('golden')) {
+                        if (!stage.isSecretMode) {
+                            state.funds += 50;
+                            spawnScoreEffect(r.left, stage.playerY, "+$50 SPECIAL!");
+                            enterSecretLevel();
+                            plat.remove();
+                            return;
+                        } else {
+                            state.funds += 20;
+                            spawnScoreEffect(r.left, stage.playerY, "+$20");
+                            plat.remove();
+                            updateUI();
+                        }
+                    }
+                    platformY = Math.max(platformY, (stage.height - stage.groundLevel) - r.top);
+                }
+            });
+
+            if (nextY <= platformY) {
+                nextY = platformY;
+                stage.playerVelY = 0;
+                stage.isGrounded = true;
+            } else {
+                stage.isGrounded = false;
+            }
+
+            stage.playerY = nextY;
+            const p = document.getElementById('player');
+            p.style.left = stage.playerX + 'px';
+            p.style.bottom = (stage.groundLevel + stage.playerY) + 'px';
+
+            // 決策點碰撞
+            if (!stage.isLocked && !stage.isSecretMode) {
+                checkDecisionCollision();
+            }
+
+            // 生成一般彈幕
+            if (Math.random() < 0.02) spawnComment();
+
+            requestAnimationFrame(update);
+        }
+
+        function checkDecisionCollision() {
+            const zones = document.querySelectorAll('.choice-zone');
+            zones.forEach(zone => {
+                const zRect = zone.getBoundingClientRect();
+                if (Math.abs(stage.playerX - (zRect.left + zRect.width/2)) < 80 && stage.playerY < 50) {
+                    executeChoice(zone.dataset.action);
+                }
+            });
+        }
+
+        function executeChoice(action) {
+            if (stage.isLocked) return;
+            if (action === 'RESTART') { location.reload(); return; }
+
+            stage.isLocked = true;
+            document.getElementById('game-stage').style.opacity = '0.3';
+            
+            setTimeout(() => {
+                document.getElementById('game-stage').style.opacity = '1';
+                stage.isLocked = false;
+                stage.playerX = stage.width / 2;
+                stage.playerY = 0;
+
+                if (action === 'S1_LUX') { state.funds -= 50; state.reputation += 40; flowToStep2(); }
+                else if (action === 'S1_MASS') { state.funds += 30; state.reputation -= 20; flowToStep2(); }
+                else if (action.startsWith('S2_')) flowToEnd();
+
+                updateUI();
+            }, 800);
+        }
+
+        function flowToStep1() {
+            showDialogue("第一階段：市場定位", "店面即將開幕，您的首選經營方向是？", [
+                { t: "高端松露漢堡", d: "追求極致口碑 (-50$ / +40⭐)", a: "S1_LUX", pos: '25%' },
+                { t: "特價起司漢堡", d: "搶佔市佔率 (+30$ / -20⭐)", a: "S1_MASS", pos: '75%' }
+            ]);
+        }
+
+        function flowToStep2() {
+            stage.step = 2;
+            showDialogue("第二階段：營運策略", "經營步上軌道，您接下來的重心？", [
+                { t: "引進自動化生產", d: "極致化獲利 (+60$ / -30⭐)", a: "S2_AUTO", pos: '25%' },
+                { t: "嚴選在地食材", d: "打造品牌尊榮 (-40$ / +30⭐)", a: "S2_LOCAL", pos: '75%' }
+            ]);
+        }
+
+        function flowToEnd() {
+            stage.isLocked = true;
+            document.getElementById('zones-container').innerHTML = '';
+            document.getElementById('dia-title').innerText = "經營成果報告";
+            
+            let rank = "漢堡學徒";
+            if (state.funds > 180 && state.reputation > 80) rank = "漢堡傳奇帝王";
+            else if (state.funds > 150) rank = "成功的速食大亨";
+            else if (state.reputation > 70) rank = "米其林巷弄名店";
+
+            document.getElementById('dia-inner-box').innerHTML = `
+                <div class="py-6">
+                    <p class="text-3xl font-black text-orange-600 mb-2">獲得評價：${rank}</p>
+                    <p class="text-slate-600 mb-6 text-lg">資金: $${state.funds} | 聲望: ${state.reputation} Pt</p>
+                    <div class="restart-btn" onclick="executeChoice('RESTART')">重啟經營人生</div>
+                </div>
+            `;
+        }
+
+        function showDialogue(title, content, options) {
+            document.getElementById('dia-title').innerText = title;
+            document.getElementById('dia-content').innerText = content;
+            const container = document.getElementById('zones-container');
+            container.innerHTML = '';
+            
+            options.forEach(opt => {
+                const zone = document.createElement('div');
+                zone.className = 'choice-zone';
+                zone.style.left = opt.pos;
+                zone.style.transform = "translateX(-50%)";
+                zone.dataset.action = opt.a;
+                zone.innerHTML = `
+                    <div class="portal"></div>
+                    <div class="bg-black/80 p-4 rounded-2xl border border-white/20 shadow-xl">
+                        <div class="text-orange-400 font-bold mb-1">${opt.t}</div>
+                        <div class="text-[10px] text-slate-400 leading-tight">${opt.d}</div>
+                    </div>`;
+                container.appendChild(zone);
+            });
+        }
+
+        function spawnComment() {
+            const container = document.getElementById('comments-container');
+            const el = document.createElement('div');
+            const isGolden = Math.random() < 0.1;
+            el.className = `comment-bullet ${isGolden ? 'golden' : ''}`;
+            
+            if (isGolden) {
+                el.innerText = "✨ 商業秘辛：踩我就發財！";
+                el.style.top = '35%';
+            } else {
+                const pool = state.reputation > 50 ? ["真材實料！", "漢堡界的奇蹟", "為了它我排隊三小時", "醬汁超神"] : ["肉好乾...", "盤子才吃", "這啥味道？", "服務員態度差"];
+                el.innerText = pool[Math.floor(Math.random() * pool.length)];
+                el.style.top = (45 + Math.random() * 30) + '%';
+            }
+            
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 10000);
+        }
+
+        function spawnScoreEffect(x, y, text) {
+            const el = document.createElement('div');
+            el.className = 'score-popup';
+            el.innerText = text;
+            el.style.left = x + 'px';
+            el.style.top = (stage.height - stage.groundLevel - y - 100) + 'px';
+            document.getElementById('game-stage').appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function enterSecretLevel() {
+            stage.isSecretMode = true;
+            document.getElementById('game-stage').classList.add('secret-mode');
+            const timerEl = document.getElementById('secret-timer');
+            timerEl.style.opacity = "1";
+            let timeLeft = 15;
+            
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timerEl.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    exitSecretLevel();
+                }
+            }, 1000);
+        }
+
+        function exitSecretLevel() {
+            stage.isSecretMode = false;
+            document.getElementById('game-stage').classList.remove('secret-mode');
+            document.getElementById('secret-timer').style.opacity = "0";
+            document.getElementById('comments-container').innerHTML = '';
+            stage.playerY = 0;
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('stat-funds').innerText = `$${state.funds}`;
+            let stars = "★".repeat(Math.min(5, Math.max(1, Math.floor(state.reputation/20))));
+            document.getElementById('stat-rep').innerText = stars;
+        }
+
+        window.onresize = () => { stage.width = window.innerWidth; stage.height = window.innerHeight; };
+    </script>
+
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>

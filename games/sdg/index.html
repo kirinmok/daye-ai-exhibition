@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDG Craft Pro - 永續島嶼建設者</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%);
+            font-family: 'ZCOOL KuaiLe', 'Courier New', sans-serif;
+            user-select: none;
+        }
+
+
+        /* 經典 Minecraft / 像素邊框 UI 風格 */
+        .pixel-panel {
+            background: #cbd5e1;
+            border: 4px solid #1e293b;
+            box-shadow: inset 4px 4px 0px #f8fafc, inset -4px -4px 0px #64748b;
+            image-rendering: pixelated;
+        }
+
+
+        /* 決策卡底色 (預設木質調) */
+        .pixel-card {
+            background: #ebd2b0;
+            border: 4px solid #4a3319;
+            box-shadow: inset 3px 3px 0px #f9ebd2, inset -3px -3px 0px #b28247;
+            transition: background-color 0.5s, border-color 0.5s;
+        }
+
+
+        /* 休息卡底色 (舒緩綠色調) */
+        .pixel-card.rest-mode-active {
+            background: #a7f3d0;
+            border-color: #064e3b;
+            box-shadow: inset 3px 3px 0px #d1fae5, inset -3px -3px 0px #047857;
+        }
+
+
+        .pixel-btn-green {
+            background: #10b981;
+            border: 3px solid #064e3b;
+            border-top-color: #34d399;
+            border-left-color: #34d399;
+            color: white;
+            text-shadow: 1px 1px 0px #064e3b;
+        }
+        .pixel-btn-green:active {
+            border-top-color: #064e3b;
+            border-left-color: #064e3b;
+            border-bottom-color: #34d399;
+            border-right-color: #34d399;
+            transform: translateY(1px);
+        }
+
+
+        .pixel-btn-red {
+            background: #ef4444;
+            border: 3px solid #7f1d1d;
+            border-top-color: #f87171;
+            border-left-color: #f87171;
+            color: white;
+            text-shadow: 1px 1px 0px #7f1d1d;
+        }
+        .pixel-btn-red:active {
+            border-top-color: #7f1d1d;
+            border-left-color: #7f1d1d;
+            border-bottom-color: #f87171;
+            border-right-color: #f87171;
+            transform: translateY(1px);
+        }
+
+
+        /* 狀態條 */
+        .status-bar-bg {
+            background: #334155;
+            border: 2px solid #0f172a;
+            height: 20px;
+            box-shadow: inset 2px 2px 0px #1e293b;
+        }
+
+
+        /* 呼吸動畫 */
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .pulse-card {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+
+<div id="game-container" class="w-full h-full relative">
+    <canvas id="render-canvas" class="w-full h-full block"></canvas>
+
+
+    <!-- 左上角：三柱永續指標 (生態、經濟、社會) -->
+    <div class="absolute top-4 left-4 flex flex-col gap-2 w-64 pointer-events-none">
+        <!-- 生態指標 -->
+        <div class="pixel-panel p-2 flex flex-col pointer-events-auto">
+            <div class="flex justify-between items-center text-sm font-bold text-emerald-900 mb-1">
+                <span>🌱 生態平衡 (Eco)</span>
+                <span id="eco-text">60%</span>
+            </div>
+            <div class="status-bar-bg w-full rounded overflow-hidden">
+                <div id="eco-bar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 60%"></div>
+            </div>
+        </div>
+
+
+        <!-- 經濟指標 -->
+        <div class="pixel-panel p-2 flex flex-col pointer-events-auto">
+            <div class="flex justify-between items-center text-sm font-bold text-amber-950 mb-1">
+                <span>💰 經濟發展 (Economy)</span>
+                <span id="econ-text">50%</span>
+            </div>
+            <div class="status-bar-bg w-full rounded overflow-hidden">
+                <div id="econ-bar" class="h-full bg-amber-500 transition-all duration-500" style="width: 50%"></div>
+            </div>
+        </div>
+
+
+        <!-- 社會指標 -->
+        <div class="pixel-panel p-2 flex flex-col pointer-events-auto">
+            <div class="flex justify-between items-center text-sm font-bold text-blue-950 mb-1">
+                <span>👥 社會福祉 (Society)</span>
+                <span id="society-text">55%</span>
+            </div>
+            <div class="status-bar-bg w-full rounded overflow-hidden">
+                <div id="society-bar" class="h-full bg-blue-500 transition-all duration-500" style="width: 55%"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 右上角：系統資訊 & 行動引導 -->
+    <div class="absolute top-4 right-4 flex flex-col gap-2 pointer-events-none">
+        <div class="pixel-panel p-3 text-slate-800 pointer-events-auto text-right">
+            <h3 class="font-bold text-lg">🌍 永續示範島</h3>
+            <p class="text-xs">目前年度：第 <span id="year-val" class="font-bold text-indigo-700">1</span> 年</p>
+            <p class="text-xs">總體永續評分：<span id="score-val" class="font-bold text-amber-600">55</span> 分</p>
+        </div>
+
+
+        <div class="pixel-panel p-2 text-slate-700 pointer-events-auto text-xs max-w-xs text-right bg-amber-50">
+            💡 提示：左鍵點擊地面可以手動種植樹木或加蓋房屋，提升相應屬性！
+        </div>
+    </div>
+
+
+    <!-- 底部：物品建造欄 (動態放置 Voxel 物體) -->
+    <div class="absolute bottom-4 left-4 flex gap-2 pointer-events-auto">
+        <button onclick="changeBuildType('tree')" id="btn-tree" class="pixel-panel p-2 bg-emerald-100 border-emerald-950 border-4 font-bold flex flex-col items-center justify-center w-20 h-20 active-build">
+            <span class="text-2xl">🌳</span>
+            <span class="text-xs mt-1">造林</span>
+        </button>
+        <button onclick="changeBuildType('house')" id="btn-house" class="pixel-panel p-2 bg-slate-100 border-slate-950 border-4 font-bold flex flex-col items-center justify-center w-20 h-20">
+            <span class="text-2xl">🏡</span>
+            <span class="text-xs mt-1">住宅</span>
+        </button>
+        <button onclick="changeBuildType('factory')" id="btn-factory" class="pixel-panel p-2 bg-amber-100 border-amber-950 border-4 font-bold flex flex-col items-center justify-center w-20 h-20">
+            <span class="text-2xl">🏭</span>
+            <span class="text-xs mt-1">工業</span>
+        </button>
+    </div>
+
+
+    <!-- 底部中央：經典 SDG 決策與休息卡卡片 -->
+    <div id="sdg-card-container" class="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-[620px] pointer-events-auto transition-all duration-500 transform translate-y-0">
+        <div id="main-pixel-card" class="pixel-card p-5 relative pulse-card flex flex-col md:flex-row gap-4">
+           
+            <!-- SDG 圖章編號 -->
+            <div class="flex-shrink-0 flex items-center justify-center">
+                <div id="sdg-badge" class="w-16 h-16 rounded-full bg-sky-500 border-4 border-sky-800 text-white font-extrabold text-2xl flex items-center justify-center shadow-lg">
+                    13
+                </div>
+            </div>
+
+
+            <!-- 模式 1：決策答題介面 -->
+            <div id="decision-mode-ui" class="flex-grow">
+                <div class="flex justify-between items-center mb-1">
+                    <h3 id="sdg-title" class="font-bold text-lg text-amber-950">應對氣候變遷 (SDG 13)</h3>
+                    <span class="text-xs text-amber-800 font-semibold" id="sdg-subtype">氣候行動事件</span>
+                </div>
+               
+                <!-- 5分鐘倒數計時器 -->
+                <div class="flex items-center gap-2 mb-2">
+                    <div id="sdg-timer" class="text-xs text-red-600 font-bold bg-red-100 border border-red-300 px-2 py-1 rounded inline-block">
+                        ⏳ 剩餘決策時間：05:00
+                    </div>
+                    <button onclick="speedUpTimer()" class="text-[10px] bg-slate-800 text-white px-2 py-0.5 rounded border border-black hover:bg-slate-700 active:translate-y-0.5" title="跳過等待直接結算">
+                        ⏩ 立即結算
+                    </button>
+                </div>
+
+
+                <p id="sdg-desc" class="text-sm text-slate-800 leading-relaxed mb-4">
+                    極端氣候來襲，島嶼面臨海平面上升與暴雨威脅，城市需要儘快做出防洪與應對措施。
+                </p>
+
+
+                <!-- 決策按鈕雙選 -->
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button id="opt-1-btn" onclick="makeDecision(1)" class="pixel-btn-green py-2 px-4 rounded text-xs sm:text-sm font-bold flex-1 flex items-center justify-center gap-1">
+                        💧 建設生態防洪堤防
+                    </button>
+                    <button id="opt-2-btn" onclick="makeDecision(2)" class="pixel-btn-red py-2 px-4 rounded text-xs sm:text-sm font-bold flex-1 flex items-center justify-center gap-1">
+                        🧱 置之不理，優先發展經濟
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- 模式 2：剩餘時間休息/建設介面 -->
+            <div id="rest-mode-ui" class="flex-grow hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <h3 class="font-bold text-lg text-emerald-950">☕ 市長休息與建設時間</h3>
+                    <span class="text-xs text-emerald-800 font-semibold">自由島嶼建設</span>
+                </div>
+               
+                <!-- 剩餘休息時間倒數 -->
+                <div class="flex items-center gap-2 mb-2">
+                    <div id="rest-timer" class="text-xs text-emerald-700 font-bold bg-emerald-100 border border-emerald-300 px-3 py-1 rounded inline-block animate-pulse">
+                        ⏳ 剩餘休息時間：04:30
+                    </div>
+                </div>
+
+
+                <p class="text-sm text-slate-800 leading-relaxed mb-4">
+                    決策已成功下達！在下一波考驗來臨之前，您可以好好放鬆。利用剛剛幫島民省下的<strong>剩餘時間</strong>，在 3D 地圖上自由點擊<strong>造林 🌳、建蓋住宅 🏡、興建工業 🏭</strong>，把我們的家園打造得更好！
+                </p>
+
+
+                <button onclick="endRestEarly()" class="pixel-btn-green w-full py-2 px-4 rounded text-xs sm:text-sm font-bold flex items-center justify-center gap-1">
+                    ⏭️ 結束休息，進入下一項永續任務
+                </button>
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <!-- 右下角：引導對話氣泡 -->
+    <div class="absolute bottom-24 right-4 pointer-events-none animate-bounce">
+        <div class="pixel-panel bg-amber-50 p-3 max-w-[180px] relative text-xs text-slate-800 font-bold">
+            💡 市長！<br>提早決策省下的時間，可以用來好好規劃與建設島嶼喔！
+            <div class="absolute bottom-[-10px] right-6 w-0 h-0 border-t-[10px] border-t-slate-800 border-x-[8px] border-x-transparent"></div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+    // 遊戲核心數據
+    let state = {
+        eco: 60,
+        econ: 50,
+        society: 55,
+        year: 1,
+        buildType: 'tree', // 當前玩家點擊地面要蓋的方塊類型
+        placedBlocks: {}, // 紀錄已被佔用的地圖座標
+        activeEventIndex: 0,
+        isResting: false // 是否正處於剩餘時間休息狀態
+    };
+
+
+    // 倒數計時器變數 (預設 5 分鐘 = 300 秒)
+    const QUESTION_TIME_LIMIT = 300;
+    let timeLeft = QUESTION_TIME_LIMIT;
+    let timerInterval = null;
+
+
+    // 音效合成器 (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, type, duration) {
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            osc.type = type || 'sine';
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        } catch(e) {}
+    }
+
+
+    // 決策事件庫 (對應多個 SDGs)
+    const SDG_EVENTS = [
+        {
+            sdg: 13,
+            badgeBg: '#ef4444', // 紅色
+            title: "氣候行動 (SDG 13)",
+            subtype: "氣候適應決策",
+            desc: "預報顯示今年將有強烈颱風與暴潮。如果不做防範，沿海居民的住宅將面臨嚴重威脅，但建設需要大量資金。",
+            opt1: "🌳 強建綠色防潮林與堤防 (生態+15, 社會+10, 經濟-15)",
+            opt2: "🏭 忽視預防，繼續擴建工廠區 (生態-20, 經濟+25, 社會-15)",
+            effect1: { eco: 15, society: 10, econ: -15, spawn: 'green_wall' },
+            effect2: { eco: -20, society: -15, econ: 25, spawn: 'smog_voxel' }
+        },
+        {
+            sdg: 6,
+            badgeBg: '#2563eb', // 藍色
+            title: "潔淨水與衛生 (SDG 6)",
+            subtype: "水資源管理",
+            desc: "島上工業用水增加，導致地下水源出現輕微重金屬污染。是否撥款興建生態淨水方塊廠？",
+            opt1: "💧 興建濕地淨水方塊系統 (生態+15, 社會+10, 經濟-10)",
+            opt2: "⚠️ 直接排放並加收水費 (生態-15, 經濟+15, 社會-10)",
+            effect1: { eco: 15, society: 10, econ: -10, spawn: 'water_filter' },
+            effect2: { eco: -15, society: -10, econ: 15, spawn: 'polluted_mud' }
+        },
+        {
+            sdg: 4,
+            badgeBg: '#ea580c', // 橘色
+            title: "優質教育 (SDG 4)",
+            subtype: "人才與社會投資",
+            desc: "島上科技轉型，缺乏具備永續意識的技術人員。是否在島上設立『環保實驗小學校』？",
+            opt1: "🏫 撥款興建綠色實驗小學 (社會+20, 生態+5, 經濟-15)",
+            opt2: "💼 開放海外低薪勞工引進 (經濟+15, 社會-15, 生態-5)",
+            effect1: { eco: 5, society: 20, econ: -15, spawn: 'school' },
+            effect2: { eco: -5, society: -15, econ: 15, spawn: 'shack' }
+        },
+        {
+            sdg: 11,
+            badgeBg: '#16a34a', // 綠色
+            title: "永續城鄉 (SDG 11)",
+            subtype: "綠色交通網絡",
+            desc: "城市燃油車輛過多造成空氣品質惡化。交通局提議擴建輕軌路網，但必須徵收部分森林綠地。",
+            opt1: "🚊 興建全線低碳輕軌 (社會+15, 經濟+10, 生態-10)",
+            opt2: "🚗 維持現狀，補助柴油車 (經濟+5, 社會-5, 生態-10)",
+            effect1: { eco: -10, society: 15, econ: 10, spawn: 'light_rail' },
+            effect2: { eco: -10, society: -5, econ: 5, spawn: 'smoke' }
+        },
+        {
+            sdg: 7,
+            badgeBg: '#ca8a04', // 黃色
+            title: "可負擔能源 (SDG 7)",
+            subtype: "能源轉型",
+            desc: "島嶼電力吃緊，面臨限電危機。玩家需要選擇未來的核心發電來源方式。",
+            opt1: "🌀 投資建置風能與太陽能板 (生態+20, 經濟-15, 社會+5)",
+            opt2: "🔥 興建低成本燃煤發電廠 (經濟+20, 生態-25, 社會-5)",
+            effect1: { eco: 20, society: 5, econ: -15, spawn: 'wind_turbine' },
+            effect2: { eco: -25, society: -5, econ: 20, spawn: 'coal_plant' }
+        }
+    ];
+
+
+    // Three.js 環境設定
+    let scene, camera, renderer, raycaster, mouse;
+    const GRID_SIZE = 14; // 地圖網格大小 (14x14)
+
+
+    function init3D() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xdbeafe); // 像素天空藍
+
+
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 10;
+        camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+        camera.position.set(15, 15, 15);
+        camera.lookAt(0, 0, 0);
+
+
+        renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('render-canvas'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+
+
+        // 燈光設置
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+
+        generateVoxelTerrain();
+
+
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+
+        window.addEventListener('click', onCanvasClick);
+        window.addEventListener('resize', onWindowResize);
+
+
+        animate();
+        loadEvent(0);
+    }
+
+
+    // 建立 Voxel 方塊世界的物件
+    function createVoxelMesh(width, height, depth, color) {
+        const geo = new THREE.BoxGeometry(width, height, depth);
+        const mat = new THREE.MeshLambertMaterial({ color: color });
+        const mesh = new THREE.Mesh(geo, mat);
+       
+        const edges = new THREE.EdgesGeometry(geo);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x27272a, linewidth: 2 }));
+        mesh.add(line);
+       
+        return mesh;
+    }
+
+
+    // 生成等角 3D 地形
+    function generateVoxelTerrain() {
+        const half = GRID_SIZE / 2;
+
+
+        for (let x = -half; x < half; x++) {
+            for (let z = -half; z < half; z++) {
+                let terrainType = 'grass';
+
+
+                if (x + z >= -2 && x + z <= 0) {
+                    terrainType = 'water';
+                } else if (x + z === -3 || x + z === 1) {
+                    terrainType = 'sand';
+                } else if (x < -1) {
+                    terrainType = 'forest_soil';
+                } else {
+                    terrainType = 'urban';
+                }
+
+
+                let color = 0x5a9e45;
+                let height = 0.5;
+
+
+                if (terrainType === 'water') {
+                    color = 0x2563eb;
+                    height = 0.3;
+                } else if (terrainType === 'sand') {
+                    color = 0xfef08a;
+                    height = 0.45;
+                } else if (terrainType === 'forest_soil') {
+                    color = 0x15803d;
+                    height = 0.6;
+                } else if (terrainType === 'urban') {
+                    color = 0x78716c;
+                    height = 0.5;
+                }
+
+
+                const baseBlock = createVoxelMesh(0.95, height, 0.95, color);
+                baseBlock.position.set(x, height / 2 - 0.5, z);
+               
+                baseBlock.userData = { isGround: true, x: x, z: z, type: terrainType };
+                scene.add(baseBlock);
+
+
+                if (terrainType === 'forest_soil' && Math.random() > 0.45) {
+                    spawnTreeVoxel(x, z);
+                }
+
+
+                if (terrainType === 'urban' && Math.random() > 0.7) {
+                    if (x > 3 && z > 3) {
+                        spawnOfficeTower(x, z);
+                    } else {
+                        spawnHouseVoxel(x, z);
+                    }
+                }
+            }
+        }
+    }
+
+
+    // 建造 Voxel 物件
+    function spawnTreeVoxel(x, z) {
+        const key = `${x},${z}`;
+        state.placedBlocks[key] = 'tree';
+
+
+        const group = new THREE.Group();
+        group.position.set(x, 0, z);
+
+
+        const trunk = createVoxelMesh(0.25, 0.8, 0.25, 0x78350f);
+        trunk.position.y = 0.4;
+        group.add(trunk);
+
+
+        const leaves = createVoxelMesh(0.7, 0.7, 0.7, 0x15803d);
+        leaves.position.y = 0.9;
+        group.add(leaves);
+
+
+        const leavesTop = createVoxelMesh(0.4, 0.4, 0.4, 0x166534);
+        leavesTop.position.y = 1.35;
+        group.add(leavesTop);
+
+
+        scene.add(group);
+    }
+
+
+    function spawnHouseVoxel(x, z) {
+        const key = `${x},${z}`;
+        state.placedBlocks[key] = 'house';
+
+
+        const group = new THREE.Group();
+        group.position.set(x, 0, z);
+
+
+        const colors = [0xf472b6, 0x60a5fa, 0xfbbf24, 0x34d399, 0xa78bfa];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+
+        const body = createVoxelMesh(0.7, 0.6, 0.7, randomColor);
+        body.position.y = 0.3;
+        group.add(body);
+
+
+        const roof = createVoxelMesh(0.8, 0.3, 0.8, 0xef4444);
+        roof.position.y = 0.7;
+        group.add(roof);
+
+
+        scene.add(group);
+    }
+
+
+    function spawnOfficeTower(x, z) {
+        const key = `${x},${z}`;
+        state.placedBlocks[key] = 'tower';
+
+
+        const group = new THREE.Group();
+        group.position.set(x, 0, z);
+
+
+        const h = 1.5 + Math.random() * 1.5;
+        const body = createVoxelMesh(0.7, h, 0.7, 0x94a3b8);
+        body.position.y = h / 2;
+        group.add(body);
+
+
+        const antenna = createVoxelMesh(0.1, 0.4, 0.1, 0x475569);
+        antenna.position.set(0, h + 0.2, 0);
+        group.add(antenna);
+
+
+        scene.add(group);
+    }
+
+
+    function spawnFactoryVoxel(x, z) {
+        const key = `${x},${z}`;
+        state.placedBlocks[key] = 'factory';
+
+
+        const group = new THREE.Group();
+        group.position.set(x, 0, z);
+
+
+        const body = createVoxelMesh(0.8, 0.6, 0.8, 0x4b5563);
+        body.position.y = 0.3;
+        group.add(body);
+
+
+        const chimney = createVoxelMesh(0.2, 0.8, 0.2, 0x1f2937);
+        chimney.position.set(0.2, 0.8, 0.2);
+        group.add(chimney);
+
+
+        scene.add(group);
+    }
+
+
+    function spawnDecisionEffectVoxel(type) {
+        const half = GRID_SIZE / 2;
+        let spawnedCount = 0;
+
+
+        for (let x = -half; x < half; x++) {
+            for (let z = -half; z < half; z++) {
+                const key = `${x},${z}`;
+                if (!state.placedBlocks[key] && spawnedCount < 3) {
+                    if (type === 'green_wall' && (x+z === -4 || x+z === 2)) {
+                        spawnTreeVoxel(x, z);
+                        spawnedCount++;
+                    } else if (type === 'smog_voxel' && x > 2) {
+                        const smog = createVoxelMesh(0.6, 0.6, 0.6, 0x1e1b4b);
+                        smog.position.set(x, 0.3, z);
+                        scene.add(smog);
+                        state.placedBlocks[key] = 'smog';
+                        spawnedCount++;
+                    } else if (type === 'water_filter' && (x+z >= -3 && x+z <= 1)) {
+                        const filter = createVoxelMesh(0.7, 0.7, 0.7, 0x38bdf8);
+                        filter.position.set(x, 0.35, z);
+                        scene.add(filter);
+                        state.placedBlocks[key] = 'filter';
+                        spawnedCount++;
+                    } else if (type === 'school' && x > 1 && z < 1) {
+                        spawnHouseVoxel(x, z);
+                        spawnedCount++;
+                    }
+                }
+            }
+        }
+    }
+
+
+    function onCanvasClick(event) {
+        if (event.target.id !== 'render-canvas') return;
+
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+
+
+        if (intersects.length > 0) {
+            let hitObj = intersects[0].object;
+            while (hitObj.parent && !hitObj.userData.isGround) {
+                hitObj = hitObj.parent;
+            }
+
+
+            if (hitObj.userData && hitObj.userData.isGround) {
+                const { x, z } = hitObj.userData;
+                const key = `${x},${z}`;
+
+
+                if (state.placedBlocks[key]) {
+                    playBeep(150, 'square', 0.1);
+                    return;
+                }
+
+
+                playBeep(600, 'triangle', 0.15);
+               
+                if (state.buildType === 'tree') {
+                    spawnTreeVoxel(x, z);
+                    state.eco = Math.min(100, state.eco + 5);
+                    state.society = Math.min(100, state.society + 1);
+                } else if (state.buildType === 'house') {
+                    spawnHouseVoxel(x, z);
+                    state.society = Math.min(100, state.society + 6);
+                    state.econ = Math.min(100, state.econ + 2);
+                    state.eco = Math.max(0, state.eco - 2);
+                } else if (state.buildType === 'factory') {
+                    spawnFactoryVoxel(x, z);
+                    state.econ = Math.min(100, state.econ + 8);
+                    state.eco = Math.max(0, state.eco - 6);
+                }
+
+
+                updateUI();
+            }
+        }
+    }
+
+
+    function changeBuildType(type) {
+        state.buildType = type;
+        playBeep(450, 'sine', 0.08);
+
+
+        ['tree', 'house', 'factory'].forEach(t => {
+            const btn = document.getElementById(`btn-${t}`);
+            if (t === type) {
+                btn.style.borderColor = '#ffffff';
+                btn.style.boxShadow = '0 0 12px rgba(255, 255, 255, 0.8)';
+            } else {
+                btn.style.borderColor = '#1e293b';
+                btn.style.boxShadow = 'none';
+            }
+        });
+    }
+
+
+    // 啟動倒數計時器
+    function startQuestionTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        timeLeft = QUESTION_TIME_LIMIT;
+        updateTimerUI();
+
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                if (state.isResting) {
+                    endRestPhase(); // 休息倒數完了，自動進入下一題
+                } else {
+                    onTimerExpired(); // 答題時間完結，自動執行選項 2
+                }
+            }
+        }, 1000);
+    }
+
+
+    // 更新計時器 UI
+    function updateTimerUI() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+       
+        if (state.isResting) {
+            // 休息模式 UI 更新
+            document.getElementById('rest-timer').innerText = `⏳ 剩餘休息時間：${formattedTime}`;
+        } else {
+            // 答題模式 UI 更新
+            const timerElement = document.getElementById('sdg-timer');
+            timerElement.innerText = `⏳ 剩餘決策時間：${formattedTime}`;
+
+
+            if (timeLeft < 30) {
+                timerElement.classList.add('animate-pulse', 'bg-red-200', 'text-red-700');
+                timerElement.classList.remove('bg-red-100', 'text-red-600');
+            } else {
+                timerElement.classList.remove('animate-pulse', 'bg-red-200', 'text-red-700');
+                timerElement.classList.add('bg-red-100', 'text-red-600');
+            }
+        }
+    }
+
+
+    // 決策時間終了，自動懲罰
+    function onTimerExpired() {
+        showMessage("⏰ 決策時間終了！市長不作為，系統強制套用選項 [2] 後果。");
+        makeDecision(2);
+    }
+
+
+    // 立即結算
+    function speedUpTimer() {
+        playBeep(220, 'square', 0.1);
+        timeLeft = 1;
+        updateTimerUI();
+    }
+
+
+    // 載入決策事件
+    function loadEvent(index) {
+        state.isResting = false;
+       
+        // 切換回預設卡片外觀與 UI 區塊
+        document.getElementById('main-pixel-card').classList.remove('rest-mode-active');
+        document.getElementById('decision-mode-ui').classList.remove('hidden');
+        document.getElementById('rest-mode-ui').classList.add('hidden');
+
+
+        if (index >= SDG_EVENTS.length) {
+            state.year += 1;
+            document.getElementById('year-val').innerText = state.year;
+            state.activeEventIndex = 0;
+            loadEvent(0);
+            return;
+        }
+
+
+        const ev = SDG_EVENTS[index];
+        state.activeEventIndex = index;
+
+
+        const badge = document.getElementById('sdg-badge');
+        badge.innerText = ev.sdg;
+        badge.style.backgroundColor = ev.badgeBg;
+        badge.style.borderColor = `${ev.badgeBg}aa`;
+
+
+        document.getElementById('sdg-title').innerText = ev.title;
+        document.getElementById('sdg-subtype').innerText = ev.subtype;
+        document.getElementById('sdg-desc').innerText = ev.desc;
+
+
+        document.getElementById('opt-1-btn').innerText = ev.opt1;
+        document.getElementById('opt-2-btn').innerText = ev.opt2;
+
+
+        playBeep(800, 'square', 0.2);
+        startQuestionTimer();
+    }
+
+
+    // 執行決策
+    function makeDecision(option) {
+        // 先暫時清除原來的答題計時
+        if (timerInterval) clearInterval(timerInterval);
+
+
+        const ev = SDG_EVENTS[state.activeEventIndex];
+        let effect = option === 1 ? ev.effect1 : ev.effect2;
+
+
+        state.eco = Math.max(0, Math.min(100, state.eco + effect.eco));
+        state.econ = Math.max(0, Math.min(100, state.econ + effect.econ));
+        state.society = Math.max(0, Math.min(100, state.society + effect.society));
+
+
+        if (effect.spawn) {
+            spawnDecisionEffectVoxel(effect.spawn);
+        }
+
+
+        playBeep(option === 1 ? 523 : 392, 'sine', 0.15);
+        setTimeout(() => playBeep(option === 1 ? 659 : 311, 'sine', 0.2), 150);
+
+
+        updateUI();
+
+
+        // 檢查是否有剩餘時間，並進入「休息與建設階段」
+        if (timeLeft > 0) {
+            startRestPhase();
+        } else {
+            // 沒有剩餘時間直接載入下一題
+            transitionToNext();
+        }
+    }
+
+
+    // 啟動休息/自由建設階段
+    function startRestPhase() {
+        state.isResting = true;
+       
+        // 播放療癒音效
+        playBeep(440, 'sine', 0.3);
+        setTimeout(() => playBeep(554, 'sine', 0.3), 100);
+        setTimeout(() => playBeep(659, 'sine', 0.4), 200);
+
+
+        // 切換卡片為綠色放鬆調，並替換為休息介面
+        document.getElementById('main-pixel-card').classList.add('rest-mode-active');
+        document.getElementById('decision-mode-ui').classList.add('hidden');
+        document.getElementById('rest-mode-ui').classList.remove('hidden');
+
+
+        // 計時器會繼續倒數剩餘時間
+        updateTimerUI();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endRestPhase();
+            }
+        }, 1000);
+
+
+        showMessage(`🎉 決策完成！您獲得了 ${Math.floor(timeLeft / 60)} 分 ${timeLeft % 60} 秒 的自由建設休息時間！`);
+    }
+
+
+    // 結束休息階段
+    function endRestPhase() {
+        if (timerInterval) clearInterval(timerInterval);
+        transitionToNext();
+    }
+
+
+    // 市長點擊提前結束休息
+    function endRestEarly() {
+        playBeep(330, 'triangle', 0.1);
+        endRestPhase();
+    }
+
+
+    // 滑動轉場到下一題
+    function transitionToNext() {
+        const cardContainer = document.getElementById('sdg-card-container');
+        cardContainer.classList.add('translate-y-44', 'opacity-0');
+
+
+        setTimeout(() => {
+            loadEvent(state.activeEventIndex + 1);
+            cardContainer.classList.remove('translate-y-44', 'opacity-0');
+        }, 600);
+    }
+
+
+    function updateUI() {
+        document.getElementById('eco-bar').style.width = `${state.eco}%`;
+        document.getElementById('eco-text').innerText = `${state.eco}%`;
+
+
+        document.getElementById('econ-bar').style.width = `${state.econ}%`;
+        document.getElementById('econ-text').innerText = `${state.econ}%`;
+
+
+        document.getElementById('society-bar').style.width = `${state.society}%`;
+        document.getElementById('society-text').innerText = `${state.society}%`;
+
+
+        const average = (state.eco + state.econ + state.society) / 3;
+        const balancePenalty = Math.max(Math.abs(state.eco - state.econ), Math.abs(state.econ - state.society)) * 0.4;
+        const finalScore = Math.max(0, Math.round(average - balancePenalty));
+
+
+        document.getElementById('score-val').innerText = finalScore;
+
+
+        if (state.eco <= 10) {
+            document.getElementById('eco-bar').style.backgroundColor = '#ef4444';
+        } else {
+            document.getElementById('eco-bar').style.backgroundColor = '#10b981';
+        }
+    }
+
+
+    function showMessage(txt) {
+        const msg = document.createElement('div');
+        msg.className = "fixed bottom-48 left-1/2 -translate-x-1/2 bg-slate-900 border-2 border-white text-white p-3 z-50 pointer-events-none rounded shadow-xl text-xs";
+        msg.innerText = txt;
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 4000);
+    }
+
+
+    function onWindowResize() {
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = 10;
+        camera.left = -d * aspect;
+        camera.right = d * aspect;
+        camera.top = d;
+        camera.bottom = -d;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+
+    function animate() {
+        requestAnimationFrame(animate);
+        const time = Date.now() * 0.0003;
+       
+        camera.position.x = 15 + Math.sin(time) * 1.5;
+        camera.position.z = 15 + Math.cos(time) * 1.5;
+        camera.lookAt(0, 0, 0);
+
+
+        renderer.render(scene, camera);
+    }
+
+
+    window.onload = () => {
+        init3D();
+        changeBuildType('tree');
+    };
+</script>
+
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>

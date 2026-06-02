@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>自訂極限反應遊戲 - My Custom Reaction Game</title>
+    <!-- Tailwind CSS for sleek utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for futuristic and premium look -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js for immersive 3D Environment -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #0f0c1b 0%, #05020a 100%);
+            color: #f3f4f6;
+            overflow: hidden;
+            touch-action: none; /* Prevents default zooming/scrolling on mobile */
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Custom smooth transitions */
+        .page-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Premium Glowing Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 10, 25, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .neon-shadow-blue {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);
+        }
+        .neon-shadow-pink {
+            box-shadow: 0 0 25px rgba(236, 72, 153, 0.25);
+        }
+        .neon-shadow-emerald {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+        }
+        /* Eyelid closing animation classes */
+        .eyelid-top {
+            transform: translateY(-100%);
+            transition: transform 1.5s ease-in-out;
+        }
+        .eyelid-bottom {
+            transform: translateY(100%);
+            transition: transform 1.5s ease-in-out;
+        }
+        .eyelids-closed .eyelid-top {
+            transform: translateY(0%);
+        }
+        .eyelids-closed .eyelid-bottom {
+            transform: translateY(0%);
+        }
+        /* First-person visual effects */
+        .fp-blur {
+            filter: blur(12px);
+            transition: filter 2.5s ease-in-out;
+        }
+        .silhouette-advance {
+            transform: scale(2.4) translateY(45px) !important;
+            opacity: 1 !important;
+        }
+        /* Glitch Effect for time freeze */
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-5px, 5px) }
+            40% { transform: translate(-5px, -5px) }
+            60% { transform: translate(5px, 5px) }
+            80% { transform: translate(5px, -5px) }
+            100% { transform: translate(0) }
+        }
+        .glitch-active {
+            animation: glitch 0.15s infinite;
+            filter: invert(1) hue-rotate(180deg);
+        }
+
+        /* Joystick styles for mobile walk */
+        .joystick-zone {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            position: relative;
+            touch-action: none;
+        }
+        .joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.4), rgba(168,85,247,0.4));
+            border: 2px solid rgba(168,85,247,0.6);
+            border-radius: 50%;
+            position: absolute;
+            left: 35px;
+            top: 35px;
+            touch-action: none;
+            box-shadow: 0 0 15px rgba(168,85,247,0.3);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col justify-between select-none relative">
+
+    <!-- Ambient background neon blobs -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-600/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <!-- Main Container -->
+    <main id="mainContainer" class="flex-grow flex items-center justify-center p-2 md:p-4 z-10">
+        
+        <!-- ================= MAIN MENU SCREEN ================= -->
+        <div id="mainMenu" class="page-transition w-full max-w-md flex flex-col items-center">
+            <!-- Game Title Banner -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center space-x-2 bg-white/5 border border-white/10 px-3 py-1 rounded-full mb-3 text-xs tracking-widest text-blue-400 font-orbitron">
+                    <span class="w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping"></span>
+                    <span>CREATIVE ENGINE ON</span>
+                </div>
+                <h1 id="gameMainTitle" class="text-4xl md:text-5xl font-orbitron font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-pink-500 py-1">
+                    REACT.X
+                </h1>
+                <p class="text-xs text-gray-400 tracking-widest mt-1 font-orbitron">YOUR REACTION GAME PROJECT</p>
+            </div>
+
+            <!-- Menu Action Buttons -->
+            <div class="w-full space-y-4">
+                <!-- Start Game Button -->
+                <button onclick="startGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-orbitron font-extrabold tracking-widest text-sm hover:brightness-110 active:scale-95 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play"></i>
+                    <span>進入遊戲</span>
+                </button>
+
+                <!-- Settings Button -->
+                <button onclick="openSettings()" class="w-full py-4 rounded-2xl glass-panel text-gray-200 hover:text-white font-orbitron font-bold tracking-widest text-sm hover:bg-white/5 border border-white/10 hover:border-white/20 active:scale-95 transition-all duration-200 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i>
+                    <span>設 定</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= INTRO CUTSCENE SCREEN (Automated First-Person View) ================= -->
+        <div id="introCutscene" class="hidden fixed inset-0 z-40 bg-black flex flex-col items-center justify-center p-6 select-none overflow-hidden">
+            <!-- Eyelids for closing eyes animation -->
+            <div id="eyelidTop" class="eyelid-top fixed top-0 left-0 w-full h-1/2 bg-black z-50 border-b border-gray-950"></div>
+            <div id="eyelidBottom" class="eyelid-bottom fixed bottom-0 left-0 w-full h-1/2 bg-black z-50 border-t border-gray-950"></div>
+
+            <!-- Skip Button -->
+            <button onclick="skipIntro()" class="absolute top-6 right-6 z-40 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-400 hover:text-white transition-all flex items-center gap-2 font-orbitron">
+                <span>跳過劇情 SKIP</span> <i class="fa-solid fa-angles-right"></i>
+            </button>
+
+            <!-- First-person narrative subtitle -->
+            <div id="fpNarrative" class="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-center text-sm md:text-base font-semibold tracking-wide text-indigo-200 max-w-lg px-6 py-3.5 bg-black/80 rounded-2xl border border-indigo-500/20 backdrop-blur-md pointer-events-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] z-50 transition-all duration-700 opacity-0"></div>
+
+            <!-- Screen Content Wrapper -->
+            <div id="cutsceneContent" class="w-full max-w-xl flex flex-col items-center justify-center h-full relative transition-all duration-1000">
+                
+                <!-- Scene 1: Mail Notification & Reading -->
+                <div id="sceneMail" class="hidden w-full glass-panel border border-blue-500/20 p-6 rounded-2xl shadow-2xl neon-shadow-blue flex flex-col max-w-md">
+                    <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4 text-xs font-mono text-blue-400">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+                            <span>未讀新郵件 (1)</span>
+                        </div>
+                        <span id="mailTime">Just Now</span>
+                    </div>
+                    <div class="text-sm font-bold text-white mb-2 font-orbitron">寄件者: 美好時光屋 &lt;challenge@timehouse.io&gt;</div>
+                    <div class="text-xs text-gray-400 mb-4">主旨: 誠摯邀請您參與限時極限挑戰</div>
+                    
+                    <div class="bg-black/60 p-4 rounded-xl text-sm leading-relaxed text-gray-200 border border-white/5 font-mono min-h-[160px] flex flex-col justify-between">
+                        <div id="mailTextContent" class="space-y-2 whitespace-pre-line text-green-400 font-semibold font-mono"></div>
+                        <div class="mt-4 text-[11px] text-gray-500 border-t border-white/5 pt-2 text-right">
+                            ※本信件為系統自動發送
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scene 2: Phone Dialing screen -->
+                <div id="scenePhone" class="hidden w-full max-w-xs flex flex-col items-center">
+                    <div class="glass-panel border border-white/10 rounded-3xl p-6 w-full text-center">
+                        <div class="text-xs text-gray-400 uppercase tracking-widest font-orbitron mb-2">撥號系統</div>
+                        <div id="phoneNumberDisplay" class="text-2xl font-orbitron font-bold tracking-widest text-emerald-400 h-8 mb-6"></div>
+                        <!-- Phone Keypad simulation -->
+                        <div class="grid grid-cols-3 gap-3 mb-6 max-w-[200px] mx-auto opacity-40">
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">1</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">2</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">3</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">4</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">5</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">6</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">7</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">8</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">9</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">*</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">0</div>
+                            <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-xs">#</div>
+                        </div>
+                        <div id="phoneStatus" class="text-xs text-gray-500 italic animate-pulse">撥號中...</div>
+                    </div>
+                </div>
+
+                <!-- Scene 3: Time Freeze & Mystery Door appearing -->
+                <div id="sceneMystery" class="hidden w-full flex flex-col items-center justify-center text-center">
+                    <div id="portalContainer" class="relative w-48 h-72 flex items-center justify-center mb-8">
+                        <div id="portalGlow" class="absolute inset-0 bg-indigo-500/30 rounded-full blur-3xl opacity-0 transition-all duration-[2000ms] scale-50"></div>
+                        <div id="portalDoor" class="w-0 h-0 bg-gradient-to-t from-violet-950 via-indigo-900 to-fuchsia-950 border-2 border-fuchsia-500/0 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.4)] flex items-center justify-center overflow-hidden transition-all duration-[2500ms] relative">
+                            <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:16px_16px] animate-pulse"></div>
+                            <div id="silhouettes" class="flex gap-10 items-end justify-center w-full h-full pb-6 opacity-0 transition-all duration-[3000ms] delay-500 transform scale-75">
+                                <div class="w-12 h-44 bg-black/95 rounded-t-full relative shadow-[0_0_25px_rgba(0,0,0,0.95)] border border-white/10 flex items-center justify-center">
+                                    <div class="w-3.5 h-3.5 bg-red-600 rounded-full blur-[2.5px] absolute top-6 opacity-80 animate-pulse"></div>
+                                </div>
+                                <div class="w-14 h-48 bg-black/95 rounded-t-full relative shadow-[0_0_25px_rgba(0,0,0,0.95)] border border-white/10 flex items-center justify-center">
+                                    <div class="w-3.5 h-3.5 bg-red-600 rounded-full blur-[2.5px] absolute top-7 opacity-80 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= PLAYABLE GAMEPLAY STAGE (3D First Person Room) ================= -->
+        <div id="gameplayStage" class="hidden page-transition w-full max-w-4xl glass-panel p-3 md:p-6 rounded-3xl border border-white/10 flex flex-col items-center">
+            <!-- Game Top Header Bar -->
+            <div class="w-full flex justify-between items-center mb-4 pb-3 border-b border-white/5">
+                <button onclick="backToMenu()" class="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-gray-300 hover:text-white flex items-center gap-2 transition">
+                    <i class="fa-solid fa-house"></i> 回主選單
+                </button>
+                <div class="flex items-center gap-4 text-xs">
+                    <span class="text-gray-400">難度: <span id="currentDiffDisplay" class="text-blue-400 font-bold font-orbitron">普通</span></span>
+                    <span class="text-gray-400 font-mono hidden md:inline">座標: <span id="coordsDisplay" class="text-emerald-400">X: 0.0, Z: 2.0</span></span>
+                </div>
+            </div>
+
+            <!-- First Person 3D Canvas Container -->
+            <div id="gamePlayground" class="w-full flex flex-col items-center relative h-[420px] md:h-[520px] rounded-2xl overflow-hidden bg-black border border-white/5">
+                
+                <!-- 3D Render Canvas Container -->
+                <div id="canvas3dContainer" class="w-full h-full absolute inset-0"></div>
+
+                <!-- Blurry wake-up state container overlay -->
+                <div id="wakeUpOverlay" class="absolute inset-0 bg-black z-20 flex flex-col items-center justify-center text-center p-6 page-transition">
+                    <div class="w-16 h-16 rounded-full border-2 border-white/10 border-t-indigo-500 animate-spin mb-4"></div>
+                    <div id="wakeUpText" class="text-gray-400 text-sm font-mono tracking-widest max-w-xs leading-relaxed animate-pulse">
+                        （意識模糊不清... 正努力試著睜開眼...）
+                    </div>
+                    <button id="wakeUpBtn" onclick="awakenAndStandUp()" class="hidden mt-6 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs tracking-wider font-orbitron shadow-lg shadow-indigo-500/30 transition-all active:scale-95">
+                        👁️ 睜開雙眼站起身來
+                    </button>
+                </div>
+
+                <!-- Proximity Object Investigation Interaction UI Prompt -->
+                <div id="investigatePrompt" class="hidden absolute bottom-28 bg-indigo-950/95 border-2 border-indigo-400/80 rounded-2xl px-5 py-3 shadow-lg neon-shadow-blue z-10 flex items-center gap-3 active:scale-95 transition-all cursor-pointer" onclick="triggerInvestigation()">
+                    <span class="w-7 h-7 bg-indigo-500 text-white flex items-center justify-center rounded-lg font-orbitron font-extrabold text-xs">E</span>
+                    <div class="text-left">
+                        <div class="text-xs font-bold text-white tracking-wide" id="investigateTitle">調查金屬大門</div>
+                        <div class="text-[10px] text-indigo-300">點擊或按下鍵盤 [E] 鍵互動</div>
+                    </div>
+                </div>
+
+                <!-- First Person Subtitles HUD (Now overlayed inside the 3D canvas viewport!) -->
+                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-[92%] md:w-[80%] bg-slate-950/95 border border-indigo-500/35 rounded-2xl p-3 md:p-4 min-h-[64px] flex items-center justify-center z-30 shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+                    <div class="absolute top-1.5 left-3 text-[9px] font-orbitron tracking-widest text-indigo-400 uppercase flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-ping"></span>
+                        <span>主角心聲 Subtitles</span>
+                    </div>
+                    <p id="roomSubtitles" class="text-center text-xs md:text-sm text-indigo-200 font-semibold max-w-2xl leading-relaxed">
+                        （意識完全黑去，此處似乎與先前的地方徹底隔絕……）
+                    </p>
+                </div>
+
+                <!-- Touch Controls Overlay for Mobile Devices (Virtual Joysticks) -->
+                <div id="mobileControls" class="absolute inset-x-0 bottom-24 px-6 flex justify-between items-center pointer-events-none z-10 hidden">
+                    <!-- Left Joystick: Walk -->
+                    <div class="pointer-events-auto" id="moveJoystickZone">
+                        <div class="joystick-zone" id="walkJoystick">
+                            <div class="joystick-knob" id="walkKnob"></div>
+                        </div>
+                    </div>
+                    <!-- Screen Drag hint for mobile look -->
+                    <div class="text-[10px] text-gray-500/60 font-semibold font-mono text-right leading-tight max-w-[120px]">
+                        👉 滑動螢幕右側<br>以環顧四周
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Exploration controls instructions -->
+            <div class="w-full p-2 text-center text-[10px] text-gray-500 font-mono hidden md:block mt-2">
+                🎮 控制方式：使用鍵盤 <span class="text-gray-300 font-bold">W / A / S / D</span> 或 <span class="text-gray-300 font-bold">方向鍵</span> 來自由移動走動，在畫面上 <span class="text-gray-300 font-bold">按住滑鼠左鍵並拖曳</span> 可旋轉視角。
+            </div>
+        </div>
+
+        <!-- ================= SETTINGS OVERLAY MODAL ================= -->
+        <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="glass-panel w-full max-w-md rounded-3xl p-6 border border-white/10 neon-shadow-pink relative overflow-hidden">
+                <div class="flex justify-between items-center mb-6 pb-3 border-b border-white/10">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-gear text-pink-500"></i>
+                        <h3 class="text-lg font-orbitron font-extrabold text-white tracking-wider">設定中心</h3>
+                    </div>
+                    <button onclick="closeSettings()" class="text-gray-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-6 py-2">
+                    <!-- Setting Item 1: Sound FX -->
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm font-semibold text-gray-100">遊戲音效 (SFX)</div>
+                            <div class="text-[11px] text-gray-400">開啟或關閉合成器互動音效</div>
+                        </div>
+                        <button id="toggleSoundBtn" onclick="toggleSound()" class="w-16 h-8 rounded-full bg-blue-500/20 border border-blue-500/40 p-1 flex items-center transition-all duration-300 cursor-pointer">
+                            <span id="soundSwitchKnob" class="w-6 h-6 rounded-full bg-blue-400 shadow-md transform translate-x-8 transition-all duration-300"></span>
+                        </button>
+                    </div>
+
+                    <!-- Setting Item 2: Difficulty Selection -->
+                    <div class="space-y-2">
+                        <div>
+                            <div class="text-sm font-semibold text-gray-100">遊戲難易度</div>
+                            <div class="text-[11px] text-gray-400">這將影響未來遊戲的點擊時間與目標生成速度</div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button onclick="setDifficulty('easy')" id="diffBtn-easy" class="py-2.5 rounded-xl border border-white/5 bg-white/5 text-xs font-bold text-gray-300 hover:bg-white/10 transition">
+                                簡單
+                            </button>
+                            <button onclick="setDifficulty('medium')" id="diffBtn-medium" class="py-2.5 rounded-xl border border-blue-500/30 bg-blue-950/20 text-xs font-bold text-blue-400 shadow-inner transition">
+                                普通
+                            </button>
+                            <button onclick="setDifficulty('hard')" id="diffBtn-hard" class="py-2.5 rounded-xl border border-white/5 bg-white/5 text-xs font-bold text-gray-300 hover:bg-white/10 transition">
+                                困難
+                            </button>
+                            <button onclick="setDifficulty('nightmare')" id="diffBtn-nightmare" class="py-2.5 rounded-xl border border-white/5 bg-white/5 text-xs font-bold text-gray-300 hover:bg-white/10 transition">
+                                噩夢
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Setting Item 3: Color Theme -->
+                    <div class="space-y-2">
+                        <div>
+                            <div class="text-sm font-semibold text-gray-100">主題風格</div>
+                            <div class="text-[11px] text-gray-400">切換遊戲的主視覺燈光顏色</div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="setTheme('cyan')" class="w-8 h-8 rounded-full bg-cyan-500 border-2 border-white/20 active:scale-90 transition shadow-lg shadow-cyan-500/20"></button>
+                            <button onclick="setTheme('pink')" class="w-8 h-8 rounded-full bg-pink-500 border-2 border-transparent active:scale-90 transition shadow-lg shadow-pink-500/20"></button>
+                            <button onclick="setTheme('indigo')" class="w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent active:scale-90 transition shadow-lg shadow-indigo-500/20"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button onclick="closeSettings()" class="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-black font-orbitron font-extrabold text-xs tracking-wider shadow-lg shadow-pink-500/10 active:scale-95 transition">
+                        儲存並套用
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="p-4 text-center text-[10px] text-gray-500 font-orbitron">
+        SYSTEM REACT ENGINE // DESIGN BY YOU
+    </footer>
+
+    <script>
+        /* ================= GAME CONFIG STATE ================= */
+        const config = {
+            soundEnabled: true,
+            difficulty: 'medium', // easy, medium, hard, nightmare
+            theme: 'indigo', // cyan, pink, indigo
+            hasPlayedIntro: false
+        };
+
+        /* ================= AUDIO SYNTHESIZER (Web Audio API) ================= */
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBeep(frequency, type = 'sine', duration = 0.08, volume = 0.1) {
+            if (!config.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                
+                gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playDialTone(num) {
+            if (!config.soundEnabled) return;
+            try {
+                initAudio();
+                const frequencies = {
+                    '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+                    '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+                    '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+                    '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
+                };
+
+                const f = frequencies[num];
+                if (!f) return;
+
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc1.frequency.value = f[0];
+                osc2.frequency.value = f[1];
+                osc1.type = 'sine';
+                osc2.type = 'sine';
+
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc1.start();
+                osc2.start();
+                osc1.stop(audioCtx.currentTime + 0.15);
+                osc2.stop(audioCtx.currentTime + 0.15);
+            } catch (e) {}
+        }
+
+        function playMailSound() {
+            playBeep(880, 'triangle', 0.2, 0.15);
+            setTimeout(() => playBeep(1320, 'triangle', 0.3, 0.1), 100);
+        }
+
+        function playTimeFreezeSound() {
+            if (!config.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 1.2);
+                
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1.2);
+            } catch (e){}
+        }
+
+        function playPortalHum() {
+            if (!config.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 60;
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 3.0);
+            } catch (e){}
+        }
+
+        function playHeartbeat() {
+            playBeep(45, 'sine', 0.35, 0.35);
+            setTimeout(() => playBeep(42, 'sine', 0.45, 0.3), 150);
+        }
+
+        function playDraggingSound() {
+            if (!config.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 2.0);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.0);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 2.0);
+            } catch(e){}
+        }
+
+        function playSelectSound() {
+            playBeep(523.25, 'sine', 0.1, 0.12); // C5
+            setTimeout(() => playBeep(659.25, 'sine', 0.1, 0.12), 60); // E5
+        }
+
+        function playCloseSound() {
+            playBeep(440, 'triangle', 0.12, 0.1); // A4
+            setTimeout(() => playBeep(349.23, 'triangle', 0.12, 0.1), 60); // F4
+        }
+
+        function playClickSound() {
+            playBeep(880, 'sine', 0.05, 0.15); // A5
+        }
+        
+        function playSwooshSound() {
+            if (!config.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e){}
+        }
+
+        /* ================= INTRO CUTSCENE ENGINE (1st Person Film) ================= */
+        let cutsceneTimer = null;
+        const mailMessage = "歡迎光臨，\n這裡是「美好時光屋」！✨\n\n我們即將推出一項極限難度挑戰——\n贏得第一名的挑戰者，可獲得現金獎金 30 萬元！💰\n\n若您有興趣挑戰，請立刻撥打這串專屬通訊號碼進行報名：\n📞 0000 1111 44332";
+
+        function showNarrative(text) {
+            const narrative = document.getElementById('fpNarrative');
+            narrative.innerText = text;
+            narrative.classList.remove('opacity-0');
+            narrative.classList.add('opacity-100');
+        }
+
+        function hideNarrative() {
+            const narrative = document.getElementById('fpNarrative');
+            narrative.classList.remove('opacity-100');
+            narrative.classList.add('opacity-0');
+        }
+
+        function startIntroCutscene() {
+            const menu = document.getElementById('mainMenu');
+            const intro = document.getElementById('introCutscene');
+            
+            menu.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                menu.classList.add('hidden');
+                intro.classList.remove('hidden');
+                intro.classList.remove('eyelids-closed');
+                
+                document.getElementById('sceneMail').classList.add('hidden');
+                document.getElementById('scenePhone').classList.add('hidden');
+                document.getElementById('sceneMystery').classList.add('hidden');
+                document.getElementById('cutsceneContent').classList.remove('fp-blur');
+                document.getElementById('portalDoor').className = "w-0 h-0 bg-gradient-to-t from-violet-950 via-indigo-900 to-fuchsia-950 border-2 border-fuchsia-500/0 rounded-2xl shadow-[0_0_50px_rgba(168,85,247,0.4)] flex items-center justify-center overflow-hidden transition-all duration-[2500ms] relative";
+                document.getElementById('portalGlow').className = "absolute inset-0 bg-indigo-500/30 rounded-full blur-3xl opacity-0 transition-all duration-[2000ms] scale-50";
+                document.getElementById('silhouettes').className = "flex gap-10 items-end justify-center w-full h-full pb-6 opacity-0 transition-all duration-[3000ms] delay-500 transform scale-75";
+
+                showNarrative("（半夜兩點，窗外雷雨交加。我疲憊地癱坐在舊書桌前...）");
+                
+                cutsceneTimer = setTimeout(() => {
+                    showNarrative("（突然，寂靜的房間裡響起了清脆的信件提示音。）");
+                    cutsceneTimer = setTimeout(triggerMailScene, 2200);
+                }, 3000);
+            }, 250);
+        }
+
+        function triggerMailScene() {
+            hideNarrative();
+            const mailPanel = document.getElementById('sceneMail');
+            mailPanel.classList.remove('hidden');
+            mailPanel.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                mailPanel.classList.remove('opacity-0', 'scale-95');
+                mailPanel.classList.add('transition-all', 'duration-500');
+                playMailSound();
+            }, 50);
+
+            const textContainer = document.getElementById('mailTextContent');
+            textContainer.innerHTML = '';
+            let index = 0;
+
+            function typeNextChar() {
+                if (index < mailMessage.length) {
+                    const char = mailMessage[index];
+                    if (char === '\n') {
+                        textContainer.innerHTML += '<br>';
+                    } else {
+                        textContainer.innerHTML += char;
+                    }
+                    if (index % 3 === 0) {
+                        playBeep(1200, 'sine', 0.02, 0.05);
+                    }
+                    index++;
+                    cutsceneTimer = setTimeout(typeNextChar, 30);
+                } else {
+                    cutsceneTimer = setTimeout(() => {
+                        showNarrative("（獲得三十萬獎金的絕佳機會... 雖然感覺很可疑，但身無分文的我，根本別無選擇...）");
+                        cutsceneTimer = setTimeout(() => {
+                            showNarrative("（我深吸一口氣，緩緩拿起了放在桌上的舊手機...）");
+                            cutsceneTimer = setTimeout(triggerPhoneCallScene, 3000);
+                        }, 3500);
+                    }, 1500);
+                }
+            }
+            
+            cutsceneTimer = setTimeout(typeNextChar, 1000);
+        }
+
+        function triggerPhoneCallScene() {
+            hideNarrative();
+            document.getElementById('sceneMail').classList.add('hidden');
+            
+            const phonePanel = document.getElementById('scenePhone');
+            phonePanel.classList.remove('hidden');
+            
+            const numberDisplay = document.getElementById('phoneNumberDisplay');
+            const targetNumber = "0000111144332";
+            numberDisplay.innerHTML = "";
+            let digitIdx = 0;
+
+            showNarrative("（我照著信件上的號碼，一個一個數字撥了出去...）");
+
+            function dialNextDigit() {
+                if (digitIdx < targetNumber.length) {
+                    const num = targetNumber[digitIdx];
+                    numberDisplay.innerHTML += (digitIdx === 4 || digitIdx === 8 ? ' ' : '') + num;
+                    playDialTone(num);
+                    digitIdx++;
+                    cutsceneTimer = setTimeout(dialNextDigit, 250);
+                } else {
+                    document.getElementById('phoneStatus').innerText = "連線中...";
+                    playBeep(440, 'sine', 0.3, 0.1);
+                    cutsceneTimer = setTimeout(() => {
+                        document.getElementById('phoneStatus').innerText = "通話已接通！";
+                        playBeep(600, 'sine', 0.1, 0.15);
+                        
+                        showNarrative("（電話那頭是一片詭異的死寂，連最細微的沙沙雜音都沒有...）");
+                        cutsceneTimer = setTimeout(() => {
+                            showNarrative("（！不對勁... 為什麼房間的電燈開始不自然地閃爍？）");
+                            cutsceneTimer = setTimeout(triggerTimeFreeze, 2500);
+                        }, 2500);
+                    }, 1200);
+                }
+            }
+
+            cutsceneTimer = setTimeout(dialNextDigit, 1500);
+        }
+
+        function triggerTimeFreeze() {
+            hideNarrative();
+            const mainContainer = document.getElementById('mainContainer');
+            mainContainer.classList.add('glitch-active');
+            playTimeFreezeSound();
+
+            setTimeout(() => {
+                mainContainer.classList.remove('glitch-active');
+                document.getElementById('scenePhone').classList.add('hidden');
+                
+                const mysteryPanel = document.getElementById('sceneMystery');
+                mysteryPanel.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    playPortalHum();
+                    const portal = document.getElementById('portalDoor');
+                    portal.classList.add('w-48', 'h-72', 'border-fuchsia-500/80');
+                    document.getElementById('portalGlow').classList.remove('opacity-0', 'scale-50');
+                    document.getElementById('portalGlow').classList.add('opacity-100', 'scale-100');
+                    
+                    showNarrative("（耳鳴聲震耳欲聾... 手機螢幕徹底熄滅，牆壁居然開始撕裂了？！）");
+
+                    cutsceneTimer = setTimeout(() => {
+                        showNarrative("（虛空之中，一扇黑紫色的巨門憑空在我的臥室中央升起...）");
+                        
+                        cutsceneTimer = setTimeout(() => {
+                            document.getElementById('silhouettes').classList.remove('opacity-0');
+                            showNarrative("（門... 緩緩開啟了。兩道模糊而高大的黑影從深邃的黑暗中走了出來！）");
+                            
+                            cutsceneTimer = setTimeout(() => {
+                                document.getElementById('silhouettes').classList.add('silhouette-advance');
+                                showNarrative("（等等... 他們正筆直地朝我走過來！不要，動啊！我的身體動不了...！）");
+                                
+                                cutsceneTimer = setTimeout(triggerBlackoutCloseEyes, 3500);
+                            }, 3000);
+                        }, 3500);
+                    }, 3000);
+
+                }, 100);
+
+            }, 600);
+        }
+
+        function triggerBlackoutCloseEyes() {
+            const intro = document.getElementById('introCutscene');
+            const content = document.getElementById('cutsceneContent');
+            
+            content.classList.add('fp-blur');
+            showNarrative("（視線完全失焦... 頭好重... 意識正在迅速被抽離...）");
+            
+            intro.classList.add('eyelids-closed');
+            playHeartbeat();
+
+            setTimeout(() => {
+                intro.classList.remove('eyelids-closed');
+                content.style.filter = "blur(12px)";
+                
+                setTimeout(() => {
+                    showNarrative("（在徹底閉上眼的前一秒... 我感覺到那兩雙冰冷的手，抓住了我的肩膀...）");
+                    intro.classList.add('eyelids-closed');
+                    playHeartbeat();
+                    playDraggingSound();
+
+                    setTimeout(() => {
+                        showNarrative("（我... 被他們強行拖進了門後的未知深淵中...）");
+                        setTimeout(() => {
+                            endIntroAndProceedToGame();
+                        }, 3000);
+                    }, 1000);
+
+                }, 1800);
+
+            }, 1200);
+        }
+
+        function endIntroAndProceedToGame() {
+            clearTimeout(cutsceneTimer);
+            config.hasPlayedIntro = true;
+            hideNarrative();
+            
+            const intro = document.getElementById('introCutscene');
+            const stage = document.getElementById('gameplayStage');
+            
+            intro.classList.add('opacity-0');
+            setTimeout(() => {
+                intro.classList.add('hidden');
+                intro.classList.remove('opacity-0', 'eyelids-closed');
+                stage.classList.remove('hidden');
+                stage.classList.remove('opacity-0', 'scale-95');
+                
+                // Initialize the 3D Scene and Waking Up sequence
+                init3DScene();
+                triggerPlayableWakingUp();
+            }, 300);
+        }
+
+        function skipIntro() {
+            playCloseSound();
+            endIntroAndProceedToGame();
+        }
+
+        /* ================= ROUTING CONTROLLER ================= */
+        function startGame() {
+            playSelectSound();
+            if (!config.hasPlayedIntro) {
+                startIntroCutscene();
+            } else {
+                const menu = document.getElementById('mainMenu');
+                const stage = document.getElementById('gameplayStage');
+                menu.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                    stage.classList.remove('hidden');
+                    setTimeout(() => {
+                        stage.classList.remove('opacity-0', 'scale-95');
+                        init3DScene();
+                        triggerPlayableWakingUp();
+                    }, 50);
+                }, 250);
+            }
+        }
+
+        function backToMenu() {
+            playCloseSound();
+            cancelAnimationFrame(animationFrameId);
+            window.removeEventListener('resize', onWindowResize);
+            
+            const menu = document.getElementById('mainMenu');
+            const stage = document.getElementById('gameplayStage');
+            
+            stage.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                stage.classList.add('hidden');
+                menu.classList.remove('hidden');
+                setTimeout(() => {
+                    menu.classList.remove('opacity-0', 'scale-95');
+                }, 50);
+            }, 250);
+        }
+
+
+        /* =====================================================================
+           ================= 3D FIRST-PERSON ENGINE (Three.js) =================
+           ===================================================================== */
+        let scene, camera, renderer, animationFrameId;
+        let flashlight, environmentLight;
+        
+        // Player state
+        const player = {
+            position: new THREE.Vector3(0, 1.2, 2.5), // Wake up on the bed (at back Z positive)
+            rotation: { yaw: 0, pitch: 0 },
+            speed: 0.05,
+            isLocked: false,
+            radius: 0.4
+        };
+
+        // Key states
+        const keys = { w: false, a: false, s: false, d: false, e: false };
+
+        // 3D Interactive Objects Config
+        const interactiveObjects = [
+            {
+                name: 'door',
+                displayName: '調查金屬大門 (北)',
+                pos: new THREE.Vector3(0, 1, -4.5),
+                radius: 1.5,
+                subtitles: "<span class='text-white font-extrabold'>（主角：）</span>這門緊閉著... 上面的電子鎖寫著「TIME_LOCK」... 這真的要考驗反應力解鎖嗎？"
+            },
+            {
+                name: 'terminal',
+                displayName: '調查系統終端機 (東)',
+                pos: new THREE.Vector3(4.2, 0.9, 0),
+                radius: 1.5,
+                subtitles: "<span class='text-white font-extrabold'>（主角：）</span>終端機螢幕正劇烈地閃爍著……看來隨時可以按下按鈕，開始極限反應挑戰！"
+            },
+            {
+                name: 'bed',
+                displayName: '調查合金床鋪 (南)',
+                pos: new THREE.Vector3(0, 0.4, 2.5),
+                radius: 1.5,
+                subtitles: "<span class='text-white font-extrabold'>（主角：）</span>這是剛才我昏迷醒來的窄床……上面冰冷刺骨，根本沒有床墊，真不舒服。"
+            },
+            {
+                name: 'clock',
+                displayName: '調查重力全息投影 (西)',
+                pos: new THREE.Vector3(-4.5, 1.5, 0),
+                radius: 1.5,
+                subtitles: "<span class='text-white font-extrabold'>（主角：）</span>西牆上的圓環時鐘是投影出來的……它停在 00:00，隱約發出陣陣蜂鳴聲。"
+            }
+        ];
+
+        let nearbyObject = null; // Currently close-by object
+
+        // Virtual Touch Joystick parameters (Mobile)
+        let isMobile = false;
+        let joystickActive = false;
+        let joystickStart = { x: 0, y: 0 };
+        let joystickCur = { x: 0, y: 0 };
+        const joystickLimit = 40;
+        let touchMoveVector = { x: 0, y: 0 };
+
+        // Mouse Drag View Look parameters (Desktop)
+        let isDraggingView = false;
+        let prevMousePos = { x: 0, y: 0 };
+
+        function init3DScene() {
+            const container = document.getElementById('canvas3dContainer');
+            container.innerHTML = ''; // Clear prior canvas
+
+            // Check if mobile
+            isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            const mobileOverlay = document.getElementById('mobileControls');
+            if (isMobile) {
+                mobileOverlay.classList.remove('hidden');
+                setupMobileJoystick();
+            } else {
+                mobileOverlay.classList.add('hidden');
+            }
+
+            // Create Scene
+            scene = new THREE.Scene();
+            // Completely disable fog and set a slightly brighter navy-blue ambient background tone
+            scene.background = new THREE.Color(0x0e0d1f);
+
+            // Create Camera
+            camera = new THREE.PerspectiveCamera(70, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.rotation.order = 'YXZ'; // Important for first-person FPS rotation
+            scene.add(camera);
+
+            // Create WebGL Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Handle Resizing
+            window.addEventListener('resize', onWindowResize);
+
+            // Generate Room and Furnitures
+            build3DRoom();
+
+            // Setup Lights
+            setupLights();
+
+            // Set Initial Player State
+            player.position.set(0, 1.2, 2.3); // Laying near/on bed
+            player.rotation.yaw = Math.PI; // Look towards North (which is opposite bed)
+            player.rotation.pitch = -0.1;
+            
+            updateCameraPosition();
+
+            // Bind Control Listeners
+            setupControls();
+
+            // Start loop
+            animate();
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas3dContainer');
+            if (!container || !camera || !renderer) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function setupLights() {
+            // Handheld Flashlight (attached to camera)
+            flashlight = new THREE.SpotLight(0xffffff, 2.0, 15, Math.PI / 5, 0.6, 1);
+            flashlight.castShadow = true;
+            flashlight.shadow.mapSize.width = 512;
+            flashlight.shadow.mapSize.height = 512;
+            flashlight.shadow.camera.near = 0.5;
+            flashlight.shadow.camera.far = 15;
+            
+            camera.add(flashlight);
+            flashlight.position.set(0, 0, 0);
+
+            // Create separate target for flashlight, placed ahead of camera
+            const lightTarget = new THREE.Object3D();
+            camera.add(lightTarget);
+            lightTarget.position.set(0, 0, -1);
+            flashlight.target = lightTarget;
+
+            // 大幅調高環境白光強度，讓房間一覽無遺！
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
+            scene.add(ambientLight);
+
+            // 將原本昏暗的電燈，升級為明亮舒適的白色 LED 主燈 (強度從 1.3 提升至 2.2)
+            environmentLight = new THREE.PointLight(0xffffff, 2.2, 24);
+            environmentLight.position.set(0, 3.4, 0);
+            environmentLight.castShadow = true;
+            scene.add(environmentLight);
+        }
+
+        function build3DRoom() {
+            // Room box size: Width: 10, Height: 4, Depth: 10
+            const roomSize = 10;
+            const halfSize = roomSize / 2;
+
+            // Textures / Procedural Mats helper
+            function createWallMaterial(colorHex) {
+                return new THREE.MeshStandardMaterial({
+                    color: colorHex,
+                    roughness: 0.8,
+                    metalness: 0.9,
+                    bumpScale: 0.05
+                });
+            }
+
+            // Floor
+            const floorGeo = new THREE.PlaneGeometry(roomSize, roomSize, 10, 10);
+            const floorMat = createWallMaterial(0x11111d);
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Ceiling
+            const ceilGeo = new THREE.PlaneGeometry(roomSize, roomSize);
+            const ceilMat = createWallMaterial(0x0a0a10);
+            const ceiling = new THREE.Mesh(ceilGeo, ceilMat);
+            ceiling.rotation.x = Math.PI / 2;
+            ceiling.position.y = 4;
+            ceiling.receiveShadow = true;
+            scene.add(ceiling);
+
+            // ---------------- 新增：天花板 3D 燈具實體模型 ----------------
+            const lampGroup = new THREE.Group();
+            lampGroup.position.set(0, 3.8, 0); // 置於天花板正中央下方
+
+            // 燈具底座 (深金屬色盒體)
+            const lampBaseGeo = new THREE.BoxGeometry(2.2, 0.15, 0.5);
+            const lampBaseMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.3 });
+            const lampBase = new THREE.Mesh(lampBaseGeo, lampBaseMat);
+            lampGroup.add(lampBase);
+
+            // 發光燈條本身 (白色高自發光面板)
+            const lightBarGeo = new THREE.BoxGeometry(2.0, 0.05, 0.3);
+            const lightBarMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); // 發出強烈白光
+            const lightBar = new THREE.Mesh(lightBarGeo, lightBarMat);
+            lightBar.position.y = -0.09;
+            lampGroup.add(lightBar);
+
+            scene.add(lampGroup);
+
+            // ---------------- FURNITURE 1: 3D Bed (South) ----------------
+            const bedGroup = new THREE.Group();
+            bedGroup.position.set(0, 0, 2.5);
+
+            // Bed Frame
+            const frameGeo = new THREE.BoxGeometry(1.6, 0.4, 2.2);
+            const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8, roughness: 0.4 });
+            const frame = new THREE.Mesh(frameGeo, frameMat);
+            frame.position.y = 0.2;
+            frame.castShadow = true;
+            frame.receiveShadow = true;
+            bedGroup.add(frame);
+
+            // Metal Pillow
+            const pillowGeo = new THREE.BoxGeometry(1.2, 0.15, 0.4);
+            const pillowMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9, roughness: 0.6 });
+            const pillow = new THREE.Mesh(pillowGeo, pillowMat);
+            pillow.position.set(0, 0.45, 0.8);
+            bedGroup.add(pillow);
+
+            scene.add(bedGroup);
+
+            // ---------------- FURNITURE 2: 3D Metal Door & Electronic Lock (North) ----------------
+            const doorGroup = new THREE.Group();
+            doorGroup.position.set(0, 0, -4.8);
+
+            // Steel door panel
+            const panelGeo = new THREE.BoxGeometry(2.4, 3.0, 0.15);
+            const panelMat = new THREE.MeshStandardMaterial({ color: 0x1e1b4b, metalness: 0.95, roughness: 0.2 });
+            const doorPanel = new THREE.Mesh(panelGeo, panelMat);
+            doorPanel.position.y = 1.5;
+            doorPanel.castShadow = true;
+            doorGroup.add(doorPanel);
+
+            // Cyber lock glow node
+            const lockGeo = new THREE.SphereGeometry(0.08, 16, 16);
+            const lockMat = new THREE.MeshBasicMaterial({ color: 0xef4444 }); // red light
+            const lockNode = new THREE.Mesh(lockGeo, lockMat);
+            lockNode.position.set(1.0, 1.4, 0.12);
+            doorGroup.add(lockNode);
+
+            // Local Red Light at the lock
+            const lockLight = new THREE.PointLight(0xef4444, 0.6, 1.5);
+            lockLight.position.set(1.0, 1.4, 0.15);
+            doorGroup.add(lockLight);
+
+            scene.add(doorGroup);
+
+            // ---------------- FURNITURE 3: 3D System Terminal Desk (East) ----------------
+            const termGroup = new THREE.Group();
+            termGroup.position.set(4.5, 0, 0);
+
+            // Desk
+            const deskGeo = new THREE.BoxGeometry(0.8, 0.75, 1.8);
+            const deskMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.7, roughness: 0.5 });
+            const desk = new THREE.Mesh(deskGeo, deskMat);
+            desk.position.x = -0.4;
+            desk.position.y = 0.375;
+            desk.castShadow = true;
+            desk.receiveShadow = true;
+            termGroup.add(desk);
+
+            // Screen/Monitor Box
+            const monGeo = new THREE.BoxGeometry(0.15, 0.6, 0.8);
+            const monMat = new THREE.MeshStandardMaterial({ color: 0x020617, metalness: 0.9, roughness: 0.1 });
+            const monitor = new THREE.Mesh(monGeo, monMat);
+            monitor.position.set(-0.5, 1.05, 0);
+            monitor.castShadow = true;
+            termGroup.add(monitor);
+
+            // Emissive Screen glowing green
+            const screenGeo = new THREE.BoxGeometry(0.02, 0.5, 0.7);
+            const screenMat = new THREE.MeshBasicMaterial({ color: 0x10b981 }); // emerald matrix glow
+            const screen = new THREE.Mesh(screenGeo, screenMat);
+            screen.position.set(-0.57, 1.05, 0);
+            termGroup.add(screen);
+
+            // Local Screen Light shining on the room
+            const termLight = new THREE.PointLight(0x10b981, 1.5, 4);
+            termLight.position.set(-0.8, 1.05, 0);
+            termGroup.add(termLight);
+
+            scene.add(termGroup);
+
+            // ---------------- FURNITURE 4: Holographic Gravity Projection (West) ----------------
+            const projGroup = new THREE.Group();
+            projGroup.position.set(-4.5, 1.5, 0);
+
+            // Hologram project base cylinder
+            const baseGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.1, 16);
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9, roughness: 0.3 });
+            const base = new THREE.Mesh(baseGeo, baseMat);
+            base.position.y = -1.45;
+            base.position.x = 0.1;
+            projGroup.add(base);
+
+            // Floating pink ring representation
+            const ringGeo = new THREE.TorusGeometry(0.5, 0.05, 16, 48);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0xec4899 }); // Neon pink
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.y = Math.PI / 2;
+            projGroup.add(ring);
+
+            // Floating small central core sphere
+            const coreGeo = new THREE.SphereGeometry(0.12, 16, 16);
+            const coreMat = new THREE.MeshBasicMaterial({ color: 0xfff });
+            const core = new THREE.Mesh(coreGeo, coreMat);
+            projGroup.add(core);
+
+            // Local holographic light
+            const holoLight = new THREE.PointLight(0xec4899, 1.2, 3.5);
+            holoLight.position.set(0.3, 0, 0);
+            projGroup.add(holoLight);
+
+            scene.add(projGroup);
+        }
+
+        /* ================= 3D CONTROLS IMPLEMENTATION ================= */
+        function setupControls() {
+            // Reset keys
+            keys.w = keys.a = keys.s = keys.d = keys.e = false;
+
+            // Keyboard Listeners
+            window.addEventListener('keydown', onKeyDown);
+            window.addEventListener('keyup', onKeyUp);
+
+            // Mouse Drag to Look Listeners
+            const container = document.getElementById('canvas3dContainer');
+            container.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+
+            // Touch Drag to Look Listeners (Mobile View Swipe)
+            container.addEventListener('touchstart', onTouchStartLook, { passive: true });
+            window.addEventListener('touchmove', onTouchMoveLook, { passive: false });
+            window.addEventListener('touchend', onTouchEndLook);
+        }
+
+        function onKeyDown(e) {
+            if (!roomState.isAwake) return;
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    keys.w = true;
+                    break;
+                case 's':
+                case 'arrowdown':
+                    keys.s = true;
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    keys.a = true;
+                    break;
+                case 'd':
+                case 'arrowright':
+                    keys.d = true;
+                    break;
+                case 'e':
+                    keys.e = true;
+                    if (nearbyObject) triggerInvestigation();
+                    break;
+            }
+        }
+
+        function onKeyUp(e) {
+            switch (e.key.toLowerCase()) {
+                case 'w':
+                case 'arrowup':
+                    keys.w = false;
+                    break;
+                case 's':
+                case 'arrowdown':
+                    keys.s = false;
+                    break;
+                case 'a':
+                case 'arrowleft':
+                    keys.a = false;
+                    break;
+                case 'd':
+                case 'arrowright':
+                    keys.d = false;
+                    break;
+                case 'e':
+                    keys.e = false;
+                    break;
+            }
+        }
+
+        // --- Mouse Drag rotation (More stable in sandboxed environment than PointerLock) ---
+        function onMouseDown(e) {
+            if (!roomState.isAwake) return;
+            isDraggingView = true;
+            prevMousePos.x = e.clientX;
+            prevMousePos.y = e.clientY;
+        }
+
+        function onMouseMove(e) {
+            if (!isDraggingView || !roomState.isAwake) return;
+            const deltaX = e.clientX - prevMousePos.x;
+            const deltaY = e.clientY - prevMousePos.y;
+
+            prevMousePos.x = e.clientX;
+            prevMousePos.y = e.clientY;
+
+            // Rotate camera (Yaw left-right, Pitch up-down)
+            player.rotation.yaw -= deltaX * 0.003;
+            player.rotation.pitch -= deltaY * 0.003;
+
+            // Clamp vertical rotation so player doesn't flip upside down
+            player.rotation.pitch = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, player.rotation.pitch));
+        }
+
+        function onMouseUp() {
+            isDraggingView = false;
+        }
+
+        // --- Mobile Touch Drag Look (Right Side Look Drag) ---
+        let lastTouchId = null;
+        let prevTouchPos = { x: 0, y: 0 };
+
+        function onTouchStartLook(e) {
+            if (!roomState.isAwake) return;
+            // Identify touch that is NOT inside the left joystick zone
+            const touches = e.changedTouches;
+            const container = document.getElementById('canvas3dContainer');
+            const rect = container.getBoundingClientRect();
+            
+            for (let i = 0; i < touches.length; i++) {
+                const t = touches[i];
+                const relX = t.clientX - rect.left;
+                // If touch is on right 60% of screen, count it as View Look drag
+                if (relX > container.clientWidth * 0.35) {
+                    lastTouchId = t.identifier;
+                    prevTouchPos.x = t.clientX;
+                    prevTouchPos.y = t.clientY;
+                    break;
+                }
+            }
+        }
+
+        function onTouchMoveLook(e) {
+            if (!roomState.isAwake || lastTouchId === null) return;
+            const touches = e.touches;
+            for (let i = 0; i < touches.length; i++) {
+                const t = touches[i];
+                if (t.identifier === lastTouchId) {
+                    // Prevent page bouncing on iOS/Android
+                    e.preventDefault();
+
+                    const deltaX = t.clientX - prevTouchPos.x;
+                    const deltaY = t.clientY - prevTouchPos.y;
+
+                    prevTouchPos.x = t.clientX;
+                    prevTouchPos.y = t.clientY;
+
+                    player.rotation.yaw -= deltaX * 0.004;
+                    player.rotation.pitch -= deltaY * 0.004;
+                    player.rotation.pitch = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, player.rotation.pitch));
+                    break;
+                }
+            }
+        }
+
+        function onTouchEndLook(e) {
+            const touches = e.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                if (touches[i].identifier === lastTouchId) {
+                    lastTouchId = null;
+                    break;
+                }
+            }
+        }
+
+        // --- Mobile Left Joystick for Walking ---
+        function setupMobileJoystick() {
+            const walkZone = document.getElementById('moveJoystickZone');
+            const walkKnob = document.getElementById('walkKnob');
+            const joystick = document.getElementById('walkJoystick');
+            
+            let joystickTouchId = null;
+
+            joystick.addEventListener('touchstart', (e) => {
+                if (!roomState.isAwake) return;
+                const touch = e.changedTouches[0];
+                joystickTouchId = touch.identifier;
+                joystickActive = true;
+
+                const rect = joystick.getBoundingClientRect();
+                joystickStart.x = rect.left + rect.width / 2;
+                joystickStart.y = rect.top + rect.height / 2;
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!joystickActive) return;
+                const touches = e.touches;
+                for (let i = 0; i < touches.length; i++) {
+                    const t = touches[i];
+                    if (t.identifier === joystickTouchId) {
+                        let dx = t.clientX - joystickStart.x;
+                        let dy = t.clientY - joystickStart.y;
+
+                        // Clamp distance to limit
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > joystickLimit) {
+                            dx = (dx / dist) * joystickLimit;
+                            dy = (dy / dist) * joystickLimit;
+                        }
+
+                        // Apply visual movement
+                        walkKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+
+                        // Calculate normalized move values between -1 and 1
+                        touchMoveVector.x = dx / joystickLimit;
+                        touchMoveVector.y = dy / joystickLimit;
+                        break;
+                    }
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchend', (e) => {
+                const touches = e.changedTouches;
+                for (let i = 0; i < touches.length; i++) {
+                    if (touches[i].identifier === joystickTouchId) {
+                        joystickTouchId = null;
+                        joystickActive = false;
+                        touchMoveVector.x = 0;
+                        touchMoveVector.y = 0;
+                        walkKnob.style.transform = `translate(0px, 0px)`;
+                        break;
+                    }
+                }
+            });
+        }
+
+
+        /* ================= FRAME UPDATE LOOP ================= */
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+
+            if (roomState.isAwake) {
+                // Update player position based on walking controls
+                updateMovement();
+                // Check proximity to key room objects
+                checkProximity();
+            }
+
+            // Sync visual camera
+            updateCameraPosition();
+
+            // 調整電燈閃爍邏輯：現在有明亮的常亮日光燈，只會有極低機率微微抖動，增加擬真度而不影響視線
+            if (environmentLight) {
+                if (Math.random() > 0.994) {
+                    environmentLight.intensity = 0.5 + Math.random() * 0.4; // 偶爾輕微閃爍
+                } else {
+                    environmentLight.intensity = THREE.MathUtils.lerp(environmentLight.intensity, 1.3, 0.08);
+                }
+            }
+
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        function updateMovement() {
+            let moveX = 0;
+            let moveZ = 0;
+
+            // Desktop Keyboard vector
+            if (keys.w) {
+                moveX -= Math.sin(player.rotation.yaw);
+                moveZ -= Math.cos(player.rotation.yaw);
+            }
+            if (keys.s) {
+                moveX += Math.sin(player.rotation.yaw);
+                moveZ += Math.cos(player.rotation.yaw);
+            }
+            if (keys.a) {
+                moveX -= Math.cos(player.rotation.yaw);
+                moveZ += Math.sin(player.rotation.yaw);
+            }
+            if (keys.d) {
+                moveX += Math.cos(player.rotation.yaw);
+                moveZ -= Math.sin(player.rotation.yaw);
+            }
+
+            // Mobile Joystick vector addition
+            if (joystickActive) {
+                // Joystick forward/backward scales along camera look direction
+                // Joystick left/right scales along camera normal
+                const lookX = -Math.sin(player.rotation.yaw);
+                const lookZ = -Math.cos(player.rotation.yaw);
+                const rightX = Math.cos(player.rotation.yaw);
+                const rightZ = -Math.sin(player.rotation.yaw);
+
+                moveX += lookX * (-touchMoveVector.y) + rightX * touchMoveVector.x;
+                moveZ += lookZ * (-touchMoveVector.y) + rightZ * touchMoveVector.x;
+            }
+
+            // Normalize vector to avoid faster diagonal speed
+            const length = Math.sqrt(moveX * moveX + moveZ * moveZ);
+            if (length > 0) {
+                moveX = (moveX / length) * player.speed;
+                moveZ = (moveZ / length) * player.speed;
+                
+                // Play gentle rhythmic footsteps based on timing
+                if (Math.floor(Date.now() / 320) % 2 === 0) {
+                    if (Math.random() > 0.85) playBeep(90, 'triangle', 0.05, 0.015); // soft footfall
+                }
+            }
+
+            // Predict next position
+            const targetX = player.position.x + moveX;
+            const targetZ = player.position.z + moveZ;
+
+            // --- Physical Room Collision Bounding Box (Walls at -5 and 5) ---
+            const limit = 5.0 - player.radius;
+            if (targetX > -limit && targetX < limit) {
+                player.position.x = targetX;
+            }
+            if (targetZ > -limit && targetZ < limit) {
+                player.position.z = targetZ;
+            }
+
+            // Local Object Bounding Solid Colliders
+            // 1. Bed block collision
+            const bedDistX = player.position.x - 0;
+            const bedDistZ = player.position.z - 2.5;
+            if (Math.abs(bedDistX) < 1.1 && Math.abs(bedDistZ) < 1.4) {
+                // Push player away from Bed center
+                const pushDirection = new THREE.Vector2(bedDistX, bedDistZ).normalize();
+                player.position.x += pushDirection.x * 0.08;
+                player.position.z += pushDirection.y * 0.08;
+            }
+
+            // 2. Terminal Desk collision
+            const termDistX = player.position.x - 4.2;
+            const termDistZ = player.position.z - 0;
+            if (Math.abs(termDistX) < 0.8 && Math.abs(termDistZ) < 1.2) {
+                player.position.x -= 0.08; // desk is on east wall, push back west
+            }
+
+            // Sync visual Coordinates HUD
+            document.getElementById('coordsDisplay').innerText = `X: ${player.position.x.toFixed(1)}, Z: ${player.position.z.toFixed(1)}`;
+        }
+
+        function checkProximity() {
+            let foundNearby = null;
+
+            for (let i = 0; i < interactiveObjects.length; i++) {
+                const obj = interactiveObjects[i];
+                const distance = player.position.distanceTo(obj.pos);
+                if (distance < obj.radius) {
+                    foundNearby = obj;
+                    break;
+                }
+            }
+
+            const prompt = document.getElementById('investigatePrompt');
+            const promptTitle = document.getElementById('investigateTitle');
+
+            if (foundNearby) {
+                nearbyObject = foundNearby;
+                promptTitle.innerText = foundNearby.displayName;
+                prompt.classList.remove('hidden');
+            } else {
+                nearbyObject = null;
+                prompt.classList.add('hidden');
+            }
+        }
+
+        function triggerInvestigation() {
+            if (!nearbyObject) return;
+            playSelectSound();
+            
+            // Pop subtitles monologue
+            const sub = document.getElementById('roomSubtitles');
+            sub.innerHTML = nearbyObject.subtitles;
+        }
+
+        function updateCameraPosition() {
+            camera.position.copy(player.position);
+            
+            // Apply rotations
+            camera.rotation.set(player.rotation.pitch, player.rotation.yaw, 0);
+        }
+
+
+
+        /* ================= PLOT 2: PLAYABLE ROOM LOGIC ================= */
+        const roomState = {
+            isAwake: false,
+            interactedObjects: {
+                door: false,
+                terminal: false,
+                bed: false,
+                clock: false
+            }
+        };
+
+        function triggerPlayableWakingUp() {
+            roomState.isAwake = false;
+            roomState.interactedObjects = { door: false, terminal: false, bed: false, clock: false };
+            
+            const overlay = document.getElementById('wakeUpOverlay');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('bg-black');
+            
+            const txt = document.getElementById('wakeUpText');
+            txt.innerText = "（……過了一段漫長的時間，我昏昏沉沉地醒來……）";
+            
+            const btn = document.getElementById('wakeUpBtn');
+            btn.classList.add('hidden');
+            
+            const sub = document.getElementById('roomSubtitles');
+            sub.innerText = "（主角：）唔……頭快要炸開了……這裡是哪裡？";
+            
+            setTimeout(() => {
+                txt.innerText = "（眼皮好沉重……周圍是一片冷冰冰的金屬牆壁……我是在床鋪上嗎？）";
+                playHeartbeat();
+                
+                setTimeout(() => {
+                    txt.innerText = "（我的手腳能動了，試著站起身來……）";
+                    btn.classList.remove('hidden');
+                }, 2000);
+            }, 2500);
+        }
+
+        function awakenAndStandUp() {
+            playSwooshSound();
+            
+            const overlay = document.getElementById('wakeUpOverlay');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            
+            roomState.isAwake = true;
+            
+            const sub = document.getElementById('roomSubtitles');
+            sub.innerHTML = "<span class='text-white font-extrabold'>（主角：）</span>這不是我的房間……我居然真的被抓進了那個『時光屋』嗎？！";
+            
+            // Low alert hum
+            playPortalHum();
+        }
+
+
+        /* ================= SETTINGS CONTROLLER ================= */
+        function openSettings() {
+            playSelectSound();
+            const modal = document.getElementById('settingsModal');
+            modal.classList.remove('hidden');
+            updateSettingsUI();
+        }
+
+        function closeSettings() {
+            playCloseSound();
+            const modal = document.getElementById('settingsModal');
+            modal.classList.add('hidden');
+        }
+
+        function toggleSound() {
+            config.soundEnabled = !config.soundEnabled;
+            playClickSound();
+            updateSettingsUI();
+            
+            document.getElementById('currentSoundDisplay').innerText = config.soundEnabled ? '開啟' : '關閉';
+        }
+
+        function setDifficulty(diff) {
+            config.difficulty = diff;
+            if (diff === 'nightmare') {
+                playBeep(330, 'sawtooth', 0.15, 0.12);
+            } else {
+                playClickSound();
+            }
+            updateSettingsUI();
+            
+            const textMap = { 'easy': '簡單', 'medium': '普通', 'hard': '困難', 'nightmare': '噩夢' };
+            document.getElementById('currentDiffDisplay').innerText = textMap[diff];
+        }
+
+        function setTheme(themeName) {
+            config.theme = themeName;
+            playClickSound();
+            
+            const title = document.getElementById('gameMainTitle');
+            if (themeName === 'cyan') {
+                title.className = "text-4xl md:text-5xl font-orbitron font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 py-1";
+                document.body.style.background = "radial-gradient(circle at center, #0a1b1c 0%, #01080a 100%)";
+            } else if (themeName === 'pink') {
+                title.className = "text-4xl md:text-5xl font-orbitron font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-300 to-rose-400 py-1";
+                document.body.style.background = "radial-gradient(circle at center, #1b0c16 0%, #0a0108 100%)";
+            } else { // indigo
+                title.className = "text-4xl md:text-5xl font-orbitron font-black tracking-widest bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-200 to-pink-500 py-1";
+                document.body.style.background = "radial-gradient(circle at center, #0f0c1b 0%, #05020a 100%)";
+            }
+        }
+
+        function updateSettingsUI() {
+            const knob = document.getElementById('soundSwitchKnob');
+            const btn = document.getElementById('toggleSoundBtn');
+            if (config.soundEnabled) {
+                knob.className = "w-6 h-6 rounded-full bg-blue-400 shadow-md transform translate-x-8 transition-all duration-300";
+                btn.className = "w-16 h-8 rounded-full bg-blue-500/20 border border-blue-500/40 p-1 flex items-center transition-all duration-300 cursor-pointer";
+            } else {
+                knob.className = "w-6 h-6 rounded-full bg-gray-600 shadow-md transform translate-x-0 transition-all duration-300";
+                btn.className = "w-16 h-8 rounded-full bg-gray-800 border border-gray-700 p-1 flex items-center transition-all duration-300 cursor-pointer";
+            }
+
+            ['easy', 'medium', 'hard', 'nightmare'].forEach(d => {
+                const button = document.getElementById(`diffBtn-${d}`);
+                if (!button) return;
+                
+                if (config.difficulty === d) {
+                    if (d === 'nightmare') {
+                        button.className = "py-2.5 rounded-xl border border-red-500/50 bg-red-950/30 text-xs font-bold text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.25)] transition duration-200 animate-pulse";
+                    } else {
+                        button.className = "py-2.5 rounded-xl border border-blue-500/30 bg-blue-950/20 text-xs font-bold text-blue-400 shadow-inner transition duration-200";
+                    }
+                } else {
+                    button.className = "py-2.5 rounded-xl border border-white/5 bg-white/5 text-xs font-bold text-gray-300 hover:bg-white/10 transition duration-200";
+                }
+            });
+        }
+    </script>
+
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>

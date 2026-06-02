@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八掌溪環保爭霸戰 - 雙模自選對戰版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --ps-blue: #003087;
+            --ps-action: #2e6db4;
+        }
+        body { margin: 0; overflow: hidden; background-color: #f0f9ff; font-family: 'Noto Sans TC', sans-serif; }
+        canvas { display: block; }
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        /* 震動特效 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.3s ease-in-out; }
+    </style>
+</head>
+<body>
+
+    <div id="hud" class="absolute top-5 left-5 p-5 rounded-2xl shadow-xl glass z-10 w-80">
+        <div class="font-bold text-lg text-sky-800 flex items-center gap-2 mb-2">
+            <span>🎮 雙模對戰版</span>
+            <span class="text-xs bg-sky-100 text-sky-600 px-2 py-0.5 rounded-full">已連線</span>
+        </div>
+        <div class="text-xs text-gray-500 mb-3 border-b pb-2">可隨時切換滑鼠點擊或 PS 搖桿</div>
+        <div class="space-y-1.5 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-600">目前學科等級:</span>
+                <span id="level-display" class="font-bold text-sky-600">社會大眾</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">玩家積分:</span>
+                <span id="score-display" class="font-bold text-amber-500 text-base">100</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">我的領地數量:</span>
+                <span id="owned-count-display" class="font-bold text-green-600">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="absolute top-5 right-5 p-4 rounded-xl text-white bg-slate-900/80 backdrop-blur-sm text-xs space-y-1.5 z-10 hidden md:block w-72">
+        <div class="font-bold text-sky-400 border-b border-slate-700 pb-1 mb-1">🕹️ 雙模控制指南</div>
+        <div><b>🖱️ 滑鼠：</b>直接移動選取地塊、點選道具或選單</div>
+        <div><b>🎮 把手：</b>左搖桿移動選框、<span class="bg-gray-700 px-1 rounded text-[10px]">❌</span>確認/送出</div>
+        <div><b>🎛️ 快捷鍵：</b><span class="bg-gray-700 px-1 rounded text-[10px]">▢</span>使用道具 | <span class="bg-gray-700 px-1 rounded text-[10px]">△</span>商店 | <span class="bg-gray-700 px-1 rounded text-[10px]">L1/R1</span>切換道具</div>
+    </div>
+
+    <div id="inventory" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 z-10">
+        <div class="item-slot w-20 h-20 bg-white rounded-2xl flex flex-col items-center justify-center border-3 border-gray-200 shadow-md cursor-pointer transition-all hover:scale-105" id="slot-cleaner" onclick="onItemClicked(0)">
+            <span class="text-3xl">🧪</span>
+            <p class="text-[10px] text-gray-500 font-bold mt-1">淨水藥劑</p>
+            <div class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow" id="count-cleaner">2</div>
+        </div>
+        <div class="item-slot w-20 h-20 bg-white rounded-2xl flex flex-col items-center justify-center border-3 border-gray-200 shadow-md cursor-pointer transition-all hover:scale-105" id="slot-shield" onclick="onItemClicked(1)">
+            <span class="text-3xl">🛡️</span>
+            <p class="text-[10px] text-gray-500 font-bold mt-1">生態盾牌</p>
+            <div class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow" id="count-shield">1</div>
+        </div>
+        <div class="item-slot w-20 h-20 bg-white rounded-2xl flex flex-col items-center justify-center border-3 border-gray-200 shadow-md cursor-pointer transition-all hover:scale-105" id="slot-hook" onclick="onItemClicked(2)">
+            <span class="text-3xl">🪝</span>
+            <p class="text-[10px] text-gray-500 font-bold mt-1">攔截網</p>
+            <div class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow" id="count-hook">1</div>
+        </div>
+        <button class="w-20 h-20 bg-amber-400 text-slate-800 rounded-2xl flex flex-col items-center justify-center shadow-lg font-bold hover:bg-amber-300 active:scale-95 transition-all" onclick="openShop()">
+            <span class="text-3xl">🛒</span>
+            <p class="text-xs mt-1">商店</p>
+        </button>
+    </div>
+
+    <div id="level-modal" class="modal fixed inset-0 bg-slate-950/80 backdrop-blur-md flex justify-center items-center z-50">
+        <div class="bg-white p-8 rounded-3xl w-[500px] text-center shadow-2xl border border-sky-100 max-h-[90vh] overflow-y-auto">
+            <span class="text-5xl">🌊</span>
+            <h2 class="text-2xl font-bold text-sky-900 mt-3 mb-2">選擇學習階段難度</h2>
+            <p class="text-sm text-gray-500 mb-6">題目會融合108課綱自然、生物、地理、理化等八掌溪考題</p>
+            <div id="level-options" class="space-y-3">
+                <div class="quiz-option p-4 border-2 border-gray-200 rounded-xl text-lg font-bold transition-all cursor-pointer hover:border-sky-500 hover:bg-sky-50 focused" data-lv="Public" onclick="selectLevelViaMouse('Public', 0)">社會大眾 (自然人文通識)</div>
+                <div class="quiz-option p-4 border-2 border-gray-200 rounded-xl text-lg font-bold transition-all cursor-pointer hover:border-sky-500 hover:bg-sky-50" data-lv="Elementary" onclick="selectLevelViaMouse('Elementary', 1)">國小學生 (自然科學基礎)</div>
+                <div class="quiz-option p-4 border-2 border-gray-200 rounded-xl text-lg font-bold transition-all cursor-pointer hover:border-sky-500 hover:bg-sky-50" data-lv="JuniorHigh" onclick="selectLevelViaMouse('JuniorHigh', 2)">國中學生 (生物、理化、地理)</div>
+                <div class="quiz-option p-4 border-2 border-gray-200 rounded-xl text-lg font-bold transition-all cursor-pointer hover:border-sky-500 hover:bg-sky-50" data-lv="SeniorHigh" onclick="selectLevelViaMouse('SeniorHigh', 3)">高中學生 (環境化學與 SDGs)</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-modal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden justify-center items-center z-40">
+        <div class="bg-white p-8 rounded-3xl w-[550px] shadow-2xl border border-sky-100">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-xs bg-sky-100 text-sky-700 px-3 py-1 rounded-full font-bold">📖 領地爭奪挑戰</span>
+                <span class="text-sm font-bold text-amber-500" id="quiz-score-reward">+20 積分</span>
+            </div>
+            <p id="quiz-text" class="text-xl font-bold text-slate-800 leading-relaxed mb-6"></p>
+            <div id="quiz-options" class="space-y-3"></div>
+            <p class="text-xs text-gray-400 text-center mt-6">滑鼠可直接點選作答，亦可推動搖桿後按 ❌ 確認提交</p>
+        </div>
+    </div>
+
+    <div id="build-modal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden justify-center items-center z-40">
+        <div class="bg-white p-8 rounded-3xl w-[550px] shadow-2xl text-center border border-sky-100">
+            <span class="text-4xl">🏗️</span>
+            <h3 class="text-2xl font-bold text-slate-800 mt-2 mb-1">成功奪回這塊空地！</h3>
+            <p class="text-sm text-gray-500 mb-6">請選擇您要在這片空地上建造的生態功能設施：</p>
+            
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <!-- 森林防護區 -->
+                <button onclick="buildStructure('forest')" class="p-4 border-2 border-green-200 rounded-2xl hover:bg-green-50 hover:border-green-500 transition-all flex flex-col items-center">
+                    <span class="text-4xl">🌲</span>
+                    <span class="font-bold text-green-800 mt-2 text-sm">森林防護區</span>
+                    <span class="text-[10px] text-gray-400 mt-1">防禦力特高<br>(極難被攻破)</span>
+                </button>
+                <!-- 人工濕地 -->
+                <button onclick="buildStructure('wetland')" class="p-4 border-2 border-sky-200 rounded-2xl hover:bg-sky-50 hover:border-sky-500 transition-all flex flex-col items-center">
+                    <span class="text-4xl">🌾</span>
+                    <span class="font-bold text-sky-800 mt-2 text-sm">人工濕地</span>
+                    <span class="text-[10px] text-gray-400 mt-1">積分產出<br>(每10秒+5分)</span>
+                </button>
+                <!-- 生態工法 -->
+                <button onclick="buildStructure('dike')" class="p-4 border-2 border-amber-200 rounded-2xl hover:bg-amber-50 hover:border-amber-500 transition-all flex flex-col items-center">
+                    <span class="text-4xl">🧱</span>
+                    <span class="font-bold text-amber-800 mt-2 text-sm">生態工法堤岸</span>
+                    <span class="text-[10px] text-gray-400 mt-1">護盾抗性提升<br>(可防禦強攻)</span>
+                </button>
+            </div>
+            <p class="text-xs text-gray-400">此為多人對局環境，請針對防守或經濟考量妥善分配資源</p>
+        </div>
+    </div>
+
+    <div id="shop-modal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-sm hidden justify-center items-center z-40">
+        <div class="bg-white p-8 rounded-3xl w-[480px] shadow-2xl border border-sky-100 text-center">
+            <span class="text-4xl">🛒</span>
+            <h3 class="text-2xl font-bold text-slate-800 mt-2 mb-6">環保資材商店</h3>
+            
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-center p-3 border rounded-xl hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">🧪</span>
+                        <div class="text-left">
+                            <h4 class="font-bold text-slate-800 text-sm">淨水藥劑</h4>
+                            <p class="text-[10px] text-gray-400">直接進化空地為濕地 (免答題)</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('cleaner', 40)" class="bg-amber-400 text-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-300">40 積分</button>
+                </div>
+                
+                <div class="flex justify-between items-center p-3 border rounded-xl hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">🛡️</span>
+                        <div class="text-left">
+                            <h4 class="font-bold text-slate-800 text-sm">生態盾牌</h4>
+                            <p class="text-[10px] text-gray-400">保護己方地塊，防禦對手強拆</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('shield', 60)" class="bg-amber-400 text-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-300">60 積分</button>
+                </div>
+
+                <div class="flex justify-between items-center p-3 border rounded-xl hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">🪝</span>
+                        <div class="text-left">
+                            <h4 class="font-bold text-slate-800 text-sm">攔截網</h4>
+                            <p class="text-[10px] text-gray-400">強行破壞對手防守或地塊</p>
+                        </div>
+                    </div>
+                    <button onclick="buyItem('hook', 80)" class="bg-amber-400 text-slate-800 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-300">80 積分</button>
+                </div>
+            </div>
+
+            <button onclick="closeShop()" class="w-full py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200">關閉商店</button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-32 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-sm font-bold py-3 px-6 rounded-full opacity-0 pointer-events-none transition-all z-50 shadow-lg"></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script type="module">
+        const fullQuizBank = {
+            'Public': [
+                { q: "嘉義八掌溪的名字由來，與早期開墾歷史的哪一項敘述最具關聯？", a: ["源自平埔族語八獎溪之音譯與灌溉合組之八圳", "因為溪流形狀像八隻張開的手掌", "河段原本只建有八座小木橋供人通行"], c: 0, reward: 20 },
+                { q: "若要落實 SDG 6 (潔淨水與衛生)，我們在洗碗時應盡量選用哪種類型的洗碗精？", a: ["含大量磷酸鹽的高效洗碗精", "具有綠色標章的無磷環保洗潔劑", "強力化學合成去油精"], c: 1, reward: 20 },
+                { q: "秋天時八掌溪畔常開滿一大片銀白色花海，這株被稱為「河床隱士」的植物主要為何？", a: ["甜根子草 (適合用於護岸)", "大花咸豐草", "外來種互花米草"], c: 0, reward: 20 },
+                { q: "廚餘產生的油脂如果未經處理，直接倒入水槽對八掌溪水系會有何危害？", a: ["能為溪中魚類補充豐富油脂養分", "會附著水管並導致河川水中溶解氧因優養化而下降", "會加快河流流速，預防淤積"], c: 1, reward: 20 },
+                { q: "在八掌溪周邊進行生態遊憩時，落實「無痕山林 (LNT)」最核心的做法是什麼？", a: ["將吃剩的廚餘埋入河畔沙土中自然分解", "將所有垃圾打包帶走並自主做好垃圾分類", "把塑膠垃圾就地焚燒以減少體積"], c: 1, reward: 25 }
+            ],
+            'Elementary': [
+                { q: "（國小自然）水受熱會變成水蒸氣升空，遇冷形成雨水落下，此大自然循環稱為什麼？", a: ["水循環 (維持河川水源之基礎)", "水蒸發作用", "地下水補給"], c: 0, reward: 20 },
+                { q: "（國小自然）「大萍」等水生植物之所以能漂浮在水面上，主要是其葉片或葉柄內部有什麼？", a: ["極厚的木質部支撐", "發達的氣室儲存空氣降低密度", "葉綠體排斥水分的引力"], c: 1, reward: 20 },
+                { q: "（國小自然）我們常藉由尋找特定生物來判斷八掌溪上游的水質。這類生物在科學上稱為什麼？", a: ["強勢外來生物", "指標生物 (如乾淨水質的水蠆)", "有害病原體"], c: 1, reward: 25 },
+                { q: "（國小自然）河堤上種植原生植物的「根部」，除了吸收水分，還能發揮什麼重要的水土保持作用？", a: ["穩固泥沙，防止大雨時土壤遭受侵蝕崩塌", "釋放化學物質，殺死水中寄生蟲", "讓河川中的水流速度加倍"], c: 0, reward: 25 },
+                { q: "（國小自然）河川裡的魚類能夠在水面下呼吸，主要是利用哪一個器官過濾水中的氧氣？", a: ["肺臟與皮膚", "魚鰓", "魚鱗表層"], c: 1, reward: 20 }
+            ],
+            'JuniorHigh': [
+                { q: "（國中地理）河流在不同河段有不同地質作用。八掌溪上游山區最主要的地質作用是？", a: ["強烈的堆積與溶蝕作用", "侵蝕與搬運作用", "河風侵蝕與泥沙沉澱"], c: 1, reward: 25 },
+                { q: "（國中理化）酸雨排入八掌溪會導致水質 pH 值下降。當 pH 值小於 7 時，代表水質呈何性？", a: ["強鹼性", "酸性", "中性"], c: 1, reward: 20 },
+                { q: "（國中生物）有機廢水流入河川造成藻類大量繁殖（優養化），當藻類死亡被分解時會導致水中的哪項數值急劇下降？", a: ["溶氧量 (DO)", "導電度", "重金屬殘留量"], c: 0, reward: 25 },
+                { q: "（國中地理）八掌溪出海口附近常因泥沙淤積形成沙洲與濕地，這主要跟哪種河流作用最相關？", a: ["向源侵蝕作用", "堆積作用", "側蝕作用"], c: 1, reward: 20 },
+                { q: "（國中生物）若利用水生昆蟲進行八掌溪水質評估。發現大量「粗尾蜉蝣」幼蟲時，代表水質狀況通常為何？", a: ["嚴重污染水域", "未受污染至輕度污染水域", "完全無生物存活的死水"], c: 1, reward: 30 }
+            ],
+            'SeniorHigh': [
+                { q: "（高中地科）河川污染指標 (RPI) 計算中，主要利用溶氧量(DO)、懸浮固体(SS)、氨氮(NH3-N)以及哪項數值？", a: ["生化需氧量 (BOD)", "總有機碳 (TOC)", "化學需氧量 (COD)"], c: 0, reward: 25 },
+                { q: "（高中生物）依據 SDG 15。在八掌溪沿岸建立「生態綠帶」與保護原生林，能防止野生動物面臨何種危機？", a: ["棲地破碎化 (Habitat Fragmentation)", "基因突變機率倍增", "溫室效應熱休克"], c: 0, reward: 30 },
+                { q: "（高中地科）河流中下游因水泥防洪牆造成河道與陸地生態阻隔。若改用「砌石工法」，主要能提供何種生態服務？", a: ["加速水流排洪以防淤砂", "創造多樣棲地，利於生物附著與繁衍", "徹底杜絕地表水下滲"], c: 1, reward: 25 },
+                { q: "（高中化學）優養化發生時，大量死亡的藻類被好氧細菌分解，此過程消耗水中大量溶解氧，反應本質屬於？", a: ["酸鹼中和反應", "氧化還原反應 (生物呼吸降解)", "沉澱反應"], c: 1, reward: 30 },
+                { q: "（高中社會）流域綜合治理中，推動八掌溪中下游濕地復育，除能淨化水質外，在氣候變遷中扮演何種重要角色？", a: ["作為良好的「碳匯」來吸收並儲存二氧化碳", "能反射太陽光以降低地區氣溫", "能產生大量臭氧修補臭氧層"], c: 0, reward: 30 }
+            ]
+        };
+
+        let cursorX = 5, cursorY = 5; 
+        let score = 100;
+        let items = { cleaner: 2, shield: 1, hook: 1 };
+        let selectedItemIdx = -1; // -1 代表未選取
+        const itemTypes = ['cleaner', 'shield', 'hook'];
+        let playerLevel = 'Public';
+        let gameState = 'LEVEL_SELECT'; 
+        let menuIndex = 0;
+        
+        // 對戰領地網格資料
+        // state: 'neutral', 'owned' (玩家), 'enemy' (模擬線上對手)
+        // structure: 'none', 'forest', 'wetland', 'dike'
+        let networkHexes = {};
+        
+        let lastInputMode = 'mouse';
+        let mouseWorldX = -1000, mouseWorldY = -1000;
+        let activeHexId = null; // 當前正被挑戰或建造的地塊 ID
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const hexSize = 42;
+        const rows = 9, cols = 11;
+
+        let gpButtons = [];
+        let canMove = true;
+        const axisThreshold = 0.5;
+
+        setInterval(() => {
+            if (gameState !== 'MAP') return;
+            // 隨機讓模擬對手採取行動 (佔領中立地或攻擊玩家地塊)
+            const randomR = Math.floor(Math.random() * rows);
+            const randomC = Math.floor(Math.random() * cols);
+            const id = `hex_${randomR}_${randomC}`;
+            
+            const currentData = networkHexes[id] || { state: 'neutral', structure: 'none', protected: false };
+            
+            if (currentData.state === 'neutral') {
+                // 對手搶佔中立地
+                const structures = ['forest', 'wetland', 'dike'];
+                const chosenStruct = structures[Math.floor(Math.random() * structures.length)];
+                networkHexes[id] = {
+                    state: 'enemy',
+                    owner: 'Enemy_Player_' + Math.floor(Math.random() * 9 + 1),
+                    structure: chosenStruct,
+                    protected: Math.random() > 0.5
+                };
+                showToast(`⚠️ 其他守護者佔領了地塊 [${randomC}, ${randomR}] 並建造了 ${getStructureName(chosenStruct)}！`);
+            } else if (currentData.state === 'owned') {
+                // 對手使用道具攻擊玩家地塊
+                if (currentData.protected) {
+                    // 有護盾，盾被破壞
+                    networkHexes[id].protected = false;
+                    showToast(`🛡️ 警報！你在 [${randomC}, ${randomR}] 的生態盾牌被對手用攔截網破壞了！`);
+                } else {
+                    // 無護盾，隨防禦力機率性被奪走
+                    let bypassChance = 0.3; // 預設 30% 機率被奪
+                    if (currentData.structure === 'forest') bypassChance = 0.05; // 森林難防守
+                    if (currentData.structure === 'dike') bypassChance = 0.15; // 堤防適中
+
+                    if (Math.random() < bypassChance) {
+                        networkHexes[id] = {
+                            state: 'enemy',
+                            owner: 'Enemy_Player_X',
+                            structure: 'wetland',
+                            protected: false
+                        };
+                        showToast(`💥 痛失領地！地塊 [${randomC}, ${randomR}] 被競爭對手攻佔了！`);
+                        updateStatsUI();
+                    } else {
+                        showToast(`🛡️ 你的防守設施抵擋了對手在 [${randomC}, ${randomR}] 的攻勢！`);
+                    }
+                }
+            }
+        }, 12000); // 每 12 秒發生一次戰局變化
+
+        // 濕地持續產出積分
+        setInterval(() => {
+            if (gameState !== 'MAP') return;
+            let wetlandCount = 0;
+            for (let key in networkHexes) {
+                if (networkHexes[key].state === 'owned' && networkHexes[key].structure === 'wetland') {
+                    wetlandCount++;
+                }
+            }
+            if (wetlandCount > 0) {
+                const bonus = wetlandCount * 5;
+                score += bonus;
+                document.getElementById('score-display').innerText = score;
+                showToast(`🌾 您的 ${wetlandCount} 個濕地正在淨化水源，持續產生 +${bonus} 積分！`);
+            }
+        }, 10000);
+
+        function handleInputs() {
+            const gamepads = navigator.getGamepads();
+            if (!gamepads[0]) return;
+
+            const gp = gamepads[0];
+            const btns = gp.buttons;
+            const axes = gp.axes;
+
+            let dx = 0, dy = 0;
+            if (axes[0] < -axisThreshold || (btns[14] && btns[14].pressed)) dx = -1;
+            if (axes[0] > axisThreshold || (btns[15] && btns[15].pressed)) dx = 1;
+            if (axes[1] < -axisThreshold || (btns[12] && btns[12].pressed)) dy = -1;
+            if (axes[1] > axisThreshold || (btns[13] && btns[13].pressed)) dy = 1;
+
+            if (dx !== 0 || dy !== 0) {
+                lastInputMode = 'gamepad';
+                if (canMove) {
+                    moveCursor(dx, dy);
+                    canMove = false;
+                    setTimeout(() => canMove = true, 180); 
+                }
+            }
+
+            // ❌ (Confirm / Button 0)
+            if (btns[0].pressed && !gpButtons[0]) {
+                lastInputMode = 'gamepad';
+                handleConfirm();
+            }
+            
+            // ▢ (Use Item / Button 2)
+            if (btns[2].pressed && !gpButtons[2]) {
+                lastInputMode = 'gamepad';
+                triggerItemUsageAtCursor();
+            }
+
+            // △ (Shop / Button 3)
+            if (btns[3].pressed && !gpButtons[3]) {
+                lastInputMode = 'gamepad';
+                toggleShopGamepad();
+            }
+
+            // L1 (Button 4) 與 R1 (Button 5) 道具輪播切換
+            if (btns[4] && btns[4].pressed && !gpButtons[4]) { lastInputMode = 'gamepad'; cycleItem(-1); }
+            if (btns[5] && btns[5].pressed && !gpButtons[5]) { lastInputMode = 'gamepad'; cycleItem(1); }
+
+            gpButtons = btns.map(b => b.pressed);
+        }
+
+        function moveCursor(dx, dy) {
+            if (gameState === 'MAP') {
+                cursorX = Math.max(0, Math.min(cols - 1, cursorX + dx));
+                cursorY = Math.max(0, Math.min(rows - 1, cursorY + dy));
+            } else {
+                updateMenuFocus(dy || dx);
+            }
+        }
+
+        // 把手焦點系統
+        window.setMenuFocus = (idx) => {
+            if (lastInputMode !== 'mouse') return;
+            const selector = getActiveSelector();
+            const options = document.querySelectorAll(selector);
+            if (options.length === 0) return;
+            options[menuIndex].classList.remove('focused', 'border-sky-500', 'bg-sky-50');
+            menuIndex = idx;
+            options[menuIndex].classList.add('focused', 'border-sky-500', 'bg-sky-50');
+        }
+
+        function updateMenuFocus(dir) {
+            const selector = getActiveSelector();
+            const options = document.querySelectorAll(selector);
+            if (options.length === 0) return;
+            options[menuIndex].classList.remove('focused', 'border-sky-500', 'bg-sky-50');
+            menuIndex = (menuIndex + dir + options.length) % options.length;
+            options[menuIndex].classList.add('focused', 'border-sky-500', 'bg-sky-50');
+        }
+
+        function getActiveSelector() {
+            if (gameState === 'LEVEL_SELECT') return '#level-options .quiz-option';
+            if (gameState === 'QUIZ') return '#quiz-options .quiz-option';
+            return '';
+        }
+
+        async function handleConfirm() {
+            if (gameState === 'LEVEL_SELECT') {
+                const opt = document.querySelectorAll('#level-options .quiz-option')[menuIndex];
+                selectLevel(opt.dataset.lv);
+            } 
+            else if (gameState === 'MAP') {
+                const hexId = `hex_${cursorY}_${cursorX}`;
+                const data = networkHexes[hexId] || { state: 'neutral' };
+                handleTileInteraction(hexId, data);
+            }
+            else if (gameState === 'QUIZ') {
+                submitAnswer(menuIndex);
+            }
+        }
+
+        window.selectLevelViaMouse = (lvl, idx) => {
+            menuIndex = idx;
+            selectLevel(lvl);
+        };
+
+        function selectLevel(lvl) {
+            playerLevel = lvl;
+            document.getElementById('level-modal').style.display = 'none';
+            gameState = 'MAP';
+            document.getElementById('level-display').innerText = getLevelChineseName(lvl);
+            showToast(`已進入：${getLevelChineseName(lvl)} 關卡`);
+            updateStatsUI();
+        }
+
+        function getLevelChineseName(lvl) {
+            if (lvl === 'Public') return '社會大眾';
+            if (lvl === 'Elementary') return '國小學生';
+            if (lvl === 'JuniorHigh') return '國中學生';
+            return '高中學生';
+        }
+
+        function cycleItem(dir) {
+            selectedItemIdx = (selectedItemIdx + dir + itemTypes.length) % itemTypes.length;
+            updateInventoryUI();
+        }
+
+        window.onItemClicked = (idx) => {
+            lastInputMode = 'mouse';
+            // 若點擊已選取道具，則取消選取
+            if (selectedItemIdx === idx) {
+                selectedItemIdx = -1;
+            } else {
+                selectedItemIdx = idx;
+            }
+            updateInventoryUI();
+            if (selectedItemIdx !== -1) {
+                showToast(`已選：${getItemName(itemTypes[selectedItemIdx])}，點擊地塊即可施放！`);
+            }
+        };
+
+        function updateInventoryUI() {
+            document.querySelectorAll('.item-slot').forEach(s => s.classList.remove('selected', 'border-green-500', 'scale-105'));
+            if (selectedItemIdx !== -1) {
+                const activeSlot = document.getElementById(`slot-${itemTypes[selectedItemIdx]}`);
+                activeSlot.classList.add('selected', 'border-green-500', 'scale-105');
+            }
+            document.getElementById('count-cleaner').innerText = items.cleaner;
+            document.getElementById('count-shield').innerText = items.shield;
+            document.getElementById('count-hook').innerText = items.hook;
+        }
+
+        function updateStatsUI() {
+            document.getElementById('score-display').innerText = score;
+            let mine = 0;
+            for (let key in networkHexes) {
+                if (networkHexes[key].state === 'owned') mine++;
+            }
+            document.getElementById('owned-count-display').innerText = mine;
+            updateInventoryUI();
+        }
+
+        function handleTileInteraction(id, data) {
+            activeHexId = id;
+            if (selectedItemIdx !== -1) {
+                triggerItemUsageAtCursor();
+                return;
+            }
+
+            if (data.state === 'owned') {
+                showToast("此為您的生態領地，可施放【生態盾牌】防守。");
+                return;
+            }
+
+            if (data.state === 'enemy') {
+                // 欲搶奪他人地塊
+                if (data.protected) {
+                    showToast("⚠️ 該地塊有盾牌防護！請先使用【攔截網】破壞護盾。");
+                    return;
+                }
+                startQuiz(id, data, true); // 搶奪模式
+                return;
+            }
+
+            startQuiz(id, data, false); // 建造模式
+        }
+
+        function startQuiz(id, data, isStealMode) {
+            gameState = 'QUIZ';
+            menuIndex = 0;
+            document.getElementById('quiz-modal').style.display = 'flex';
+            
+            const bank = fullQuizBank[playerLevel];
+            const randomQ = bank[Math.floor(Math.random() * bank.length)];
+            
+            document.getElementById('quiz-text').innerText = randomQ.q;
+            document.getElementById('quiz-score-reward').innerText = `+${randomQ.reward} 積分`;
+            
+            const container = document.getElementById('quiz-options');
+            container.innerHTML = randomQ.a.map((opt, idx) => `
+                <div class="quiz-option p-4 border-2 border-gray-200 rounded-xl text-lg font-bold transition-all cursor-pointer hover:border-sky-500 hover:bg-sky-50 ${idx === 0 ? 'focused border-sky-500 bg-sky-50' : ''}" 
+                     onclick="submitAnswer(${idx})" 
+                     onmouseenter="setMenuFocus(${idx})">
+                     ${opt}
+                </div>
+            `).join('');
+
+            // 保存當前題目答案至全域作對比
+            window.currentAnswerIdx = randomQ.c;
+            window.currentReward = randomQ.reward;
+            window.isCurrentQuizSteal = isStealMode;
+        }
+
+        window.submitAnswer = (selectedIdx) => {
+            document.getElementById('quiz-modal').style.display = 'none';
+            
+            if (selectedIdx === window.currentAnswerIdx) {
+                score += window.currentReward;
+                showToast(`🎉 答對了！獲得 ${window.currentReward} 積分！`);
+                
+                // 答對不直接給土地，跳出建造決策
+                gameState = 'BUILD';
+                document.getElementById('build-modal').style.display = 'flex';
+            } else {
+                gameState = 'MAP';
+                showToast("❌ 答錯了！領地建造失敗，水質遭受反噬。");
+            }
+            updateStatsUI();
+        };
+
+        // 進行自選建築
+        window.buildStructure = (structType) => {
+            document.getElementById('build-modal').style.display = 'none';
+            gameState = 'MAP';
+
+            networkHexes[activeHexId] = {
+                state: 'owned',
+                owner: 'player',
+                structure: structType,
+                protected: false
+            };
+
+            showToast(`🏗️ 建造成功！您已將地塊轉為【${getStructureName(structType)}】`);
+            updateStatsUI();
+        };
+
+        function triggerItemUsageAtCursor() {
+            if (selectedItemIdx === -1) return;
+            const activeItem = itemTypes[selectedItemIdx];
+            if (items[activeItem] <= 0) {
+                showToast("道具數量不足！");
+                return;
+            }
+
+            const id = `hex_${cursorY}_${cursorX}`;
+            const data = networkHexes[id] || { state: 'neutral', structure: 'none', protected: false };
+
+            if (activeItem === 'cleaner') {
+                if (data.state === 'owned') {
+                    showToast("此處已經是您的領地！");
+                    return;
+                }
+                // 淨水藥劑：免答題直接佔領並強制建造為「人工濕地」
+                networkHexes[id] = {
+                    state: 'owned',
+                    owner: 'player',
+                    structure: 'wetland',
+                    protected: false
+                };
+                items.cleaner--;
+                showToast("🧪 施放淨水藥劑！成功直接淨化地塊並建造人工濕地！");
+            } 
+            else if (activeItem === 'shield') {
+                if (data.state !== 'owned') {
+                    showToast("只能在自己的生態領地上放置護盾！");
+                    return;
+                }
+                if (data.protected) {
+                    showToast("該領地已有生態盾牌防護中！");
+                    return;
+                }
+                networkHexes[id].protected = true;
+                items.shield--;
+                showToast("🛡️ 成功部署生態盾牌！將大幅抵擋對手侵略。");
+            } 
+            else if (activeItem === 'hook') {
+                if (data.state === 'neutral') {
+                    showToast("攔截網只能對對手領地使用！");
+                    return;
+                }
+                if (data.state === 'owned') {
+                    showToast("不能攻擊自己建造的領地！");
+                    return;
+                }
+                
+                if (data.protected) {
+                    // 破壞對手護盾
+                    networkHexes[id].protected = false;
+                    showToast("🪝 攔截網命中！成功擊碎對方的生態防護罩！");
+                } else {
+                    // 直接強拆，強制回歸中立地帶
+                    networkHexes[id] = { state: 'neutral', structure: 'none', protected: false };
+                    showToast("🪝 攔截網拋出！成功瓦解對手設施，將其恢復為中立空地！");
+                }
+                items.hook--;
+            }
+
+            selectedItemIdx = -1; // 施放完取消選中
+            updateStatsUI();
+        }
+
+        window.buyItem = (type, cost) => {
+            if (score >= cost) {
+                score -= cost;
+                items[type]++;
+                updateStatsUI();
+                showToast(`🛒 購買成功：${getItemName(type)} +1`);
+            } else {
+                showToast("❌ 積分不足！請先答對題目佔領地塊以獲取積分。");
+                const modal = document.getElementById('shop-modal');
+                modal.classList.add('shake');
+                setTimeout(() => modal.classList.remove('shake'), 300);
+            }
+        };
+
+        window.openShop = () => {
+            document.getElementById('shop-modal').style.display = 'flex';
+        };
+        window.closeShop = () => {
+            document.getElementById('shop-modal').style.display = 'none';
+        };
+        function toggleShopGamepad() {
+            const shop = document.getElementById('shop-modal');
+            if (shop.style.display === 'flex') {
+                closeShop();
+            } else {
+                openShop();
+            }
+        }
+
+        // 輔助翻譯文字
+        function getStructureName(type) {
+            if (type === 'forest') return '🌲 森林防護區';
+            if (type === 'wetland') return '🌾 人工濕地';
+            if (type === 'dike') return '🧱 生態堤岸';
+            return '無設施';
+        }
+
+        function getItemName(type) {
+            if (type === 'cleaner') return '🧪 淨水藥劑';
+            if (type === 'shield') return '🛡️ 生態盾牌';
+            return '🪝 攔截網';
+        }
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.innerText = m; t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 3000);
+        }
+
+        function render() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            const hexW = Math.sqrt(3) * hexSize;
+            const hexH = 2 * hexSize;
+            const offsetX = canvas.width/2 - (cols * hexW)/2;
+            const offsetY = canvas.height/2 - (rows * hexH * 0.75)/2;
+
+            if (lastInputMode === 'mouse') {
+                let minDist = hexSize * 0.9;
+                for(let r=0; r<rows; r++) {
+                    for(let c=0; c<cols; c++) {
+                        const x = c * hexW + (r % 2) * (hexW/2) + offsetX;
+                        const y = r * hexH * 0.75 + offsetY;
+                        const dist = Math.hypot(x - mouseWorldX, y - mouseWorldY);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            cursorX = c;
+                            cursorY = r;
+                        }
+                    }
+                }
+            }
+
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    const id = `hex_${r}_${c}`;
+                    const x = c * hexW + (r % 2) * (hexW/2) + offsetX;
+                    const y = r * hexH * 0.75 + offsetY;
+                    const isFocused = (cursorX === c && cursorY === r);
+                    const netData = networkHexes[id] || { state: 'neutral', structure: 'none', protected: false };
+                    
+                    drawHex(x, y, netData, isFocused);
+                }
+            }
+        }
+
+        function drawHex(x, y, data, isFocused) {
+            ctx.beginPath();
+            for(let i=0; i<6; i++) {
+                const ang = Math.PI / 180 * (60 * i - 30);
+                ctx.lineTo(x + hexSize * Math.cos(ang), y + hexSize * Math.sin(ang));
+            }
+            ctx.closePath();
+            
+            // 基礎填滿顏色
+            if (data.state === 'owned') {
+                ctx.fillStyle = '#bbf7d0'; // 己方淺綠
+            } else if (data.state === 'enemy') {
+                ctx.fillStyle = '#fecdd3'; // 敵方淺紅
+            } else {
+                ctx.fillStyle = '#ffffff'; // 中立空地白色
+            }
+            ctx.fill();
+            
+            // 繪製保護盾金邊
+            ctx.strokeStyle = data.protected ? '#fbbf24' : '#cbd5e1';
+            ctx.lineWidth = data.protected ? 4 : 1;
+            ctx.stroke();
+
+            // 如果有選取焦點，繪製亮光
+            if (isFocused) {
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#0284c7'; // 亮藍邊框
+                ctx.stroke();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#38bdf8';
+                ctx.stroke();
+                ctx.shadowBlur = 0; // 重設 shadow
+            }
+
+            // 繪製自選建築物 Icon
+            if (data.structure && data.structure !== 'none') {
+                ctx.font = '18px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                let icon = '';
+                if (data.structure === 'forest') icon = '🌲';
+                if (data.structure === 'wetland') icon = '🌾';
+                if (data.structure === 'dike') icon = '🧱';
+                ctx.fillText(icon, x, y);
+            }
+        }
+
+        // 滑鼠游標與點擊事件綁定
+        canvas.addEventListener('mousemove', e => {
+            lastInputMode = 'mouse';
+            mouseWorldX = e.clientX;
+            mouseWorldY = e.clientY;
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameState !== 'MAP') return;
+            const hexW = Math.sqrt(3) * hexSize;
+            const hexH = 2 * hexSize;
+            const offsetX = canvas.width/2 - (cols * hexW)/2;
+            const offsetY = canvas.height/2 - (rows * hexH * 0.75)/2;
+
+            let clickedHex = null;
+            let minDist = hexSize * 0.9;
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    const x = c * hexW + (r % 2) * (hexW/2) + offsetX;
+                    const y = r * hexH * 0.75 + offsetY;
+                    const dist = Math.hypot(x - mouseWorldX, y - mouseWorldY);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        clickedHex = { r, c };
+                    }
+                }
+            }
+
+            if (clickedHex) {
+                cursorX = clickedHex.c;
+                cursorY = clickedHex.r;
+                const id = `hex_${cursorY}_${cursorX}`;
+                const data = networkHexes[id] || { state: 'neutral', structure: 'none', protected: false };
+                handleTileInteraction(id, data);
+            }
+        });
+
+        // 迴圈與重置設定
+        function updateLoop() {
+            handleInputs();
+            render();
+            requestAnimationFrame(updateLoop);
+        }
+
+        window.addEventListener("gamepadconnected", () => {
+            showToast("🎮 把手已連線！可與滑鼠同步操作");
+        });
+
+        window.addEventListener('resize', () => { 
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight; 
+        });
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight;
+
+        updateLoop();
+    </script>
+
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>

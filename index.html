@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>大業 AI 程式設計成果展</title>
+    <meta name="description" content="大業 AI 程式設計成果展遊戲選單。" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="console-shell">
+      <header class="console-topbar">
+        <div class="brand-lockup">
+          <a id="clubLogoLink" class="club-logo" href="./" target="_blank" rel="noreferrer" aria-label="大業 AI 繪圖社">
+            <img id="clubLogo" alt="大業 AI 繪圖社" />
+          </a>
+          <div>
+            <p id="clubName" class="system-label">DAYE AI EXHIBITION</p>
+            <h1>Game Library</h1>
+          </div>
+        </div>
+        <div class="library-stats" aria-label="遊戲統計">
+          <span><strong id="totalCount">0</strong> Games</span>
+          <span><strong id="playableCount">0</strong> Ready</span>
+        </div>
+      </header>
+
+      <section class="hero-stage" aria-label="目前選取遊戲">
+        <div id="heroCover" class="hero-cover tone-forest">
+          <span id="heroShelf">PLAY</span>
+          <strong id="heroLetters">701</strong>
+        </div>
+
+        <div class="hero-info">
+          <p id="heroMeta" class="hero-meta"></p>
+          <h2 id="heroTitle"></h2>
+          <p id="heroTagline" class="hero-tagline"></p>
+          <p id="heroDescription" class="hero-description"></p>
+          <div class="hero-actions">
+            <a id="heroLaunch" class="primary-link">開始</a>
+            <button id="heroPreview" type="button" class="secondary-link">預覽</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="game-rail" aria-label="遊戲選單">
+        <div id="gallery" class="rail-track"></div>
+      </section>
+    </main>
+
+    <dialog id="previewDialog" class="preview-dialog">
+      <div class="preview-shell">
+        <div class="preview-topbar">
+          <div>
+            <p id="previewOwner" class="preview-owner"></p>
+            <h2 id="previewTitle"></h2>
+          </div>
+          <button id="closePreview" class="icon-button" aria-label="關閉預覽">×</button>
+        </div>
+        <iframe id="previewFrame" title="遊戲預覽"></iframe>
+        <div class="preview-actions">
+          <a id="previewOpen" class="primary-link" target="_blank" rel="noreferrer">全螢幕開啟</a>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="./works.js"></script>
+    <script src="./site-config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

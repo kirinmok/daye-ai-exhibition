@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>嘉義美食大亨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@0.468.0/dist/umd/lucide-react.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      html, body, #root { min-height: 100%; margin: 0; }
+      body { background: #0f172a; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useCallback, useRef } = React;
+const IconFallback = ({ className = "" }) => <span className={className} aria-hidden="true">●</span>;
+const iconSet = window.lucideReact || window.LucideReact || {};
+const {
+  Trophy = IconFallback,
+  ShoppingBag = IconFallback,
+  Utensils = IconFallback,
+  Star = IconFallback,
+  DollarSign = IconFallback,
+  RefreshCw = IconFallback,
+  Sparkles = IconFallback,
+  Flame = IconFallback,
+  Info = IconFallback
+} = iconSet;
+
+// --- 遊戲常數與店家稀有度分類 ---
+const FOOD_STORES = [
+  { id: 1, name: "林聰明沙鍋魚頭", dish: "沙鍋魚頭", color: "bg-orange-100", border: "border-orange-500", textColor: "text-orange-700", rarity: 'SSR' },
+  { id: 2, name: "民主火雞肉飯", dish: "火雞肉飯", color: "bg-yellow-100", border: "border-yellow-600", textColor: "text-yellow-800", rarity: 'SR' },
+  { id: 3, name: "黃毛丫頭", dish: "東山鴨頭", color: "bg-amber-100", border: "border-amber-700", textColor: "text-amber-900", rarity: 'SR' },
+  { id: 4, name: "涼麵四味果汁", dish: "美乃滋涼麵", color: "bg-lime-100", border: "border-lime-500", textColor: "text-lime-700", rarity: 'R' },
+  { id: 5, name: "阿婆烤玉米", dish: "炭烤玉米", color: "bg-orange-50", border: "border-orange-800", textColor: "text-orange-900", rarity: 'SSR' },
+  { id: 6, name: "源興御香屋", dish: "紅鑽葡萄柚綠", color: "bg-red-50", border: "border-red-400", textColor: "text-red-600", rarity: 'SSR' },
+  { id: 7, name: "興加臭豆腐", dish: "脆皮臭豆腐", color: "bg-yellow-50", border: "border-yellow-500", textColor: "text-yellow-700", rarity: 'R' },
+  { id: 8, name: "阿娥豆花", dish: "花生豆花", color: "bg-slate-100", border: "border-slate-400", textColor: "text-slate-700", rarity: 'R' },
+  { id: 9, name: "阿岸米糕", dish: "鹹米糕", color: "bg-stone-100", border: "border-stone-500", textColor: "text-stone-700", rarity: 'R' },
+  { id: 10, name: "新港生炒鴨肉羹", dish: "生炒鴨肉羹", color: "bg-orange-200", border: "border-orange-600", textColor: "text-orange-800", rarity: 'SR' },
+  { id: 11, name: "森川丼丼嘉義店", dish: "厚切海景丼", color: "bg-blue-50", border: "border-blue-500", textColor: "text-blue-700", rarity: 'SR' },
+  { id: 12, name: "桃城豆花", dish: "古法豆花", color: "bg-neutral-100", border: "border-neutral-500", textColor: "text-neutral-700", rarity: 'R' },
+  { id: 13, name: "阿宏師火雞肉飯", dish: "火雞片飯", color: "bg-amber-50", border: "border-amber-600", textColor: "text-amber-800", rarity: 'SR' }
+];
+
+const getExpRequired = (level) => level <= 0 ? 100 : 100 + (level - 1) * 150;
+
+// --- 2048 核心組件 ---
+const Game2048 = ({ onScoreUpdate }) => {
+  const [grid, setGrid] = useState(Array(4).fill().map(() => Array(4).fill(0)));
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const gridRef = useRef(grid);
+  useEffect(() => { gridRef.current = grid; }, [grid]);
+
+  const addRandomTile = (currentGrid) => {
+    const emptyTiles = [];
+    currentGrid.forEach((row, r) => row.forEach((cell, c) => { if (cell === 0) emptyTiles.push({ r, c }); }));
+    if (emptyTiles.length === 0) return currentGrid;
+    const { r, c } = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
+    const newGrid = currentGrid.map(row => [...row]);
+    newGrid[r][c] = Math.random() < 0.9 ? 2 : 4;
+    return newGrid;
+  };
+
+  const initGame = useCallback(() => {
+    let newGrid = Array(4).fill().map(() => Array(4).fill(0));
+    newGrid = addRandomTile(newGrid);
+    newGrid = addRandomTile(newGrid);
+    setGrid(newGrid);
+    setScore(0);
+    setGameOver(false);
+  }, []);
+
+  const move = useCallback((direction) => {
+    if (gameOver) return;
+    let tempGrid = gridRef.current.map(row => [...row]);
+    let moved = false;
+    let turnScore = 0;
+    const rotateClockwise = (m) => m[0].map((_, i) => m.map(row => row[i]).reverse());
+    let rotations = { 'UP': 1, 'RIGHT': 2, 'DOWN': 3, 'LEFT': 0 }[direction];
+    for (let i = 0; i < rotations; i++) tempGrid = rotateClockwise(tempGrid);
+    for (let r = 0; r < 4; r++) {
+      let row = tempGrid[r].filter(v => v !== 0);
+      let newRow = [];
+      for (let i = 0; i < row.length; i++) {
+        if (i < row.length - 1 && row[i] === row[i + 1]) {
+          const combined = row[i] * 2;
+          newRow.push(combined);
+          turnScore += combined;
+          i++;
+          moved = true;
+        } else newRow.push(row[i]);
+      }
+      while (newRow.length < 4) newRow.push(0);
+      if (tempGrid[r].join(',') !== newRow.join(',')) moved = true;
+      tempGrid[r] = newRow;
+    }
+    for (let i = 0; i < (4 - rotations) % 4; i++) tempGrid = rotateClockwise(tempGrid);
+    if (moved) {
+      const finalGrid = addRandomTile(tempGrid);
+      setGrid(finalGrid);
+      if (turnScore > 0) { setScore(p => p + turnScore); onScoreUpdate(turnScore); }
+      if (isGameOver(finalGrid)) setGameOver(true);
+    }
+  }, [gameOver, onScoreUpdate]);
+
+  const isGameOver = (g) => {
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (g[r][c] === 0) return false;
+        if (c < 3 && g[r][c] === g[r][c + 1]) return false;
+        if (r < 3 && g[r][c] === g[r + 1][c]) return false;
+      }
+    }
+    return true;
+  };
+
+  useEffect(() => { initGame(); }, [initGame]);
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const k = e.key.toLowerCase();
+      if (['arrowup', 'w'].includes(k)) { e.preventDefault(); move('UP'); }
+      if (['arrowdown', 's'].includes(k)) { e.preventDefault(); move('DOWN'); }
+      if (['arrowleft', 'a'].includes(k)) { e.preventDefault(); move('LEFT'); }
+      if (['arrowright', 'd'].includes(k)) { e.preventDefault(); move('RIGHT'); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [move]);
+
+  const touchStartPos = useRef(null);
+  const handleTStart = (e) => { touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; };
+  const handleTEnd = (e) => {
+    if (!touchStartPos.current) return;
+    const dx = e.changedTouches[0].clientX - touchStartPos.current.x;
+    const dy = e.changedTouches[0].clientY - touchStartPos.current.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 30) {
+      if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 'RIGHT' : 'LEFT');
+      else move(dy > 0 ? 'DOWN' : 'UP');
+    }
+    touchStartPos.current = null;
+  };
+
+  const getTileStyle = (v) => {
+    const colors = { 0: 'bg-slate-200', 2: 'bg-[#eee4da] text-[#776e65]', 4: 'bg-[#ede0c8] text-[#776e65]', 8: 'bg-[#f2b179] text-white', 16: 'bg-[#f59563] text-white', 32: 'bg-[#f67c5f] text-white', 64: 'bg-[#f65e3b] text-white', 128: 'bg-[#edcf72] text-white', 256: 'bg-[#edcc61] text-white', 512: 'bg-[#edc850] text-white', 1024: 'bg-[#edc53f] text-white', 2048: 'bg-[#edc22e] text-white' };
+    return colors[v] || 'bg-[#3c3a32] text-white';
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4 w-full select-none">
+      <div className="flex justify-between w-full max-w-[320px] items-center">
+        <div className="bg-slate-700 text-white px-5 py-2 rounded-xl text-center shadow-md">
+          <p className="text-[10px] uppercase font-black text-slate-400 mb-1">今日收益</p>
+          <p className="text-2xl font-black">{score}</p>
+        </div>
+        <button onClick={initGame} className="bg-orange-500 p-4 rounded-xl hover:bg-orange-600 transition-all shadow-lg active:scale-95"><RefreshCw className="w-6 h-6 text-white" /></button>
+      </div>
+      <div className="bg-[#bbada0] p-3 rounded-2xl grid grid-cols-4 gap-3 w-[320px] h-[320px] shadow-xl relative touch-none" onTouchStart={handleTStart} onTouchEnd={handleTEnd}>
+        {grid.flat().map((v, i) => (
+          <div key={`${i}-${v}`} className={`${getTileStyle(v)} rounded-lg flex items-center justify-center font-black text-2xl transition-all aspect-square shadow-sm`}>{v !== 0 ? v : ''}</div>
+        ))}
+        {gameOver && (
+          <div className="absolute inset-0 bg-white/85 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center animate-in fade-in z-10 text-center">
+            <p className="text-3xl font-black text-slate-800 mb-2">GAME OVER</p>
+            <button onClick={initGame} className="bg-orange-500 text-white px-10 py-3 rounded-full font-black shadow-lg">重新開張</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- 主應用程式 ---
+const App = () => {
+  const [inventory, setInventory] = useState({});
+  const [money, setMoney] = useState(1000);
+  const [lastDrawn, setLastDrawn] = useState(null);
+  const [activeTab, setActiveTab] = useState('collection');
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  
+  // 保底計數器
+  const [pityCounter, setPityCounter] = useState({
+    street: 0, // 每 10 抽保底 SR+
+    legend: 0, // 每 5 抽保底 SR+, 每 20 抽保底 SSR
+    legendSSR: 0
+  });
+
+  const startGame = () => {
+    const startStore = FOOD_STORES.find(s => s.rarity === 'R');
+    setInventory({ [startStore.id]: { level: 1, exp: 0, ...startStore } });
+    setGameStarted(true);
+  };
+
+  const drawCard = (type) => {
+    const cost = type === 'street' ? 200 : 800;
+    if (money < cost) return;
+
+    setIsDrawing(true);
+    setMoney(prev => prev - cost);
+
+    setTimeout(() => {
+      let targetRarity = 'R';
+      const rand = Math.random() * 100;
+      const newPity = { ...pityCounter };
+
+      if (type === 'street') {
+        newPity.street += 1;
+        if (newPity.street >= 10) {
+          targetRarity = Math.random() < 0.1 ? 'SSR' : 'SR';
+          newPity.street = 0;
+        } else {
+          if (rand < 2) { targetRarity = 'SSR'; newPity.street = 0; }
+          else if (rand < 20) { targetRarity = 'SR'; newPity.street = 0; }
+          else { targetRarity = 'R'; }
+        }
+      } else {
+        newPity.legend += 1;
+        newPity.legendSSR += 1;
+        if (newPity.legendSSR >= 20) {
+          targetRarity = 'SSR';
+          newPity.legendSSR = 0;
+          newPity.legend = 0;
+        } else if (newPity.legend >= 5) {
+          targetRarity = Math.random() < 0.2 ? 'SSR' : 'SR';
+          newPity.legend = 0;
+        } else {
+          if (rand < 10) { targetRarity = 'SSR'; newPity.legendSSR = 0; newPity.legend = 0; }
+          else if (rand < 60) { targetRarity = 'SR'; newPity.legend = 0; }
+          else { targetRarity = 'R'; }
+        }
+      }
+
+      const pool = FOOD_STORES.filter(s => s.rarity === targetRarity);
+      const drawnStore = pool[Math.floor(Math.random() * pool.length)];
+
+      setPityCounter(newPity);
+      setLastDrawn(drawnStore);
+      setInventory(prev => {
+        const newInv = { ...prev };
+        if (newInv[drawnStore.id]) {
+          let currentExp = newInv[drawnStore.id].exp + (targetRarity === 'SSR' ? 300 : targetRarity === 'SR' ? 150 : 100);
+          let currentLevel = newInv[drawnStore.id].level;
+          while (currentLevel < 30 && currentExp >= getExpRequired(currentLevel)) {
+            currentExp -= getExpRequired(currentLevel);
+            currentLevel++;
+          }
+          newInv[drawnStore.id] = { ...newInv[drawnStore.id], level: currentLevel, exp: currentExp };
+        } else {
+          newInv[drawnStore.id] = { ...drawnStore, level: 1, exp: 0 };
+        }
+        return newInv;
+      });
+      setIsDrawing(false);
+    }, 800);
+  };
+
+  const getRarityColor = (rarity) => {
+    if (rarity === 'SSR') return 'text-red-600 bg-red-100 border-red-200';
+    if (rarity === 'SR') return 'text-orange-600 bg-orange-100 border-orange-200';
+    return 'text-slate-600 bg-slate-100 border-slate-200';
+  };
+
+  if (!gameStarted) {
+    return (
+      <div className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="bg-white p-10 rounded-[3rem] shadow-2xl max-w-md border-4 border-orange-400">
+          <Utensils className="w-16 h-16 text-orange-500 mx-auto mb-6" />
+          <h1 className="text-4xl font-black text-gray-800 mb-4 tracking-tighter">嘉義美食大亨</h1>
+          <p className="text-gray-500 mb-8 font-bold">抽卡保底機制實裝！打造最強美食地圖。</p>
+          <button onClick={startGame} className="bg-orange-500 text-white font-black py-5 px-12 rounded-full transition-all hover:scale-105 shadow-xl text-xl">
+            創立品牌
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-28 font-sans">
+      <div className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-20 px-6 py-4 flex justify-between items-center border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <Trophy className="w-6 h-6 text-orange-500" />
+          <h1 className="font-black text-slate-800 text-lg">嘉義美食大亨</h1>
+        </div>
+        <div className="flex items-center bg-emerald-50 px-4 py-2 rounded-2xl border-2 border-emerald-100">
+          <DollarSign className="w-5 h-5 text-emerald-600 font-black" />
+          <span className="font-black text-emerald-700 text-xl ml-1">{money}</span>
+        </div>
+      </div>
+
+      <main className="max-w-md mx-auto p-5">
+        {activeTab === 'collection' && (
+          <div className="space-y-4 animate-in slide-in-from-bottom-2">
+            <h2 className="text-2xl font-black text-slate-800 px-1">我的餐飲帝國</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {Object.values(inventory).map((item) => (
+                <div key={item.id} className={`p-6 rounded-[2rem] border-2 shadow-sm ${item.color} ${item.border}`}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black mb-1 border ${getRarityColor(item.rarity)}`}>
+                        {item.rarity}
+                      </div>
+                      <h3 className="font-black text-2xl text-slate-900">{item.name}</h3>
+                      <p className="text-sm font-bold opacity-70">{item.dish}</p>
+                    </div>
+                    <div className="bg-white/90 px-3 py-1 rounded-xl shadow-sm text-sm font-black text-orange-600">
+                      Lv.{item.level}
+                    </div>
+                  </div>
+                  <div className="h-3 w-full bg-slate-200/50 rounded-full overflow-hidden p-0.5">
+                    <div className="h-full bg-orange-500 rounded-full transition-all duration-700" style={{ width: `${(item.exp / getExpRequired(item.level)) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'draw' && (
+          <div className="space-y-6 flex flex-col items-center pt-4">
+            <div className="text-center mb-4">
+              <h2 className="text-3xl font-black text-slate-800">美食投資中心</h2>
+              <p className="text-slate-400 font-bold text-sm">保底機制讓您穩賺不賠</p>
+            </div>
+
+            {/* 卡包列表 */}
+            <div className="grid grid-cols-1 gap-6 w-full">
+              {/* 街邊小吃包 */}
+              <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-200 shadow-sm relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
+                  <Utensils className="w-20 h-20" />
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                    街邊小吃包 <span className="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">R 級為主</span>
+                  </h3>
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="text-xs font-bold text-slate-400 space-y-1">
+                      <p>SSR: 2% | SR: 18% | R: 80%</p>
+                      <p className="text-orange-500">保底進度: {pityCounter.street}/10 (必得 SR+)</p>
+                    </div>
+                    <button onClick={() => drawCard('street')} disabled={isDrawing || money < 200} className={`px-6 py-3 rounded-full font-black shadow-lg transition-all active:scale-95 ${money >= 200 ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                      $200 抽
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 傳奇名店包 */}
+              <div className="bg-slate-900 p-6 rounded-[2.5rem] border-4 border-amber-400 shadow-xl relative overflow-hidden group">
+                <div className="absolute -top-4 -right-4 p-4 opacity-20 group-hover:scale-110 transition-transform">
+                  <Sparkles className="w-24 h-24 text-amber-400" />
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-xl font-black text-amber-400 flex items-center gap-2">
+                    傳奇名店包 <Flame className="w-5 h-5 text-red-500" />
+                  </h3>
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="text-xs font-bold text-slate-400 space-y-1">
+                      <p className="text-amber-200/60">SSR: 10% | SR: 50% | R: 40%</p>
+                      <p className="text-amber-400">保底 SSR: {pityCounter.legendSSR}/20</p>
+                    </div>
+                    <button onClick={() => drawCard('legend')} disabled={isDrawing || money < 800} className={`px-6 py-3 rounded-full font-black shadow-lg transition-all active:scale-95 ${money >= 800 ? 'bg-amber-400 text-slate-900 shadow-amber-400/20' : 'bg-slate-700 text-slate-500'}`}>
+                      $800 抽
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 抽卡動畫/顯示 */}
+            <div className="mt-8 h-40 flex items-center justify-center w-full">
+              {isDrawing ? (
+                <div className="flex flex-col items-center gap-4 animate-bounce">
+                  <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center shadow-2xl">
+                    <ShoppingBag className="text-white w-8 h-8" />
+                  </div>
+                  <p className="text-orange-500 font-black animate-pulse">正在與嘉義名店連繫中...</p>
+                </div>
+              ) : lastDrawn && (
+                <div className={`flex items-center gap-4 p-4 rounded-3xl border-2 animate-in zoom-in duration-300 w-full max-w-sm ${lastDrawn.color} ${lastDrawn.border}`}>
+                  <div className="bg-white p-3 rounded-2xl shadow-sm"><Utensils className="w-8 h-8 text-orange-500" /></div>
+                  <div>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${getRarityColor(lastDrawn.rarity)}`}>{lastDrawn.rarity}</span>
+                    <h4 className="font-black text-xl text-slate-800">{lastDrawn.name}</h4>
+                    <p className="text-xs font-bold text-slate-500">能力已入庫</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'earn' && (
+          <div className="space-y-6 flex flex-col items-center pt-4">
+            <div className="text-center px-4">
+              <h2 className="text-2xl font-black text-slate-800">營運中心</h2>
+              <p className="text-slate-400 font-bold text-sm">透過 2048 累積擴展資金</p>
+            </div>
+            <Game2048 onScoreUpdate={(v) => setMoney(m => m + v)} />
+          </div>
+        )}
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-200 flex justify-around px-2 py-4 shadow-lg z-30 pb-8 md:pb-4">
+        {[
+          { id: 'collection', icon: Utensils, label: '店鋪' },
+          { id: 'draw', icon: Sparkles, label: '投資' },
+          { id: 'earn', icon: RefreshCw, label: '經營' }
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex flex-col items-center px-6 py-2 rounded-2xl transition-all ${activeTab === tab.id ? 'text-orange-500 bg-orange-50' : 'text-slate-400'}`}>
+            <tab.icon className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+};
+
+
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>

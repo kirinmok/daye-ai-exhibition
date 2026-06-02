@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>第一人稱：八掌溪夕照跑酷</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; user-select: none; }
+        #game-container { position: relative; width: 100vw; height: 100vh; }
+        canvas { display: block; width: 100%; height: 100%; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; }
+        .pointer-events-auto { pointer-events: auto; }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@700&display=swap');
+        .font-game { font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
+        .font-pixel { font-family: 'Press Start 2P', monospace; }
+
+        #scoreDisplay { transition: all 0.2s ease-out; display: inline-block; }
+
+        /* 圖形按鈕樣式 */
+        .btn-glyph {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            font-size: 14px;
+            line-height: 1;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui" class="ui-layer font-game text-white p-4 z-10">
+        <!-- 頂部資訊 -->
+        <div class="flex justify-between items-start w-full max-w-[1000px] mx-auto relative mt-4">
+            <div class="text-3xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">分數: <span id="scoreDisplay" class="text-yellow-400">0</span></div>
+            <div id="gamepadStatus" class="text-sm bg-gray-900/80 px-4 py-2 rounded-full text-gray-300 flex items-center gap-2 border border-gray-700 shadow-lg">
+                <span id="gamepadIcon">🎮</span> <span>未偵測到手把</span>
+            </div>
+        </div>
+
+        <!-- 排行榜 Modal -->
+        <div id="leaderboardModal" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 pointer-events-auto hidden backdrop-blur-md z-50">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-yellow-500 w-[90%] max-w-md shadow-[0_0_30px_rgba(234,179,8,0.3)] relative flex flex-col max-h-[80vh]">
+                <button id="closeLeaderboardBtn" class="absolute top-2 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+                <h2 class="text-3xl text-yellow-400 mb-2 text-center border-b border-gray-600 pb-3 mt-2 tracking-widest">🏆 淨溪英雄榜 🏆</h2>
+                <div class="text-center text-sm text-gray-400 mb-4">按 <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs inline-flex items-center"><span class="mr-1">○</span> (B)</span> 關閉</div>
+                <div id="leaderboardList" class="flex flex-col gap-2 overflow-y-auto pr-2 flex-grow"></div>
+            </div>
+        </div>
+
+        <!-- 開始畫面 -->
+        <div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 pointer-events-auto backdrop-blur-sm overflow-y-auto py-8">
+            <h1 class="text-5xl md:text-7xl text-orange-400 mb-2 drop-shadow-[0_0_15px_rgba(251,146,60,0.8)] tracking-wider mt-10">八掌溪跑酷</h1>
+            <p class="text-xl text-green-300 mb-6 tracking-widest drop-shadow-md border border-green-400/50 px-4 py-1 rounded-full bg-green-900/30">🌿 淨溪環保特別版 🌿</p>
+            
+            <!-- 角色選單 -->
+            <div class="bg-gray-800/90 p-5 rounded-2xl border border-gray-600 mb-4 text-center max-w-lg shadow-2xl w-full mx-4 relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-yellow-950 text-xs font-bold px-3 py-1 rounded-full">十字鍵 左右選擇</div>
+                <div class="flex justify-center gap-3 sm:gap-5" id="charBtnContainer">
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="0" data-color="0xfde047" data-name="黃金阿金"><div class="w-10 h-10 bg-[#fde047] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="1" data-color="0xef4444" data-name="赤紅戰士"><div class="w-10 h-10 bg-[#ef4444] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="2" data-color="0x3b82f6" data-name="湛藍刺客"><div class="w-10 h-10 bg-[#3b82f6] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="3" data-color="0xec4899" data-name="粉紅妖精"><div class="w-10 h-10 bg-[#ec4899] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="4" data-color="0x22c55e" data-name="翡翠遊俠"><div class="w-10 h-10 bg-[#22c55e] rounded-lg shadow-inner"></div></button>
+                </div>
+                <p id="charNameDisplay" class="text-white mt-3 text-lg font-bold tracking-widest">黃金阿金</p>
+            </div>
+
+            <!-- 核心玩法說明區塊 (圖形版) -->
+            <div class="bg-gray-900/80 p-5 rounded-2xl border border-blue-500/30 mb-6 text-left max-w-lg shadow-2xl mx-4 w-full">
+                <h2 class="text-lg text-blue-400 mb-3 border-b border-gray-700 pb-2 flex items-center gap-2">
+                    <span>📖</span> 冒險指南
+                </h2>
+                <div class="grid grid-cols-1 gap-3 text-sm sm:text-base">
+                    <div class="flex items-start gap-3">
+                        <div class="bg-blue-500/20 p-2 rounded text-xl">♻️</div>
+                        <div>
+                            <p class="text-blue-200 font-bold">撿起巨型寶特瓶 (+50分)</p>
+                            <p class="text-gray-400 text-xs">藍色發光的瓶子體積龐大，撞上去即可回收！</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="bg-yellow-500/20 p-2 rounded text-xl">🎮</div>
+                        <div>
+                            <p class="text-yellow-200 font-bold">手把圖形操作說明</p>
+                            <div class="mt-2 space-y-1 text-xs text-gray-300">
+                                <div class="flex items-center"><span class="btn-glyph text-blue-400">╳</span> <span class="mr-2">跳躍 (A)</span> <span class="btn-glyph text-red-400">○</span> <span>下滑 (B)</span></div>
+                                <div class="flex items-center"><span class="btn-glyph text-green-400">△</span> <span class="mr-2">英雄榜 (Y)</span> <span class="btn-glyph text-pink-400">□</span> <span>上傳 (X)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10 w-full px-4 max-w-lg text-center">
+                <button id="startBtn" class="px-6 py-4 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-white rounded-full text-xl font-bold transition-transform transform shadow-[0_0_20px_rgba(245,158,11,0.5)] flex-1 flex flex-col items-center">
+                    <span class="text-xs text-yellow-200 mb-1 flex items-center"><span class="btn-glyph scale-75 border-yellow-200">╳</span> A鍵</span>
+                    <span>開始淨溪</span>
+                </button>
+                <button id="startLdbBtn" class="px-6 py-4 bg-gray-700 hover:bg-gray-600 text-yellow-400 border border-yellow-500 rounded-full text-xl font-bold transition-transform transform shadow-lg flex-1 flex flex-col items-center">
+                    <span class="text-xs text-gray-300 mb-1 flex items-center"><span class="btn-glyph scale-75 border-gray-300">△</span> Y鍵</span>
+                    <span>🏆 英雄榜</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 遊戲結束畫面 -->
+        <div id="gameOverScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-red-950/80 pointer-events-auto hidden backdrop-blur-md py-8 overflow-y-auto">
+            <h1 class="text-5xl sm:text-7xl text-white mb-2 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)] font-black">撞擊！</h1>
+            <p class="text-2xl sm:text-3xl text-yellow-300 mb-6 text-center">最終環保分數:<br><span id="finalScore" class="font-pixel text-5xl sm:text-6xl inline-block mt-2">0</span></p>
+            
+            <div id="submitSection" class="bg-gray-900/90 p-5 rounded-2xl border border-blue-500/50 flex flex-col items-center gap-2 mb-6 w-[90%] max-w-sm shadow-2xl relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">免打字上傳</div>
+                <p class="text-gray-300 text-sm mt-3 text-center">以 <strong id="autoNamePreview" class="text-yellow-400"></strong> 名義上傳？</p>
+                <button id="submitScoreBtn" class="w-full py-4 bg-blue-600 text-white rounded-xl text-xl font-bold transition-all shadow-lg flex flex-col items-center mt-3 disabled:bg-gray-600 disabled:text-gray-400">
+                    <span class="text-xs text-blue-200 mb-0.5 flex items-center"><span class="btn-glyph scale-75 border-blue-200">□</span> X鍵</span>
+                    <span id="submitBtnText">上傳至排行榜</span>
+                </button>
+            </div>
+
+            <div class="flex flex-row justify-center gap-4 w-full px-4 max-w-sm">
+                <button id="restartBtn" class="px-4 py-3 bg-white text-green-700 hover:bg-green-100 rounded-xl text-lg font-bold transition-transform transform shadow-xl flex-1 flex flex-col items-center text-center">
+                    <span class="text-xs text-gray-500 mb-0.5 flex items-center"><span class="btn-glyph scale-75 border-gray-500">╳</span> A</span>
+                    <span>再次挑戰</span>
+                </button>
+                <button id="endLdbBtn" class="px-4 py-3 bg-yellow-500 text-yellow-950 hover:bg-yellow-400 rounded-xl text-lg font-bold transition-transform transform shadow-xl flex-1 flex flex-col items-center text-center">
+                    <span class="text-xs text-yellow-800 mb-0.5 flex items-center"><span class="btn-glyph scale-75 border-yellow-800">△</span> Y</span>
+                    <span>英雄榜</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    let db, auth, currentUser, leaderboardData = [], scoreSubmitted = false, autoGeneratedName = "";
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bazhang-run-default';
+    
+    const leaderboardModal = document.getElementById('leaderboardModal');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const submitScoreBtn = document.getElementById('submitScoreBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const autoNamePreview = document.getElementById('autoNamePreview');
+    const charNameDisplay = document.getElementById('charNameDisplay');
+
+    try {
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { projectId: "demo-project" };
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app); db = getFirestore(app);
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+            else await signInAnonymously(auth);
+        };
+        initAuth();
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user && db) {
+                const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                onSnapshot(lbRef, (snapshot) => {
+                    const data = [];
+                    snapshot.forEach(doc => data.push({id: doc.id, ...doc.data()}));
+                    data.sort((a, b) => b.score - a.score);
+                    leaderboardData = data.slice(0, 10); renderLeaderboard();
+                });
+            }
+        });
+    } catch(e) { console.error(e); }
+
+    function renderLeaderboard() {
+        if (leaderboardData.length === 0) { leaderboardList.innerHTML = `<div class="text-center text-gray-400 py-8">目前無紀錄</div>`; return; }
+        leaderboardList.innerHTML = '';
+        leaderboardData.forEach((player, index) => {
+            let medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span class="text-gray-400 w-6 inline-block">${index+1}</span>`;
+            const row = document.createElement('div');
+            row.className = `flex justify-between items-center p-3 rounded-xl bg-gray-700/50`;
+            row.innerHTML = `<div class="flex items-center gap-3"><div>${medal}</div><div class="font-bold text-gray-200">${player.name}</div></div><div class="font-pixel text-yellow-400">${player.score}</div>`;
+            leaderboardList.appendChild(row);
+        });
+    }
+
+    const openLeaderboard = () => leaderboardModal.classList.remove('hidden');
+    const closeLeaderboard = () => leaderboardModal.classList.add('hidden');
+    document.getElementById('startLdbBtn').addEventListener('click', openLeaderboard);
+    document.getElementById('endLdbBtn').addEventListener('click', openLeaderboard);
+    document.getElementById('closeLeaderboardBtn').addEventListener('click', closeLeaderboard);
+
+    // 遊戲邏輯與 Three.js
+    let gameState = 'start', score = 0, gameSpeed = 1.0, framesSinceLastSpawn = 0, framesSinceLastTrash = 0;
+    const GRAVITY = -0.015, JUMP_FORCE = 0.35, LANE_WIDTH = 3.5, runners = []; 
+    const canvas = document.getElementById('gameCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf97316); scene.fog = new THREE.FogExp2(0xf97316, 0.008);
+    const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 500);
+    camera.position.set(0, 4, 7); camera.lookAt(0, 1, -10);
+    scene.add(new THREE.AmbientLight(0xffedd5, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffaa00, 1.2); dirLight.position.set(-50, 100, -200); scene.add(dirLight);
+
+    const groundTex = createTex('#3f6212', '#4d7c0f'), roadTex = createRoadTex();
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 1000), new THREE.MeshLambertMaterial({ map: groundTex }));
+    ground.rotation.x = -Math.PI / 2; ground.position.set(-10, 0, -300); scene.add(ground);
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(LANE_WIDTH * 3, 1000), new THREE.MeshLambertMaterial({ map: roadTex }));
+    road.rotation.x = -Math.PI / 2; road.position.set(0, 0.05, -300); scene.add(road);
+
+    function createTex(bc, dc) {
+        const ctx = document.createElement('canvas').getContext('2d'); ctx.canvas.width = 512; ctx.canvas.height = 512; ctx.fillStyle = bc; ctx.fillRect(0,0,512,512);
+        ctx.fillStyle = dc; for(let i=0; i<100; i++) ctx.fillRect(Math.random()*512, Math.random()*512, 10, 10);
+        const t = new THREE.CanvasTexture(ctx.canvas); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(20, 100); return t;
+    }
+    function createRoadTex() {
+        const ctx = document.createElement('canvas').getContext('2d'); ctx.canvas.width = 512; ctx.canvas.height = 512; ctx.fillStyle = '#44403c'; ctx.fillRect(0,0,512,512);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(170,0,4,512); ctx.fillRect(341,0,4,512);
+        const t = new THREE.CanvasTexture(ctx.canvas); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 40); return t;
+    }
+
+    function createRunner() {
+        const g = new THREE.Group(); const m = new THREE.MeshLambertMaterial({color: 0xfde047});
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1, 0.5), m); b.position.y = 1; g.add(b);
+        const h = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), m); h.position.y = 1.9; g.add(h);
+        const l = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.3), m); l.position.set(-0.2, 0.3, 0); g.add(l);
+        const r = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.3), m); r.position.set(0.2, 0.3, 0); g.add(r);
+        scene.add(g); return { group: g, legL: l, legR: r, mat: m, isJumping: false, isSliding: false, yVel: 0, lane: 0 };
+    }
+    runners.push(createRunner());
+
+    const obstacles = [], trashes = []; 
+    const rockGeo = new THREE.BoxGeometry(2, 2, 2), rockMat = new THREE.MeshLambertMaterial({ color: 0x57534e });
+    const trashGeo = new THREE.CylinderGeometry(0.5, 0.5, 2.4, 8), trashMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8 });
+
+    function spawnObstacle() {
+        framesSinceLastSpawn++;
+        if (framesSinceLastSpawn < 50) return; 
+        if (Math.random() < 0.02) {
+            framesSinceLastSpawn = 0; const targetX = (Math.floor(Math.random() * 3) - 1) * LANE_WIDTH;
+            const m = new THREE.Mesh(rockGeo, rockMat); m.position.set(targetX, 1, -300); scene.add(m); obstacles.push({ mesh: m, passed: false });
+        }
+    }
+    function spawnTrash() {
+        framesSinceLastTrash++;
+        if (framesSinceLastTrash < 80) return; 
+        if (Math.random() < 0.03) { 
+            framesSinceLastTrash = 0; const targetX = (Math.floor(Math.random() * 3) - 1) * LANE_WIDTH;
+            const m = new THREE.Mesh(trashGeo, trashMat); m.rotation.z = Math.PI/2; m.position.set(targetX, 0.5, -300); scene.add(m); trashes.push({ mesh: m });
+        }
+    }
+
+    function handleAction(act) {
+        if (!leaderboardModal.classList.contains('hidden')) { if(act==='B'||act==='Y') closeLeaderboard(); return; }
+        if (gameState === 'start') {
+            if (act === 'LEFT') { selectedCharIndex = Math.max(0, selectedCharIndex-1); updateCharSelect(); }
+            if (act === 'RIGHT') { selectedCharIndex = Math.min(4, selectedCharIndex+1); updateCharSelect(); }
+            if (act === 'A') startGame(); if (act === 'Y') openLeaderboard();
+        } else if (gameState === 'playing') {
+            const r = runners[0];
+            if (act === 'JUMP' && !r.isJumping && !r.isSliding) { r.isJumping = true; r.yVel = JUMP_FORCE; }
+            if (act === 'SLIDE' && !r.isJumping) r.isSliding = true;
+            if (act === 'STOP_SLIDE') r.isSliding = false;
+            if (act === 'LEFT' && r.lane > -1) r.lane--; if (act === 'RIGHT' && r.lane < 1) r.lane++;
+        } else if (gameState === 'gameover') {
+            if (act === 'X') submitScore(); if (act === 'A') startGame(); if (act === 'Y') openLeaderboard();
+        }
+    }
+
+    function updateCharSelect() {
+        document.querySelectorAll('.char-btn').forEach((b, i) => {
+            b.classList.toggle('border-yellow-400', i === selectedCharIndex);
+            b.classList.toggle('scale-110', i === selectedCharIndex);
+            if (i === selectedCharIndex) { charNameDisplay.innerText = b.dataset.name; runners[0].mat.color.setHex(parseInt(b.dataset.color, 16)); }
+        });
+    }
+
+    function startGame() {
+        gameState = 'playing'; score = 0; gameSpeed = 1.0; scoreSubmitted = false;
+        document.getElementById('startScreen').classList.add('hidden'); document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('scoreDisplay').innerText = 0;
+        submitScoreBtn.disabled = false; submitBtnText.innerText = '上傳至排行榜'; submitScoreBtn.classList.replace('bg-green-600', 'bg-blue-600');
+        obstacles.forEach(o => scene.remove(o.mesh)); obstacles.length = 0;
+        trashes.forEach(t => scene.remove(t.mesh)); trashes.length = 0;
+    }
+
+    function gameOver() {
+        gameState = 'gameover'; document.getElementById('gameOverScreen').classList.remove('hidden');
+        document.getElementById('finalScore').innerText = score;
+        autoGeneratedName = `${charNameDisplay.innerText}#${Math.floor(1000+Math.random()*9000)}`;
+        autoNamePreview.innerText = autoGeneratedName;
+    }
+
+    async function submitScore() {
+        if (!currentUser || scoreSubmitted || score === 0) return;
+        scoreSubmitted = true; submitScoreBtn.disabled = true; submitBtnText.innerText = '上傳中...';
+        try {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard'), { name: autoGeneratedName, score, timestamp: Date.now() });
+            submitBtnText.innerText = '✅ 上傳成功'; submitScoreBtn.classList.replace('bg-blue-600', 'bg-green-600');
+            setTimeout(openLeaderboard, 800);
+        } catch(e) { scoreSubmitted = false; submitScoreBtn.disabled = false; submitBtnText.innerText = '失敗請重試'; }
+    }
+
+    let gamepadPrev = {};
+    function pollGamepad() {
+        const gp = navigator.getGamepads()[0]; if (!gp) return;
+        const btns = gp.buttons.map(b => b.pressed);
+        if (btns[0] && !gamepadPrev[0]) handleAction('A');
+        if (btns[1] && !gamepadPrev[1]) handleAction('B');
+        if (btns[2] && !gamepadPrev[2]) handleAction('X');
+        if (btns[3] && !gamepadPrev[3]) handleAction('Y');
+        if ((btns[12] || gp.axes[1] < -0.5) && !gamepadPrev['up']) handleAction('JUMP');
+        if ((btns[13] || gp.axes[1] > 0.5)) handleAction('SLIDE'); else handleAction('STOP_SLIDE');
+        if ((btns[14] || gp.axes[0] < -0.5) && !gamepadPrev['left']) handleAction('LEFT');
+        if ((btns[15] || gp.axes[0] > 0.5) && !gamepadPrev['right']) handleAction('RIGHT');
+        gamepadPrev = {0:btns[0], 1:btns[1], 2:btns[2], 3:btns[3], up:btns[12]||gp.axes[1]<-0.5, left:btns[14]||gp.axes[0]<-0.5, right:btns[15]||gp.axes[0]>0.5};
+    }
+
+    function animate() {
+        requestAnimationFrame(animate); pollGamepad();
+        if (gameState === 'playing') {
+            groundTex.offset.y -= gameSpeed * 0.005; roadTex.offset.y -= gameSpeed * 0.01;
+            const r = runners[0]; r.group.position.x = THREE.MathUtils.lerp(r.group.position.x, r.lane * LANE_WIDTH, 0.2);
+            if (r.isJumping) { r.yVel += GRAVITY; r.group.position.y += r.yVel; if (r.group.position.y <= 0) { r.group.position.y = 0; r.isJumping = false; } }
+            else if (r.isSliding) { r.group.scale.y = 0.4; } else { r.group.scale.y = 1; r.group.position.y = Math.abs(Math.sin(Date.now()*0.01))*0.1; }
+            
+            spawnObstacle(); spawnTrash();
+            const pBox = new THREE.Box3().setFromObject(r.group).expandByScalar(-0.3);
+            for(let i=obstacles.length-1; i>=0; i--) {
+                obstacles[i].mesh.position.z += gameSpeed;
+                if (pBox.intersectsBox(new THREE.Box3().setFromObject(obstacles[i].mesh).expandByScalar(-0.2))) gameOver();
+                if (!obstacles[i].passed && obstacles[i].mesh.position.z > 0) { obstacles[i].passed = true; score += 10; document.getElementById('scoreDisplay').innerText = score; }
+                if (obstacles[i].mesh.position.z > 10) { scene.remove(obstacles[i].mesh); obstacles.splice(i, 1); }
+            }
+            for(let i=trashes.length-1; i>=0; i--) {
+                trashes[i].mesh.position.z += gameSpeed;
+                if (pBox.intersectsBox(new THREE.Box3().setFromObject(trashes[i].mesh).expandByScalar(0.5))) {
+                    score += 50; document.getElementById('scoreDisplay').innerText = score;
+                    scene.remove(trashes[i].mesh); trashes.splice(i, 1);
+                } else if (trashes[i].mesh.position.z > 10) { scene.remove(trashes[i].mesh); trashes.splice(i, 1); }
+            }
+        }
+        renderer.render(scene, camera);
+    }
+    
+    window.addEventListener('keydown', e => {
+        if(e.code==='ArrowUp'||e.code==='Space') handleAction('JUMP'); if(e.code==='ArrowDown') handleAction('SLIDE');
+        if(e.code==='ArrowLeft') handleAction('LEFT'); if(e.code==='ArrowRight') handleAction('RIGHT');
+        if(e.code==='KeyX') handleAction('X'); if(e.code==='KeyY') handleAction('Y');
+    });
+    window.addEventListener('keyup', e => { if(e.code==='ArrowDown') handleAction('STOP_SLIDE'); });
+    document.getElementById('startBtn').onclick = () => handleAction('A');
+    document.getElementById('restartBtn').onclick = () => handleAction('A');
+    document.querySelectorAll('.char-btn').forEach(b => b.onclick = (e) => { selectedCharIndex = parseInt(e.currentTarget.dataset.index); updateCharSelect(); });
+    let selectedCharIndex = 0; updateCharSelect();
+    animate();
+</script>
+
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>

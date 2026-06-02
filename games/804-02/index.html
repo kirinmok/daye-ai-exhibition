@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>804-02 深海設施射擊遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      html, body, #root { min-height: 100%; margin: 0; }
+      body { background: #0f172a; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel" data-presets="env,react">
+const { useEffect, useRef, useState } = React;
+
+function App() {
+  const mountRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLocked, setIsLocked] = useState(false); // 追蹤滑鼠是否鎖定
+  const [uiState, setUiState] = useState({
+    hp: 100,
+    status: 'FINE',
+    weapon: 'HANDGUN', // 預設裝備手槍
+    ammo: 30,
+    message: '【現代操作模式】滑鼠觀看，WASD 移動。'
+  });
+
+  const gameState = useRef({
+    weapon: 'HANDGUN',
+    ammo: 30,
+    hp: 100,
+    canShoot: true,
+    yaw: 0,
+    pitch: 0
+  });
+
+  // 請求鎖定滑鼠
+  const requestPointerLock = () => {
+    if (document.body.requestPointerLock && !isLocked) {
+      document.body.requestPointerLock();
+    }
+  };
+
+  useEffect(() => {
+    // 載入 Three.js
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.async = true;
+    
+    script.onload = () => {
+      setIsLoaded(true);
+      initGame();
+    };
+    
+    document.body.appendChild(script);
+
+    let animationFrameId;
+    let renderer;
+
+    const initGame = () => {
+      const THREE = window.THREE;
+
+      // 1. 場景與渲染器設定
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0a0c); 
+      scene.fog = new THREE.FogExp2(0x0a0a0c, 0.02); // 真實的指數型迷霧
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 柔和陰影
+      
+      if (mountRef.current) {
+        mountRef.current.innerHTML = '';
+        mountRef.current.appendChild(renderer.domElement);
+      }
+
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // 幽暗的環境光
+      scene.add(ambientLight);
+
+      // --- 程式化生成材質 (畫風升級) ---
+      const createFloorTexture = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1a1c20'; ctx.fillRect(0,0,512,512);
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 4;
+        for(let i=0; i<=512; i+=64) {
+            ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,512); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(512,i); ctx.stroke();
+        }
+        for(let i=0; i<3000; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? '#222' : '#111';
+            ctx.fillRect(Math.random()*512, Math.random()*512, 3, 3);
+        }
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(20, 20);
+        return tex;
+      };
+
+      // 2. 建立玩家角色
+      const player = new THREE.Group();
+      player.position.set(0, 0, 20); // 初始位置
+      
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xffccaa, roughness: 0.6 });
+      const tacticalMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 }); // 戰術黑
+      const pantsMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
+
+      const bodyGeo = new THREE.BoxGeometry(0.8, 1.2, 0.4);
+      const body = new THREE.Mesh(bodyGeo, tacticalMat);
+      body.position.y = 1.6;
+      body.castShadow = true;
+      player.add(body);
+
+      const headGeo = new THREE.BoxGeometry(0.45, 0.45, 0.45);
+      const head = new THREE.Mesh(headGeo, skinMat);
+      head.position.y = 2.45;
+      head.castShadow = true;
+      player.add(head);
+
+      const leftArmGroup = new THREE.Group();
+      leftArmGroup.position.set(-0.55, 2.1, 0);
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1, 0.25), tacticalMat);
+      leftArm.position.y = -0.4; 
+      leftArm.castShadow = true;
+      leftArmGroup.add(leftArm);
+      player.add(leftArmGroup);
+
+      const rightArmGroup = new THREE.Group();
+      rightArmGroup.position.set(0.55, 2.1, 0);
+      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1, 0.25), tacticalMat);
+      rightArm.position.y = -0.4;
+      rightArm.castShadow = true;
+      rightArmGroup.add(rightArm);
+
+      const gunGeo = new THREE.BoxGeometry(0.12, 0.18, 0.5);
+      const gunMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8, roughness: 0.2 });
+      const gun = new THREE.Mesh(gunGeo, gunMat);
+      gun.position.set(0, -0.8, -0.2); 
+      rightArmGroup.add(gun);
+
+      const leftLegGroup = new THREE.Group();
+      leftLegGroup.position.set(-0.25, 1.0, 0);
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), pantsMat);
+      leftLeg.position.y = -0.5;
+      leftLeg.castShadow = true;
+      leftLegGroup.add(leftLeg);
+      player.add(leftLegGroup);
+
+      const rightLegGroup = new THREE.Group();
+      rightLegGroup.position.set(0.25, 1.0, 0);
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1, 0.3), pantsMat);
+      rightLeg.position.y = -0.5;
+      rightLeg.castShadow = true;
+      rightLegGroup.add(rightLeg);
+      player.add(rightLegGroup);
+
+      // 強力戰術手電筒
+      const flashLight = new THREE.SpotLight(0xfff5e6, 2.5, 60, Math.PI / 6, 0.4, 1.5);
+      flashLight.position.set(0, 1.5, 0.5);
+      flashLight.castShadow = true;
+      flashLight.shadow.mapSize.width = 1024;
+      flashLight.shadow.mapSize.height = 1024;
+      player.add(flashLight);
+      player.add(flashLight.target);
+
+      const muzzleFlash = new THREE.PointLight(0xffbb00, 0, 8);
+      muzzleFlash.position.set(0, -0.8, -0.6);
+      rightArmGroup.add(muzzleFlash);
+
+      scene.add(player);
+
+      // 3. 建立封閉式大房間 (設施內部)
+      const floorTex = createFloorTexture();
+      const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.7 });
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x1f2326, roughness: 0.8 });
+      // 四面高牆
+      const wallsParams = [
+        { w: 100, h: 20, d: 2, x: 0, z: -50 },
+        { w: 100, h: 20, d: 2, x: 0, z: 50 },
+        { w: 2, h: 20, d: 100, x: -50, z: 0 },
+        { w: 2, h: 20, d: 100, x: 50, z: 0 }
+      ];
+      wallsParams.forEach(p => {
+        const w = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, p.d), wallMat);
+        w.position.set(p.x, p.h/2, p.z);
+        w.receiveShadow = true;
+        scene.add(w);
+      });
+
+      // 設施內的巨大柱子與障礙物
+      const obstacles = [];
+      const obsMat = new THREE.MeshStandardMaterial({ color: 0x2a3036, roughness: 0.6 });
+      for (let i = 0; i < 15; i++) {
+        const isPillar = Math.random() > 0.5;
+        const w = isPillar ? 3 : Math.random() * 6 + 2;
+        const h = isPillar ? 20 : Math.random() * 3 + 2;
+        const d = isPillar ? 3 : Math.random() * 6 + 2;
+        
+        const obs = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), obsMat);
+        obs.position.set((Math.random() - 0.5) * 80, h / 2, (Math.random() - 0.5) * 80);
+        obs.castShadow = true;
+        obs.receiveShadow = true;
+        if (obs.position.distanceTo(player.position) > 8) {
+          scene.add(obs);
+          obstacles.push(obs);
+        }
+      }
+
+      // 4. 敵人設定
+      const enemies = [];
+      const spawnEnemy = () => {
+        const eGeo = new THREE.BoxGeometry(1.2, 2.2, 1.2);
+        const eMat = new THREE.MeshStandardMaterial({ color: 0x660000, roughness: 0.5, metalness: 0.5 });
+        const enemy = new THREE.Mesh(eGeo, eMat);
+        enemy.position.set((Math.random() - 0.5) * 60, 1.1, (Math.random() - 0.5) * 60 - 15);
+        
+        const eyeLight = new THREE.PointLight(0xff0000, 1.5, 4);
+        eyeLight.position.set(0, 0.6, -0.6);
+        enemy.add(eyeLight);
+
+        enemy.castShadow = true;
+        scene.add(enemy);
+        enemies.push({ mesh: enemy, hp: 45 });
+      };
+      for(let i=0; i<12; i++) spawnEnemy();
+
+      // 5. 輸入與滑鼠監聽
+      const keys = { w: false, a: false, s: false, d: false };
+
+      const updateUI = (msg = null) => {
+        setUiState(prev => {
+          let statusStr = 'FINE';
+          if (gameState.current.hp <= 60) statusStr = 'CAUTION';
+          if (gameState.current.hp <= 30) statusStr = 'DANGER';
+          if (gameState.current.hp <= 0) statusStr = 'DEAD';
+
+          return {
+            hp: gameState.current.hp,
+            status: statusStr,
+            weapon: gameState.current.weapon,
+            ammo: gameState.current.ammo,
+            message: msg || prev.message
+          };
+        });
+      };
+
+      // 游標鎖定事件
+      const onPointerLockChange = () => {
+        setIsLocked(document.pointerLockElement === document.body);
+      };
+      document.addEventListener('pointerlockchange', onPointerLockChange);
+
+      // 滑鼠移動 (控制視角)
+      document.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === document.body) {
+          gameState.current.yaw -= e.movementX * 0.002;
+          gameState.current.pitch -= e.movementY * 0.002;
+          // 限制上下視角範圍 (-80度 到 +80度)
+          gameState.current.pitch = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, gameState.current.pitch));
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (keys.hasOwnProperty(key)) keys[key] = true;
+
+        if (key === '1') {
+          gameState.current.weapon = 'NONE';
+          gun.visible = false;
+          updateUI('已收起武器。');
+        }
+        if (key === '2') {
+          gameState.current.weapon = 'HANDGUN';
+          gun.visible = true;
+          updateUI('裝備：制式手槍。');
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const key = e.key.toLowerCase();
+        if (keys.hasOwnProperty(key)) keys[key] = false;
+      });
+
+      // 射擊 (滑鼠左鍵)
+      document.addEventListener('mousedown', (e) => {
+        if (document.pointerLockElement !== document.body) return;
+        if (e.button !== 0) return; // 只有左鍵
+
+        if (gameState.current.weapon === 'HANDGUN' && gameState.current.canShoot && gameState.current.ammo > 0) {
+          gameState.current.ammo--;
+          gameState.current.canShoot = false;
+          updateUI(`開火！`);
+          
+          muzzleFlash.intensity = 5;
+          setTimeout(() => { muzzleFlash.intensity = 0; }, 80);
+          setTimeout(() => { gameState.current.canShoot = true; }, 400); 
+
+          // 現代射擊：從攝影機中央發射射線
+          const raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+
+          const enemyMeshes = enemies.map(e => e.mesh);
+          const intersects = raycaster.intersectObjects(enemyMeshes);
+
+          if (intersects.length > 0) {
+            const hitMesh = intersects[0].object;
+            const enemyObj = enemies.find(e => e.mesh === hitMesh);
+            if (enemyObj) {
+              enemyObj.hp -= 15;
+              hitMesh.material.emissive.setHex(0x550000);
+              setTimeout(() => hitMesh.material.emissive.setHex(0x000000), 100);
+
+              if (enemyObj.hp <= 0) {
+                scene.remove(hitMesh);
+                const index = enemies.indexOf(enemyObj);
+                if (index > -1) enemies.splice(index, 1);
+                updateUI('目標已摧毀。');
+              }
+            }
+          }
+        } else if (gameState.current.ammo <= 0) {
+          updateUI('需要彈藥！');
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      // 6. 遊戲主迴圈
+      const clock = new THREE.Clock();
+
+      const animate = () => {
+        animationFrameId = requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+        const time = clock.getElapsedTime();
+
+        if (gameState.current.hp > 0 && document.pointerLockElement === document.body) {
+          
+          // 角色面朝向永遠跟隨滑鼠左右 (Yaw)
+          player.rotation.y = gameState.current.yaw;
+
+          // 計算基於當前視角的前進與右側向量
+          const moveSpeed = 6 * delta;
+          const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0,1,0), gameState.current.yaw);
+          const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0,1,0), gameState.current.yaw);
+
+          let isMoving = false;
+          const moveDir = new THREE.Vector3(0,0,0);
+
+          if (keys.w) { moveDir.add(forward); isMoving = true; }
+          if (keys.s) { moveDir.sub(forward); isMoving = true; }
+          if (keys.a) { moveDir.sub(right); isMoving = true; }
+          if (keys.d) { moveDir.add(right); isMoving = true; }
+
+          if (isMoving) {
+            moveDir.normalize().multiplyScalar(moveSpeed);
+            player.position.add(moveDir);
+
+            // 動畫
+            const swing = Math.sin(time * 15) * 0.7; 
+            leftArmGroup.rotation.x = swing;
+            leftLegGroup.rotation.x = -swing;
+            rightLegGroup.rotation.x = swing;
+          } else {
+            leftArmGroup.rotation.x = 0;
+            leftLegGroup.rotation.x = 0;
+            rightLegGroup.rotation.x = 0;
+          }
+
+          // 右手舉槍動作 (根據俯仰角 Pitch 調整)
+          if (gameState.current.weapon === 'HANDGUN') {
+            rightArmGroup.rotation.x = -Math.PI / 2 + gameState.current.pitch;
+            // 手電筒隨視角上下移動
+            flashLight.target.position.set(0, 1.5 - Math.sin(gameState.current.pitch)*10, -10);
+          } else {
+            rightArmGroup.rotation.x = isMoving ? -Math.sin(time * 15) * 0.7 : 0;
+            flashLight.target.position.set(0, 1.5, -10);
+          }
+
+          // 邊界限制
+          player.position.x = Math.max(-48, Math.min(48, player.position.x));
+          player.position.z = Math.max(-48, Math.min(48, player.position.z));
+
+          // 敵人 AI
+          enemies.forEach(enemyObj => {
+            const mesh = enemyObj.mesh;
+            const dist = mesh.position.distanceTo(player.position);
+            
+            if (dist < 20 && dist > 1.5) {
+              mesh.lookAt(player.position.x, mesh.position.y, player.position.z);
+              mesh.translateZ(2 * delta);
+            } else if (dist <= 1.5) {
+              gameState.current.hp -= 15 * delta;
+              if (Math.random() < 0.05) updateUI('受到攻擊！');
+            }
+          });
+        }
+
+        // --- 現代越肩視角運鏡 (Over-the-Shoulder) ---
+        // 攝影機位置：角色右後方
+        const shoulderOffset = new THREE.Vector3(1.2, 2.2, 3.5); 
+        shoulderOffset.applyAxisAngle(new THREE.Vector3(1,0,0), gameState.current.pitch);
+        shoulderOffset.applyAxisAngle(new THREE.Vector3(0,1,0), gameState.current.yaw);
+        
+        const targetCameraPos = player.position.clone().add(shoulderOffset);
+        camera.position.lerp(targetCameraPos, 0.3); // 平滑跟隨
+        
+        // 攝影機看相：角色前方遠處 (準星位置)
+        const lookAhead = new THREE.Vector3(0, 2.2, -20);
+        lookAhead.applyAxisAngle(new THREE.Vector3(1,0,0), gameState.current.pitch);
+        lookAhead.applyAxisAngle(new THREE.Vector3(0,1,0), gameState.current.yaw);
+        camera.lookAt(player.position.clone().add(lookAhead));
+
+        renderer.render(scene, camera);
+      };
+
+      animate();
+    };
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      document.removeEventListener('pointerlockchange', onPointerLockChange);
+    };
+  }, []);
+
+  const getStatusColor = () => {
+    switch(uiState.status) {
+      case 'FINE': return '#4ade80';
+      case 'CAUTION': return '#facc15';
+      case 'DANGER': return '#f87171';
+      case 'DEAD': return '#9ca3af';
+      default: return 'white';
+    }
+  };
+
+  return (
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: 'black', position: 'relative' }} onClick={requestPointerLock}>
+      
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center text-white text-2xl font-mono">
+          初始化深海設施中...
+        </div>
+      )}
+
+      <div ref={mountRef} className="absolute inset-0" />
+
+      {/* 畫面正中央的現代準星 */}
+      {isLoaded && isLocked && (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+          <div className="w-1 h-1 bg-white rounded-full opacity-80" />
+          <div className="absolute w-6 h-6 border border-white/30 rounded-full" />
+        </div>
+      )}
+
+      {/* 鎖定提示 Overlay */}
+      {isLoaded && !isLocked && uiState.hp > 0 && (
+        <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm cursor-pointer z-50">
+          <div className="text-center">
+            <h2 className="text-3xl text-white font-bold mb-4 tracking-widest">點擊畫面以進入沉浸模式</h2>
+            <p className="text-gray-400">滑鼠 = 觀看四周 & 瞄準 | WASD = 移動 | 左鍵 = 射擊</p>
+          </div>
+        </div>
+      )}
+
+      {/* 遊戲 UI */}
+      {isLoaded && (
+        <div className="absolute inset-0 pointer-events-none p-6 flex flex-col justify-between font-mono select-none">
+          
+          <div className="flex justify-between items-start">
+            <div className="border border-white/20 bg-black/50 p-4 backdrop-blur-md">
+              <div className="text-gray-400 text-xs mb-1">HEALTH</div>
+              <div className="text-3xl font-bold tracking-wider" style={{ color: getStatusColor() }}>
+                {uiState.status}
+              </div>
+              <div className="mt-2 w-32 h-1 bg-gray-800">
+                <div className="h-full transition-all duration-300" style={{ width: `${Math.max(0, uiState.hp)}%`, backgroundColor: getStatusColor() }} />
+              </div>
+            </div>
+
+            <div className="border border-white/20 bg-black/50 p-4 backdrop-blur-md text-right">
+              <div className="text-gray-400 text-xs mb-1">WEAPON</div>
+              <div className="text-xl text-white">
+                {uiState.weapon === 'NONE' ? '空手' : '手槍'}
+              </div>
+              {uiState.weapon === 'HANDGUN' && (
+                <div className="text-2xl text-white font-bold mt-1">
+                  {uiState.ammo} <span className="text-sm text-gray-400">/ ∞</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-end">
+            <div className="text-gray-400 text-xs bg-black/50 p-3 rounded backdrop-blur-sm">
+              [ESC] 解除滑鼠鎖定 | [1][2] 切換武器
+            </div>
+            <div className="text-sm text-white bg-black/50 px-4 py-2 backdrop-blur-sm">
+              &gt; {uiState.message}
+            </div>
+          </div>
+
+          {uiState.hp <= 0 && (
+            <div className="absolute inset-0 bg-red-950/80 flex items-center justify-center backdrop-blur-md z-50 pointer-events-auto">
+              <div className="text-center">
+                <h1 className="text-6xl text-red-500 font-serif font-bold tracking-widest mb-4">
+                  YOU ARE DEAD
+                </h1>
+                <button className="mt-4 px-6 py-2 border border-red-500 text-red-400 hover:bg-red-900/50" onClick={() => window.location.reload()}>
+                  重新嘗試
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
+</body>
+</html>
