@@ -7,13 +7,6 @@ const heroTitle = document.querySelector("#heroTitle");
 const heroTagline = document.querySelector("#heroTagline");
 const heroDescription = document.querySelector("#heroDescription");
 const heroLaunch = document.querySelector("#heroLaunch");
-const heroPreview = document.querySelector("#heroPreview");
-const dialog = document.querySelector("#previewDialog");
-const frame = document.querySelector("#previewFrame");
-const closePreview = document.querySelector("#closePreview");
-const previewTitle = document.querySelector("#previewTitle");
-const previewOwner = document.querySelector("#previewOwner");
-const previewOpen = document.querySelector("#previewOpen");
 const totalCount = document.querySelector("#totalCount");
 const playableCount = document.querySelector("#playableCount");
 const clubLogoLink = document.querySelector("#clubLogoLink");
@@ -23,12 +16,24 @@ const clubName = document.querySelector("#clubName");
 let works = WORKS;
 let selectedIndex = 0;
 
+const CATEGORY_ORDER = ["動作與反應", "經營策略", "射擊與戰鬥", "永續環境"];
+const CATEGORY_COPY = {
+  動作與反應: "短局高張力，最適合現場一玩就上手。",
+  經營策略: "把選擇變成資源，把直覺變成勝負。",
+  射擊與戰鬥: "音效、瞄準與臨場壓力一起上桌。",
+  永續環境: "用遊戲做決策，看見環境與城市的取捨。",
+};
+
 function cleanDisplayTitle(title, fallback = "未命名遊戲") {
   const cleaned = String(title || "")
     .replace(/^\s*\d{3}-\d{1,3}\s*/u, "")
     .replace(/原創遊戲/gu, "")
     .trim();
   return cleaned || fallback;
+}
+
+function getCategory(work) {
+  return work.category || work.genre || "其他作品";
 }
 
 function initSiteBranding() {
@@ -61,7 +66,7 @@ function setSelected(index, shouldFocus = false) {
   heroLetters.hidden = Boolean(work.coverWideUrl);
   heroMeta.textContent = `${work.genre} · ${work.statusLabel}`;
   heroTitle.textContent = cleanDisplayTitle(work.title);
-  heroTagline.textContent = work.tagline;
+  heroTagline.textContent = work.hook || work.tagline;
   heroDescription.textContent = work.description;
   heroLaunch.textContent = work.launchUrl ? "開始" : "準備中";
   heroLaunch.classList.toggle("is-disabled", !work.launchUrl);
@@ -70,8 +75,6 @@ function setSelected(index, shouldFocus = false) {
   } else {
     heroLaunch.removeAttribute("href");
   }
-  heroPreview.onclick = () => openPreview(work);
-  heroPreview.disabled = !work.launchUrl;
 
   document.querySelectorAll(".game-tile").forEach((tile, tileIndex) => {
     tile.classList.toggle("is-selected", tileIndex === selectedIndex);
@@ -88,45 +91,66 @@ function renderGames() {
   playableCount.textContent = works.filter((work) => work.launchUrl).length;
 
   gallery.innerHTML = "";
+  const groups = new Map();
   works.forEach((work, index) => {
-    const tile = document.createElement("button");
-    tile.type = "button";
-    tile.className = `game-tile ${work.coverTone}`;
-    tile.style.backgroundImage = work.coverWideUrl ? `url("${work.coverWideUrl}")` : "";
-    tile.classList.toggle("has-image", Boolean(work.coverWideUrl));
-    tile.setAttribute("aria-selected", "false");
-    tile.innerHTML = `
-      <span>${work.statusLabel}</span>
-      <strong>${cleanDisplayTitle(work.title)}</strong>
-      <em>${work.genre}</em>
+    const category = getCategory(work);
+    if (!groups.has(category)) groups.set(category, []);
+    groups.get(category).push({ work, index });
+  });
+
+  const orderedCategories = [
+    ...CATEGORY_ORDER.filter((category) => groups.has(category)),
+    ...Array.from(groups.keys()).filter((category) => !CATEGORY_ORDER.includes(category)),
+  ];
+
+  orderedCategories.forEach((category) => {
+    const section = document.createElement("section");
+    section.className = `category-section ${getCategoryClass(category)}`;
+    section.innerHTML = `
+      <div class="category-heading">
+        <h3>${category}</h3>
+        <p>${CATEGORY_COPY[category] || "探索不同玩法，找到你想投票支持的作品。"}</p>
+      </div>
+      <div class="category-grid"></div>
     `;
-    tile.addEventListener("click", () => setSelected(index));
-    if (work.launchUrl) {
-      tile.addEventListener("dblclick", () => {
-        window.location.href = work.launchUrl;
-      });
-    }
-    gallery.appendChild(tile);
+
+    const categoryGrid = section.querySelector(".category-grid");
+    groups.get(category).forEach(({ work, index }) => {
+      const tile = document.createElement("button");
+      tile.type = "button";
+      tile.className = `game-tile ${work.coverTone}`;
+      tile.style.backgroundImage = work.coverWideUrl ? `url("${work.coverWideUrl}")` : "";
+      tile.classList.toggle("has-image", Boolean(work.coverWideUrl));
+      tile.setAttribute("aria-selected", "false");
+      tile.innerHTML = `
+        <span>${work.statusLabel}</span>
+        <strong>${cleanDisplayTitle(work.title)}</strong>
+        <em>${work.hook || work.tagline || work.genre}</em>
+      `;
+      tile.addEventListener("click", () => setSelected(index));
+      if (work.launchUrl) {
+        tile.addEventListener("dblclick", () => {
+          window.location.href = work.launchUrl;
+        });
+      }
+      categoryGrid.appendChild(tile);
+    });
+    gallery.appendChild(section);
   });
 
   setSelected(0);
 }
 
-function openPreview(work) {
-  previewTitle.textContent = cleanDisplayTitle(work.title);
-  previewOwner.textContent = work.genre;
-  previewOpen.href = work.launchUrl;
-  frame.src = work.launchUrl;
-  dialog.showModal();
-}
-
-function hidePreview() {
-  frame.src = "about:blank";
-  dialog.close();
+function getCategoryClass(category) {
+  return {
+    動作與反應: "category-action",
+    經營策略: "category-strategy",
+    射擊與戰鬥: "category-combat",
+    永續環境: "category-eco",
+  }[category] || "category-other";
 }
 
 window.addEventListener("keydown", (event) => {
-  if (dialog.open) return;
   if (event.key === "ArrowRight") {
     event.preventDefault();
     setSelected(selectedIndex + 1, true);
@@ -139,11 +163,6 @@ window.addEventListener("keydown", (event) => {
     const launchUrl = works[selectedIndex].launchUrl;
     if (launchUrl) window.location.href = launchUrl;
   }
-});
-
-closePreview.addEventListener("click", hidePreview);
-dialog.addEventListener("click", (event) => {
-  if (event.target === dialog) hidePreview();
 });
 
 async function loadSubmittedWorks() {
@@ -162,6 +181,8 @@ async function loadSubmittedWorks() {
         ...existing,
         ...submission,
         title,
+        category: submission.category || existing.category || "其他作品",
+        hook: submission.hook || existing.hook || submission.tagline || existing.tagline,
         status: submission.status || existing.status || "published",
         statusLabel: submission.statusLabel || existing.statusLabel || "上架中",
         shelfLabel: submission.shelfLabel || existing.shelfLabel || "PLAY",

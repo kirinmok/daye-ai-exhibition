@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>大業 AI 程式設計成果展</title>
     <meta name="description" content="大業 AI 程式設計成果展遊戲選單。" />
-    <link rel="stylesheet" href="./styles.css?v=20260602-game-names" />
+    <link rel="stylesheet" href="./styles.css?v=20260602-category-colors" />
   </head>
   <body>
     <main class="console-shell">
@@ -38,7 +38,6 @@
           <p id="heroDescription" class="hero-description"></p>
           <div class="hero-actions">
             <a id="heroLaunch" class="primary-link">開始</a>
-            <button id="heroPreview" type="button" class="secondary-link">預覽</button>
           </div>
         </div>
       </section>
@@ -48,24 +47,8 @@
       </section>
     </main>
 
-    <dialog id="previewDialog" class="preview-dialog">
-      <div class="preview-shell">
-        <div class="preview-topbar">
-          <div>
-            <p id="previewOwner" class="preview-owner"></p>
-            <h2 id="previewTitle"></h2>
-          </div>
-          <button id="closePreview" class="icon-button" aria-label="關閉預覽">×</button>
-        </div>
-        <iframe id="previewFrame" title="遊戲預覽"></iframe>
-        <div class="preview-actions">
-          <a id="previewOpen" class="primary-link" target="_blank" rel="noreferrer">全螢幕開啟</a>
-        </div>
-      </div>
-    </dialog>
-
-    <script src="./works.js?v=20260602-game-names"></script>
-    <script src="./site-config.js?v=20260602-game-names"></script>
-    <script src="./app.js?v=20260602-game-names"></script>
+    <script src="./works.js?v=20260602-category-colors"></script>
+    <script src="./site-config.js?v=20260602-category-colors"></script>
+    <script src="./app.js?v=20260602-category-colors"></script>
   </body>
 </html>
