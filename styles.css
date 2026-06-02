@@ -218,6 +218,12 @@ a {
   line-height: 1;
 }
 
+.hero-console .deadline-card strong {
+  font-size: clamp(24px, 2.8vw, 38px);
+  line-height: 1.08;
+  white-space: nowrap;
+}
+
 .hero-console span,
 .stats-grid span,
 .stats-grid small {

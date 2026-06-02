@@ -145,7 +145,7 @@ function renderHome() {
       <div class="hero-console" aria-label="成果展摘要">
         <div><strong>${PROJECTS.length}</strong><span>展示作品</span></div>
         <div><strong>${totalVotes}</strong><span>目前票數</span></div>
-        <div><strong>${EVENT_CONFIG.deadline}</strong><span>投票截止</span></div>
+        <div class="deadline-card"><strong>${EVENT_CONFIG.deadline}</strong><span>投票截止</span></div>
       </div>
     </section>
 
