@@ -297,8 +297,9 @@ h1 {
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(176px, 224px));
   gap: 14px;
+  justify-content: start;
 }
 
 .category-section {
@@ -332,7 +333,7 @@ h1 {
 
 .game-tile {
   display: grid;
-  min-height: 142px;
+  min-height: 126px;
   padding: 42px 14px 14px;
   border: 2px solid transparent;
   border-radius: 8px;
@@ -357,7 +358,7 @@ h1 {
 .game-tile strong {
   align-self: end;
   overflow-wrap: anywhere;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.1;
   font-weight: 950;
   text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
@@ -366,7 +367,7 @@ h1 {
 .game-tile em {
   margin-top: 8px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 13px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 900;
   line-height: 1.35;
