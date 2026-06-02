@@ -135,7 +135,7 @@ function renderHome() {
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">${EVENT_CONFIG.subtitle}</p>
-        <h1>${EVENT_CONFIG.title}</h1>
+        <h1 class="event-title"><span>大業 AI 繪圖社</span><span>期末成果展</span></h1>
         <p>這是一個校內遊戲成果展。觀眾可以瀏覽作品、試玩、匿名投票，並留下能幫助創作者改進的具體建議。</p>
         <div class="hero-actions">
           <a class="btn primary" href="#browse">進入作品瀏覽</a>
@@ -477,8 +477,8 @@ function renderAbout() {
         <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。</p>
       </div>
       <div class="info-strip about-strip">
-        <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示。</p></article>
         <article><h2>參與方式</h2><p>觀眾先瀏覽 Browse，進入作品 Detail 試玩，再匿名投票與留下具體建議。</p></article>
+        <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示。</p></article>
         <article><h2>資料原則</h2><p>前台不公開學生姓名、班級、座號或學號，只展示作品代號、內容與統計。</p></article>
       </div>
       <article class="panel schema-panel">

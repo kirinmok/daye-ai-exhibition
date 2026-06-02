@@ -141,6 +141,10 @@ a {
   letter-spacing: 0;
 }
 
+.event-title span {
+  display: block;
+}
+
 .hero p,
 .about-page p {
   max-width: 760px;
