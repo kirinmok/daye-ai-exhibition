@@ -60,10 +60,9 @@ a {
   flex: 0 0 auto;
   place-items: center;
   overflow: hidden;
-  padding: 8px;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
-  background: #ffffff;
+  background: #000000;
   box-shadow: 0 16px 42px rgba(0, 0, 0, 0.26);
 }
 
@@ -75,7 +74,7 @@ a {
 .club-logo img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .club-logo.is-missing::before {
@@ -177,10 +176,13 @@ h1 {
 }
 
 .hero-cover strong {
-  font-size: clamp(62px, 9vw, 140px);
+  max-width: min(86%, 520px);
+  padding: 0 18px;
+  font-size: clamp(28px, 5.4vw, 74px);
   line-height: 1;
   font-weight: 950;
   letter-spacing: 0;
+  text-align: center;
   text-shadow: 0 8px 30px rgba(0, 0, 0, 0.34);
 }
 
@@ -263,22 +265,19 @@ h1 {
 }
 
 .game-rail {
-  overflow-x: auto;
   padding: 12px 0 4px;
 }
 
 .rail-track {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
   gap: 14px;
-  min-width: max-content;
 }
 
 .game-tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: clamp(156px, 17vw, 236px);
-  aspect-ratio: 16 / 9;
+  display: grid;
+  min-height: 118px;
+  padding: 42px 14px 14px;
   border: 2px solid transparent;
   border-radius: 8px;
   background-position: center;
@@ -286,6 +285,7 @@ h1 {
   background: transparent;
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
   cursor: pointer;
+  text-align: left;
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -299,23 +299,21 @@ h1 {
 }
 
 .game-tile strong {
-  font-size: clamp(28px, 4vw, 54px);
-  line-height: 1;
+  align-self: end;
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  line-height: 1.1;
   font-weight: 950;
   text-shadow: 0 5px 20px rgba(0, 0, 0, 0.34);
 }
 
 .game-tile em {
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
-  left: 12px;
   overflow: hidden;
-  color: rgba(255, 255, 255, 0.92);
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
   font-style: normal;
   font-weight: 900;
-  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -471,7 +469,6 @@ iframe {
 
   .club-logo {
     width: 72px;
-    padding: 6px;
   }
 
   .library-stats span {

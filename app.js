@@ -48,10 +48,10 @@ function setSelected(index, shouldFocus = false) {
   heroCover.className = `hero-cover ${work.coverTone}`;
   heroCover.style.backgroundImage = work.coverWideUrl ? `url("${work.coverWideUrl}")` : "";
   heroCover.classList.toggle("has-image", Boolean(work.coverWideUrl));
-  heroShelf.textContent = work.shelfLabel;
+  heroShelf.textContent = work.statusLabel;
   heroLetters.textContent = work.coverLetters;
   heroLetters.hidden = Boolean(work.coverWideUrl);
-  heroMeta.textContent = `${work.code} · ${work.genre} · ${work.statusLabel}`;
+  heroMeta.textContent = `${work.genre} · ${work.statusLabel}`;
   heroTitle.textContent = work.title;
   heroTagline.textContent = work.tagline;
   heroDescription.textContent = work.description;
@@ -88,9 +88,9 @@ function renderGames() {
     tile.classList.toggle("has-image", Boolean(work.coverWideUrl));
     tile.setAttribute("aria-selected", "false");
     tile.innerHTML = `
-      <span>${work.shelfLabel}</span>
-      <strong ${work.coverWideUrl ? "hidden" : ""}>${work.coverLetters}</strong>
-      <em>${work.title}</em>
+      <span>${work.statusLabel}</span>
+      <strong>${work.title}</strong>
+      <em>${work.genre}</em>
     `;
     tile.addEventListener("click", () => setSelected(index));
     if (work.launchUrl) {
@@ -155,7 +155,7 @@ async function loadSubmittedWorks() {
         status: submission.status || existing.status || "published",
         statusLabel: submission.statusLabel || existing.statusLabel || "上架中",
         shelfLabel: submission.shelfLabel || existing.shelfLabel || "PLAY",
-        coverLetters: submission.coverLetters || existing.coverLetters || submission.code,
+        coverLetters: submission.coverLetters || existing.coverLetters || submission.title || existing.title,
         coverTone: submission.coverTone || existing.coverTone || "tone-sky",
       });
     });
