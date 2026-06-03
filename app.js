@@ -21,7 +21,13 @@ const state = {
   dashboardGenre: "all",
   compareOverall: true,
   isAdmin: sessionStorage.getItem(ADMIN_SESSION_KEY) === "active",
+  remoteVotes: [],
+  resultsSyncMessage: "",
 };
+
+function getResultsConfig() {
+  return (window.SITE_CONFIG || {}).results || {};
+}
 
 function getLocalVotes() {
   try {
@@ -69,6 +75,9 @@ function findProject(projectId) {
 }
 
 function allVotes() {
+  if (getResultsConfig().csvUrl) {
+    return state.remoteVotes;
+  }
   return [...MOCK_VOTES, ...getLocalVotes()];
 }
 
@@ -146,6 +155,34 @@ function route() {
   else if (page === "admin") renderAdmin();
   else renderHome();
   app.focus({ preventScroll: true });
+}
+
+async function loadExternalVotes() {
+  const config = getResultsConfig();
+  if (!config.csvUrl) return;
+  try {
+    const response = await fetch(config.csvUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`CSV ${response.status}`);
+    const csv = await response.text();
+    const rows = parseCsv(csv);
+    state.remoteVotes = rows.map(normalizeCsvVote).filter(Boolean);
+    state.resultsSyncMessage = `已同步 ${state.remoteVotes.length} 筆表單回應`;
+  } catch (error) {
+    state.remoteVotes = [];
+    state.resultsSyncMessage = "表單結果讀取失敗，請檢查 Sheet CSV 發布與 CORS。";
+    console.warn("Results CSV load failed.", error);
+  }
+}
+
+function setupExternalVoteRefresh() {
+  const config = getResultsConfig();
+  if (!config.csvUrl) return;
+  const seconds = Number(config.refreshSeconds || 60);
+  window.setInterval(async () => {
+    await loadExternalVotes();
+    if (window.location.hash.replace(/^#/, "") === "results") renderResults();
+    if (!window.location.hash || window.location.hash === "#home") renderHome();
+  }, Math.max(30, seconds) * 1000);
 }
 
 function setActiveNav(page) {
@@ -437,6 +474,29 @@ function bindDetailControls(project) {
 
 function renderResults() {
   const votes = allVotes();
+  const resultsConfig = getResultsConfig();
+  const usingExternalResults = Boolean(resultsConfig.csvUrl);
+  if (usingExternalResults && !resultsConfig.publicRankingsOpen) {
+    app.innerHTML = `
+      <section class="section-head dashboard-head">
+        <div>
+          <p class="eyebrow">Results Dashboard</p>
+          <h1>投票統計</h1>
+          <p>投票期間只公開目前總票數，不公開各作品排行，避免影響後續投票選擇。</p>
+        </div>
+      </section>
+      <section class="stats-grid private-results-grid">
+        <article><span>目前已投</span><strong>${votes.length}</strong><small>票</small></article>
+        <article><span>排行公開</span><strong>截止後</strong><small>${EVENT_CONFIG.deadline}</small></article>
+      </section>
+      <article class="panel">
+        <h2>公平性規則</h2>
+        <p>正式結果將在投票截止與資料檢查後公布。若偵測到灌票、洗票或不當留言，主辦單位可保留刪除與調整統計的權利。</p>
+        <p class="form-message">${state.resultsSyncMessage || "尚未同步表單結果。"}</p>
+      </article>
+    `;
+    return;
+  }
   const genreVotes = state.dashboardGenre === "all"
     ? votes
     : votes.filter((vote) => getProjects().find((project) => project.id === vote.projectId)?.genre.includes(state.dashboardGenre));
@@ -683,6 +743,74 @@ function qrImage(url) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(target)}`;
 }
 
+function parseCsv(csv) {
+  const rows = [];
+  let current = "";
+  let row = [];
+  let quoted = false;
+
+  for (let index = 0; index < csv.length; index += 1) {
+    const char = csv[index];
+    const next = csv[index + 1];
+    if (char === '"' && quoted && next === '"') {
+      current += '"';
+      index += 1;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      row.push(current);
+      current = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(current);
+      rows.push(row);
+      row = [];
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  if (current || row.length) {
+    row.push(current);
+    rows.push(row);
+  }
+
+  const [headers = [], ...dataRows] = rows.filter((item) => item.some((cell) => String(cell).trim()));
+  return dataRows.map((cells) => Object.fromEntries(headers.map((header, index) => [header.trim(), cells[index] || ""])));
+}
+
+function normalizeCsvVote(row, index) {
+  const columns = getResultsConfig().columns || {};
+  const projectId = getCsvValue(row, columns.projectId, ["作品代號", "遊戲代號", "projectId", "project_id"]);
+  if (!projectId) return null;
+  return {
+    id: `csv_${index}_${projectId}`,
+    projectId,
+    likedMost: getCsvValue(row, columns.likedMost, ["最喜歡的地方", "likedMost"]),
+    suggestion: getCsvValue(row, columns.suggestion, ["建議改進", "suggestion"]),
+    creativity: toScore(getCsvValue(row, columns.creativity, ["創意", "creativity"])),
+    art: toScore(getCsvValue(row, columns.art, ["美術風格", "art"])),
+    gameplay: toScore(getCsvValue(row, columns.gameplay, ["遊戲性", "gameplay"])),
+    smoothness: toScore(getCsvValue(row, columns.smoothness, ["操作流暢度", "smoothness"])),
+    completeness: toScore(getCsvValue(row, columns.completeness, ["完成度", "completeness"])),
+    createdAt: getCsvValue(row, columns.createdAt, ["時間戳記", "Timestamp", "createdAt"]) || new Date().toISOString(),
+  };
+}
+
+function getCsvValue(row, preferred, fallbacks = []) {
+  const keys = [preferred, ...fallbacks].filter(Boolean);
+  for (const key of keys) {
+    if (row[key] !== undefined && String(row[key]).trim() !== "") return String(row[key]).trim();
+  }
+  return "";
+}
+
+function toScore(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(1, Math.min(5, number));
+}
+
 function renderAdminEditButton(projectId) {
   if (!state.isAdmin) return "";
   return `<button class="icon-edit" data-edit-project="${escapeAttr(projectId)}" aria-label="編輯作品 ${escapeAttr(projectId)}">✎</button>`;
@@ -865,4 +993,7 @@ function escapeAttr(value) {
 }
 
 window.addEventListener("hashchange", route);
-route();
+loadExternalVotes().finally(() => {
+  setupExternalVoteRefresh();
+  route();
+});
