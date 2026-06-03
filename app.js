@@ -1,6 +1,9 @@
 const app = document.querySelector("#app");
 const VOTE_STORE_KEY = "daye-ai-exhibition-votes";
 const VOTED_STORE_KEY = "daye-ai-exhibition-voted-projects";
+const ADMIN_OVERRIDE_KEY = "daye-ai-exhibition-project-overrides";
+const ADMIN_SESSION_KEY = "daye-ai-exhibition-admin-session";
+const ADMIN_PASSCODE = "Aimyon520";
 const SCORE_FIELDS = [
   ["creativity", "創意"],
   ["art", "美術風格"],
@@ -17,6 +20,7 @@ const state = {
   sort: "popular",
   dashboardGenre: "all",
   compareOverall: true,
+  isAdmin: sessionStorage.getItem(ADMIN_SESSION_KEY) === "active",
 };
 
 function getLocalVotes() {
@@ -41,6 +45,27 @@ function getVotedProjects() {
 
 function setVotedProjects(votedProjects) {
   localStorage.setItem(VOTED_STORE_KEY, JSON.stringify([...votedProjects]));
+}
+
+function getAdminOverrides() {
+  try {
+    return JSON.parse(localStorage.getItem(ADMIN_OVERRIDE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function setAdminOverrides(overrides) {
+  localStorage.setItem(ADMIN_OVERRIDE_KEY, JSON.stringify(overrides));
+}
+
+function getProjects() {
+  const overrides = getAdminOverrides();
+  return PROJECTS.map((project) => ({ ...project, ...(overrides[project.id] || {}) }));
+}
+
+function findProject(projectId) {
+  return getProjects().find((item) => item.id === projectId) || getProjects()[0];
 }
 
 function allVotes() {
@@ -81,7 +106,7 @@ function projectStats(project) {
 
 function filteredProjects() {
   const query = state.query.trim().toLowerCase();
-  const filtered = PROJECTS.filter((project) => {
+  const filtered = getProjects().filter((project) => {
     const haystack = [
       project.id,
       project.title,
@@ -107,7 +132,7 @@ function filteredProjects() {
 }
 
 function uniqueValues(selector) {
-  return [...new Set(PROJECTS.flatMap(selector))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
+  return [...new Set(getProjects().flatMap(selector))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
 }
 
 function route() {
@@ -118,6 +143,7 @@ function route() {
   else if (page === "detail") renderDetail(id || PROJECTS[0].id);
   else if (page === "results") renderResults();
   else if (page === "about") renderAbout();
+  else if (page === "admin") renderAdmin();
   else renderHome();
   app.focus({ preventScroll: true });
 }
@@ -129,7 +155,8 @@ function setActiveNav(page) {
 }
 
 function renderHome() {
-  const featured = PROJECTS.filter((project) => project.featured).slice(0, 5);
+  const projects = getProjects();
+  const featured = projects.filter((project) => project.featured).slice(0, 5);
   const totalVotes = allVotes().length;
   app.innerHTML = `
     <section class="hero">
@@ -143,7 +170,7 @@ function renderHome() {
         </div>
       </div>
       <div class="hero-console" aria-label="成果展摘要">
-        <div><strong>${PROJECTS.length}</strong><span>展示作品</span></div>
+        <div><strong>${projects.length}</strong><span>展示作品</span></div>
         <div><strong>${totalVotes}</strong><span>目前票數</span></div>
         <div class="deadline-card"><strong>${EVENT_CONFIG.deadline}</strong><span>投票截止</span></div>
       </div>
@@ -175,6 +202,7 @@ function renderHome() {
       ${featured.map(renderProjectCard).join("")}
     </div>
   `;
+  bindAdminEditButtons();
 }
 
 function renderBrowse() {
@@ -210,6 +238,7 @@ function renderBrowse() {
     </section>
   `;
   bindBrowseControls();
+  bindAdminEditButtons();
 }
 
 function renderFilterGroup(type, title, values, selectedSet) {
@@ -257,47 +286,52 @@ function bindBrowseControls() {
 function renderProjectCard(project) {
   const stats = projectStats(project);
   return `
-    <a class="project-card theme-${project.theme}" href="#detail/${project.id}">
-      <div class="cover-art">
-        <span>${project.id}</span>
-        <strong>${project.title}</strong>
-      </div>
-      <div class="card-body">
-        <div class="card-meta">
-          <span>${project.genre[0]}</span>
-          <span>${project.platform}</span>
+    <article class="project-card-wrap">
+      ${renderAdminEditButton(project.id)}
+      <a class="project-card theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" href="#detail/${project.id}">
+        <div class="cover-art" ${coverStyle(project)}>
+          <span>${escapeHtml(project.id)}</span>
+          <strong>${escapeHtml(project.title)}</strong>
         </div>
-        <h2>${project.title}</h2>
-        <p>${project.shortPitch}</p>
-        <div class="card-footer">
-          <span>${stats.voteCount} 票</span>
-          <span>${stats.averageScore ? stats.averageScore.toFixed(1) : "0.0"} / 5</span>
+        <div class="card-body">
+          <div class="card-meta">
+            <span>${escapeHtml(project.genre[0])}</span>
+            <span>${escapeHtml(project.platform)}</span>
+          </div>
+          <h2>${escapeHtml(project.title)}</h2>
+          <p>${escapeHtml(project.shortPitch)}</p>
+          <div class="card-footer">
+            <span>${stats.voteCount} 票</span>
+            <span>${stats.averageScore ? stats.averageScore.toFixed(1) : "0.0"} / 5</span>
+          </div>
         </div>
-      </div>
-    </a>
+      </a>
+    </article>
   `;
 }
 
 function renderDetail(projectId) {
-  const project = PROJECTS.find((item) => item.id === projectId) || PROJECTS[0];
+  const project = findProject(projectId);
   const stats = projectStats(project);
   const overall = scoreStats(allVotes());
   const voted = getVotedProjects().has(project.id);
   app.innerHTML = `
     <section class="detail-hero theme-${project.theme}">
-      <div class="detail-cover">
-        <span>${project.id}</span>
-        <strong>${project.title}</strong>
+      <div class="detail-cover ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+        ${renderAdminEditButton(project.id)}
+        <span>${escapeHtml(project.id)}</span>
+        <strong>${escapeHtml(project.title)}</strong>
       </div>
       <div class="detail-copy">
         <a class="back-link" href="#browse">返回 Browse</a>
-        <p class="eyebrow">${project.genre.join(" / ")} · ${project.platform}</p>
-        <h1>${project.title}</h1>
-        <p>${project.description}</p>
-        <div class="tag-row">${project.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+        <p class="eyebrow">${escapeHtml(project.genre.join(" / "))} · ${escapeHtml(project.platform)}</p>
+        <h1>${escapeHtml(project.title)}</h1>
+        <p>${escapeHtml(project.description)}</p>
+        <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
         <div class="detail-actions">
           <a class="btn primary" href="${project.playUrl}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
           <button class="btn ghost" data-action="scroll-vote">${voted ? "已投票" : "匿名投票"}</button>
+          ${state.isAdmin ? `<button class="btn ghost" data-action="edit-project" data-project-id="${escapeAttr(project.id)}">編輯作品</button>` : ""}
         </div>
       </div>
     </section>
@@ -347,6 +381,7 @@ function renderDetail(projectId) {
     </section>
   `;
   bindDetailControls(project);
+  bindAdminEditButtons();
 }
 
 function renderRating(key, label) {
@@ -366,6 +401,7 @@ function renderRating(key, label) {
 }
 
 function bindDetailControls(project) {
+  document.querySelector("[data-action='edit-project']")?.addEventListener("click", () => openProjectEditor(project.id));
   document.querySelector("[data-action='scroll-vote']").addEventListener("click", () => {
     document.querySelector("#voteSection").scrollIntoView({ behavior: "smooth", block: "start" });
   });
@@ -403,12 +439,13 @@ function renderResults() {
   const votes = allVotes();
   const genreVotes = state.dashboardGenre === "all"
     ? votes
-    : votes.filter((vote) => PROJECTS.find((project) => project.id === vote.projectId)?.genre.includes(state.dashboardGenre));
+    : votes.filter((vote) => getProjects().find((project) => project.id === vote.projectId)?.genre.includes(state.dashboardGenre));
   const stats = scoreStats(genreVotes);
-  const topVotes = [...PROJECTS].sort((a, b) => projectStats(b).voteCount - projectStats(a).voteCount).slice(0, 3);
+  const projects = getProjects();
+  const topVotes = [...projects].sort((a, b) => projectStats(b).voteCount - projectStats(a).voteCount).slice(0, 3);
   const topCreativity = bestByScore("creativity");
   const topGameplay = bestByScore("gameplay");
-  const topComments = [...PROJECTS].sort((a, b) => projectStats(b).commentCount - projectStats(a).commentCount)[0];
+  const topComments = [...projects].sort((a, b) => projectStats(b).commentCount - projectStats(a).commentCount)[0];
   const popularGenre = mostPopularGenre();
 
   app.innerHTML = `
@@ -454,9 +491,9 @@ function renderResults() {
       </div>
     </section>
     <div class="mini-radar-grid">
-      ${PROJECTS.map((project) => `
+      ${projects.map((project) => `
         <a class="mini-radar panel" href="#detail/${project.id}">
-          <h3>${project.id} ${project.title}</h3>
+          <h3>${escapeHtml(project.id)} ${escapeHtml(project.title)}</h3>
           ${renderRadar(projectStats(project).score, stats, true)}
         </a>
       `).join("")}
@@ -490,6 +527,78 @@ event_config: { title, subtitle, votingRule, rewardRule, notice }</code></pre>
       </article>
     </section>
   `;
+}
+
+function renderAdmin() {
+  if (!state.isAdmin) {
+    app.innerHTML = `
+      <section class="admin-login">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h1>管理者登入</h1>
+          <p>登入後可在作品卡與作品詳情旁使用筆圖案，直接更換封面與文字。這是靜態網站管理原型，資料暫存在本機瀏覽器。</p>
+        </div>
+        <form class="panel admin-login-form" id="adminLoginForm">
+          <label class="field">
+            <span>管理碼</span>
+            <input name="passcode" type="password" autocomplete="current-password" placeholder="請輸入管理碼" required />
+          </label>
+          <button class="btn primary" type="submit">登入管理</button>
+          <p id="adminLoginMessage" class="form-message"></p>
+        </form>
+      </section>
+    `;
+    document.querySelector("#adminLoginForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const passcode = new FormData(event.currentTarget).get("passcode");
+      if (passcode !== ADMIN_PASSCODE) {
+        document.querySelector("#adminLoginMessage").textContent = "管理碼不正確。";
+        return;
+      }
+      state.isAdmin = true;
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "active");
+      renderAdmin();
+    });
+    return;
+  }
+
+  const overrides = getAdminOverrides();
+  const projects = getProjects();
+  app.innerHTML = `
+    <section class="section-head admin-head">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>作品管理</h1>
+        <p>你可以直接修改封面、作品名稱、亮點、介紹與分類。修改會立即反映在本機預覽。</p>
+      </div>
+      <div class="admin-actions">
+        <button class="btn ghost" data-action="export-overrides">匯出修改資料</button>
+        <button class="btn ghost" data-action="clear-overrides">清除本機修改</button>
+        <button class="btn ghost" data-action="admin-logout">登出</button>
+      </div>
+    </section>
+    <section class="admin-note panel">
+      <h2>目前是靜態後台原型</h2>
+      <p>GitHub Pages 無法安全寫入公開資料庫。這裡先把修改存在你的瀏覽器；正式版可把同一套表單接到 Supabase、Firebase 或 Google Sheets Apps Script。</p>
+    </section>
+    <div class="admin-project-list">
+      ${projects.map((project) => `
+        <article class="admin-project-row ${overrides[project.id] ? "has-local-edit" : ""}">
+          <div class="admin-row-cover theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+            <span>${escapeHtml(project.id)}</span>
+          </div>
+          <div>
+            <h2>${escapeHtml(project.title)}</h2>
+            <p>${escapeHtml(project.shortPitch)}</p>
+            <small>${escapeHtml(project.genre.join(" / "))} · ${escapeHtml(project.platform)}</small>
+          </div>
+          <button class="icon-edit admin-row-edit" data-edit-project="${escapeAttr(project.id)}" aria-label="編輯 ${escapeAttr(project.title)}">✎</button>
+        </article>
+      `).join("")}
+    </div>
+  `;
+  bindAdminPageControls();
+  bindAdminEditButtons();
 }
 
 function renderRadar(stats, compareStats = null, compact = false) {
@@ -542,13 +651,13 @@ function radarPoints(scores) {
 }
 
 function bestByScore(key) {
-  return [...PROJECTS].sort((a, b) => projectStats(b).score.scores[key] - projectStats(a).score.scores[key])[0];
+  return [...getProjects()].sort((a, b) => projectStats(b).score.scores[key] - projectStats(a).score.scores[key])[0];
 }
 
 function mostPopularGenre() {
   const counts = new Map();
   allVotes().forEach((vote) => {
-    const project = PROJECTS.find((item) => item.id === vote.projectId);
+    const project = getProjects().find((item) => item.id === vote.projectId);
     project?.genre.forEach((genre) => counts.set(genre, (counts.get(genre) || 0) + 1));
   });
   const [genre, count] = [...counts.entries()].sort((a, b) => b[1] - a[1])[0] || ["無", 0];
@@ -574,8 +683,185 @@ function qrImage(url) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(target)}`;
 }
 
+function renderAdminEditButton(projectId) {
+  if (!state.isAdmin) return "";
+  return `<button class="icon-edit" data-edit-project="${escapeAttr(projectId)}" aria-label="編輯作品 ${escapeAttr(projectId)}">✎</button>`;
+}
+
+function bindAdminPageControls() {
+  document.querySelector("[data-action='admin-logout']")?.addEventListener("click", () => {
+    state.isAdmin = false;
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    renderAdmin();
+  });
+  document.querySelector("[data-action='clear-overrides']")?.addEventListener("click", () => {
+    if (!window.confirm("確定清除這台瀏覽器中的所有作品修改？")) return;
+    localStorage.removeItem(ADMIN_OVERRIDE_KEY);
+    renderAdmin();
+  });
+  document.querySelector("[data-action='export-overrides']")?.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(getAdminOverrides(), null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "daye-project-overrides.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function bindAdminEditButtons() {
+  if (!state.isAdmin) return;
+  document.querySelectorAll("[data-edit-project]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openProjectEditor(button.dataset.editProject);
+    });
+  });
+}
+
+function openProjectEditor(projectId) {
+  const project = findProject(projectId);
+  const modal = document.createElement("div");
+  modal.className = "admin-modal";
+  modal.innerHTML = `
+    <div class="admin-modal-backdrop" data-close-editor></div>
+    <form class="admin-editor panel" id="projectEditorForm">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">${escapeHtml(project.id)}</p>
+          <h2>編輯作品</h2>
+        </div>
+        <button class="text-button" type="button" data-close-editor>關閉</button>
+      </div>
+      <div class="editor-preview theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+        <span>${escapeHtml(project.id)}</span>
+        <strong>${escapeHtml(project.title)}</strong>
+      </div>
+      <label class="field">
+        <span>上傳封面圖片</span>
+        <input name="cover" type="file" accept="image/*" />
+      </label>
+      ${project.cover ? `<button class="text-button danger-text" type="button" data-action="remove-cover">移除目前封面</button>` : ""}
+      <label class="field">
+        <span>作品名稱</span>
+        <input name="title" value="${escapeAttr(project.title)}" required />
+      </label>
+      <label class="field">
+        <span>一句亮點</span>
+        <textarea name="shortPitch" rows="2" required>${escapeHtml(project.shortPitch)}</textarea>
+      </label>
+      <label class="field">
+        <span>作品介紹</span>
+        <textarea name="description" rows="4" required>${escapeHtml(project.description)}</textarea>
+      </label>
+      <div class="editor-two-col">
+        <label class="field">
+          <span>遊戲類型，以逗號分隔</span>
+          <input name="genre" value="${escapeAttr(project.genre.join(", "))}" required />
+        </label>
+        <label class="field">
+          <span>平台</span>
+          <input name="platform" value="${escapeAttr(project.platform)}" required />
+        </label>
+      </div>
+      <label class="field">
+        <span>標籤，以逗號分隔</span>
+        <input name="tags" value="${escapeAttr(project.tags.join(", "))}" />
+      </label>
+      <label class="field">
+        <span>遊玩連結</span>
+        <input name="playUrl" value="${escapeAttr(project.playUrl)}" />
+      </label>
+      <div class="editor-actions">
+        <button class="btn primary" type="submit">儲存修改</button>
+        <button class="btn ghost" type="button" data-action="reset-project">還原這件作品</button>
+      </div>
+      <p class="form-message" id="editorMessage"></p>
+    </form>
+  `;
+  document.body.appendChild(modal);
+  document.body.classList.add("is-editing");
+
+  const closeEditor = () => {
+    modal.remove();
+    document.body.classList.remove("is-editing");
+  };
+  modal.querySelectorAll("[data-close-editor]").forEach((button) => button.addEventListener("click", closeEditor));
+  modal.querySelector("[data-action='remove-cover']")?.addEventListener("click", () => {
+    modal.dataset.removeCover = "true";
+    modal.querySelector(".editor-preview").style.backgroundImage = "";
+    modal.querySelector(".editor-preview").classList.remove("has-cover-image");
+  });
+  modal.querySelector("[data-action='reset-project']").addEventListener("click", () => {
+    const overrides = getAdminOverrides();
+    delete overrides[project.id];
+    setAdminOverrides(overrides);
+    closeEditor();
+    route();
+  });
+  modal.querySelector("#projectEditorForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const file = form.get("cover");
+    const existing = getAdminOverrides();
+    const nextCover = modal.dataset.removeCover === "true"
+      ? ""
+      : file && file.size
+        ? await fileToDataUrl(file)
+        : project.cover || "";
+    existing[project.id] = {
+      title: String(form.get("title") || "").trim(),
+      shortPitch: String(form.get("shortPitch") || "").trim(),
+      description: String(form.get("description") || "").trim(),
+      genre: splitList(form.get("genre")),
+      platform: String(form.get("platform") || "").trim(),
+      tags: splitList(form.get("tags")),
+      playUrl: String(form.get("playUrl") || "#").trim() || "#",
+      cover: nextCover,
+    };
+    setAdminOverrides(existing);
+    document.querySelector("#editorMessage").textContent = "已儲存。";
+    window.setTimeout(() => {
+      closeEditor();
+      route();
+    }, 350);
+  });
+}
+
+function splitList(value) {
+  return String(value || "")
+    .split(/[,，]/u)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", reject);
+    reader.readAsDataURL(file);
+  });
+}
+
+function coverStyle(project) {
+  if (!project.cover) return "";
+  return `style="background-image: linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.48)), url('${escapeAttr(project.cover)}')"`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function escapeAttr(value) {
-  return String(value).replace(/"/g, "&quot;");
+  return escapeHtml(value);
 }
 
 window.addEventListener("hashchange", route);
