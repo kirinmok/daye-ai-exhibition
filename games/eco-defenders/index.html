@@ -3614,6 +3614,122 @@ let shopTrades = [ {id: 67, c: 1, rid: 81, rc: 10}, {id: 67, c: 5, rid: 47, rc: 
                     standEntity.state = 'idle';
                 }
             }
+            // 🌟 放在 tsIntroCinematic 判斷的後面
+            else if (isCinematic && window.victoryCinematic) {
+                input.ml = false; // 禁用攻擊
+                
+                // 攝影機環繞核心並緩緩升空拉遠
+                window.victoryCamAngle += dt * 0.6; 
+                if (window.victoryCamHeight < window.ecoCore.mesh.position.y + 15) {
+                    window.victoryCamHeight += dt * 3.5; 
+                }
+                if (window.victoryCamRadius < 25) {
+                    window.victoryCamRadius += dt * 2.0; 
+                }
+                
+                let corePos = window.ecoCore.mesh.position;
+                camera.position.x = corePos.x + Math.cos(window.victoryCamAngle) * window.victoryCamRadius;
+                camera.position.y = window.victoryCamHeight;
+                camera.position.z = corePos.z + Math.sin(window.victoryCamAngle) * window.victoryCamRadius;
+                
+                camera.lookAt(corePos.x, corePos.y + 2, corePos.z); // 鎖定視角在核心
+                
+                playerModel.visible = true; // 顯示玩家本體
+                rightHand.visible = false;
+                
+                // 🌟 勝利慶祝：隨機施放彩色煙火特效
+                if (Math.random() < 0.15) {
+                    let color = Math.floor(Math.random() * 0xffffff); // 隨機顏色
+                    spawnParticles(
+                        corePos.x + (Math.random()-0.5)*25, 
+                        corePos.y + 8 + Math.random()*15, 
+                        corePos.z + (Math.random()-0.5)*25, 
+                        color, 40
+                    );
+                    sfx.shoot(); // 借用射擊音效當作煙火聲
+                }
+                // 🌟 新增：轉完一整圈 (2π 約 6.28) 後顯示重新開始按鈕
+                if (window.victoryCamAngle >= Math.PI * 2 && !window.victoryRestartShown) {
+                    window.victoryRestartShown = true;
+                    let vs = document.getElementById('victory-screen');
+                    if(vs) {
+                        vs.style.pointerEvents = 'auto'; // 開啟按鈕點擊權限
+                        let btn = document.createElement('button');
+                        btn.innerHTML = "🔄 重新開始冒險";
+                        btn.style = "margin-top:40px; padding:15px 40px; font-size:24px; font-weight:bold; background:linear-gradient(180deg,#4caf50,#2e7d32); color:white; border:2px solid #fff; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 0 20px rgba(76,175,80,0.8); z-index:10000; transition: transform 0.2s;";
+                        btn.onmouseover = () => btn.style.transform = "scale(1.05)";
+                        btn.onmouseout = () => btn.style.transform = "scale(1)";
+                        btn.onclick = () => location.reload(); // 點擊後重新整理網頁
+                        vs.appendChild(btn);
+                    }
+                }
+            }
+            // 🌟 開場動畫：生態破壞運鏡
+            else if (isCinematic && window.introCinematic) {
+                input.ml = false; // 禁用攻擊
+                window.introTimer += dt;
+                let progress = window.introTimer / window.introDuration;
+                
+                if (window.introTimer < window.introDuration) {
+                    // 1. 運鏡軌跡：從空中俯瞰被污染的溪流，慢慢降落到玩家身上
+                    let startPos = new THREE.Vector3(0, 45, 25); 
+                    let endPos = new THREE.Vector3(player.x, player.y + 1.5, player.z);
+                    
+                    // 平滑曲線 (Ease-in-out)
+                    let ease = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+                    camera.position.lerpVectors(startPos, endPos, ease);
+                    
+                    // 鏡頭從看著核心，慢慢轉向玩家前方
+                    let corePos = window.ecoCore ? window.ecoCore.mesh.position : new THREE.Vector3(0, 0, 35);
+                    let lookTargetStart = new THREE.Vector3(corePos.x, corePos.y, corePos.z - 10);
+                    let lookTargetEnd = new THREE.Vector3(player.x, player.y + 1.5, player.z - 10);
+                    let currentLook = new THREE.Vector3().lerpVectors(lookTargetStart, lookTargetEnd, ease);
+                    camera.lookAt(currentLook);
+                    
+                    playerModel.visible = true;
+                    rightHand.visible = false;
+                    
+                    // 2. 顯示開場文字
+                    if (!document.getElementById('intro-text')) {
+                        let text = document.createElement('div');
+                        text.id = 'intro-text';
+                        text.style = "position:fixed;top:35%;left:0;width:100%;color:#ff5555;font-size:40px;font-weight:900;text-shadow:0 4px 15px #000;z-index:2000;text-align:center;pointer-events:none;letter-spacing:2px;opacity:0;transition:opacity 1s;";
+                        text.innerHTML = "曾經清澈的溪流...<br>如今已被廢棄物與污染源無情吞噬。";
+                        document.body.appendChild(text);
+                        setTimeout(() => text.style.opacity = 1, 500); // 漸入
+                    }
+                    
+                    // 動畫過半時，切換台詞
+                    if (progress > 0.55 && document.getElementById('intro-text').innerText.includes("清澈")) {
+                        let textEl = document.getElementById('intro-text');
+                        textEl.style.opacity = 0; // 先淡出
+                        setTimeout(() => {
+                            textEl.innerHTML = "拿起武器。<br>守護最後的生態核心！";
+                            textEl.style.color = "#4caf50";
+                            textEl.style.opacity = 1; // 再淡入
+                        }, 1000);
+                    }
+                    
+                    // 3. 隨機生成毒氣粒子特效渲染氣氛
+                    if (Math.random() < 0.3) {
+                        spawnParticles((Math.random()-0.5)*30, 20, (Math.random()-0.5)*30, 0x88ff88, 2);
+                    }
+                } else {
+                    // 動畫結束，恢復正常視角
+                    isCinematic = false;
+                    window.introCinematic = false;
+                    if(document.getElementById('intro-text')) {
+                        let el = document.getElementById('intro-text');
+                        el.style.opacity = 0;
+                        setTimeout(() => el.remove(), 1000);
+                    }
+                    
+                    camera.rotation.set(0, 0, 0, 'YXZ'); 
+                    prePitch = 0; preYaw = 0;
+                    playerModel.visible = isThirdPerson;
+                    rightHand.visible = !isThirdPerson;
+                }
+            }
             else if (!input.ml && isCinematic === false) {
                 input.ml = false; 
             }
@@ -4185,6 +4301,7 @@ let shopTrades = [ {id: 67, c: 1, rid: 81, rc: 10}, {id: 67, c: 5, rid: 47, rc: 
                 if (boss) currentHostileCount++;
                 
                 if (waveCooldown <= 0 && currentHostileCount === 0 && !boss) {
+                    if (waveCooldown <= 0 && currentHostileCount === 0 && !boss) {
                     if (currentWave === 10) {
                         // 🏆 第十波通關結局！
                         isWaveActive = false; // 停止出怪
@@ -4192,7 +4309,8 @@ let shopTrades = [ {id: 67, c: 1, rid: 81, rc: 10}, {id: 67, c: 5, rid: 47, rc: 
                         if (!document.getElementById('victory-screen')) {
                             let div = document.createElement('div');
                             div.id = 'victory-screen';
-                            div.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;color:#fff;pointer-events:none;animation:popFade 4s ease-in forwards;";
+                            // 🌟 修正偏移：加入 text-align:center 確保文字置中
+                            div.style = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;pointer-events:none;box-sizing:border-box;opacity:0;animation:bwFade 2s ease-in forwards;";
                             div.innerHTML = `
                                 <h1 style="font-size:72px;color:#4caf50;text-shadow:0 0 30px #4caf50;margin-bottom:20px;letter-spacing:5px;">守護成功！</h1>
                                 <p style="font-size:24px;color:#ddd;text-shadow:2px 2px 5px #000;">你成功保護了八掌溪核心，清除了所有的污染源！</p>
@@ -4200,15 +4318,21 @@ let shopTrades = [ {id: 67, c: 1, rid: 81, rc: 10}, {id: 67, c: 5, rid: 47, rc: 
                             document.body.appendChild(div);
                         }
                         
+                        // 🌟 啟動勝利史詩運鏡
                         isCinematic = true;
-                        cinematicTimer = 9999; // 永久運鏡
+                        cinematicTimer = 9999; 
+                        window.victoryCinematic = true; // 標記為勝利動畫
                         window.victoryCamAngle = 0;
+                        window.victoryCamHeight = camera.position.y;
+                        window.victoryCamRadius = 10;
                         sfx.levelUp();
                     } else {
-                        waveCooldown = 5.0; // 休息 5 秒後自動進入下一波
-                        showToast(`第 ${currentWave} 波已清空！5 秒後進入下一波...`, "lime");
+                        // 🌟 修改：下一波冷卻時間從 5.0 改為 2.0 秒
+                        waveCooldown = 2.0; 
+                        showToast(`第 ${currentWave} 波已清空！2 秒後進入下一波...`, "lime");
                         sfx.levelUp();
                     }
+                }
                 }
             } else {
                 let radar = document.getElementById('wave-radar');
@@ -4422,38 +4546,34 @@ let shopTrades = [ {id: 67, c: 1, rid: 81, rc: 10}, {id: 67, c: 5, rid: 47, rc: 
 
             
 
+            // 🌟 順手修復玩家的永久無敵 Bug (加在 boss 判斷的上方即可)
+            if (player.invulnerable > 0) player.invulnerable -= dt;
+
             if(boss) {
+                // 🌟 修復鎖血 Bug：讓 Boss 的無敵時間與受擊閃爍正常倒數！
+                if (boss.invulnerable > 0) boss.invulnerable -= dt;
+                if (boss.flashTimer > 0) boss.flashTimer -= dt;
 
                 boss.y += Math.sin(Date.now()/500)*0.05; 
-
                 let bdx = (player.x-boss.x)*dt; let bdz = (player.z-boss.z)*dt;
-
                 if(!checkCollision(boss.x + bdx, boss.y, boss.z, boss.w/2, boss.h).solid) boss.x += bdx;
-
                 if(!checkCollision(boss.x, boss.y, boss.z + bdz, boss.w/2, boss.h).solid) boss.z += bdz;
 
-
-
                 boss.mesh.position.set(boss.x, boss.y, boss.z); boss.mesh.lookAt(player.x, boss.y, player.z);
-
+                
+                // 🌟 現在 flashTimer 有正常倒數，打中才會閃紅光了
                 let bc = boss.flashTimer>0 ? 0xff0000 : 0xffffff;
-
                 boss.mesh.traverse(child => { 
-
-                    if(child.isMesh) { if (Array.isArray(child.material)) child.material.forEach(mat => mat.color.setHex(bc)); else child.material.color.setHex(bc); }
-
+                    if(child.isMesh) { 
+                        if (Array.isArray(child.material)) child.material.forEach(mat => mat.color.setHex(bc)); 
+                        else child.material.color.setHex(bc); 
+                    }
                 });
 
-
-
                 if(Math.random() < 0.02 && !isCreative) {
-
                     let pMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.5,0.5), new THREE.MeshBasicMaterial({color: 0xff00ff}));
-
                     entityGroup.add(pMesh); projectiles.push({x:boss.x, y:boss.y+2, z:boss.z, vx:(player.x-boss.x)*2, vy:-5, vz:(player.z-boss.z)*2, owner:'boss_void', mesh: pMesh, bounce:0});
-
                 }
-
             }
 
             
@@ -4637,6 +4757,75 @@ let shopTrades = [ {id: 67, c: 1, rid: 81, rc: 10}, {id: 67, c: 5, rid: 47, rc: 
         else if (c === '/gamemode 0') { if(isCreative) toggleCreative(); } 
 
         else if (c === '/time set day') { dayTime = 0.05; showToast("時間已設定", "lime"); } 
+        else if (c === '/killall') {
+            let killCount = 0;
+            // 1. 清除所有普通生物 (跳過無辜的流浪商人)
+            mobs.forEach(m => {
+                if (m.type !== 'npc' && m.hp > 0) {
+                    m.hp = 0; // 血量歸零，交給主迴圈自然死亡並掉落物品
+                    killCount++;
+                }
+            });
+            
+            // 2. 制裁高高在上的 Boss (使用 damageBoss 確保血條正確消失並噴寶)
+            if (boss && boss.hp > 0) {
+                damageBoss(boss.maxHp + 9999); 
+                killCount++;
+            }
+            
+            showToast(`⚡ 天罰降臨！已抹殺 ${killCount} 個實體。`, "#ffeb3b");
+        }
+        else if (c.startsWith('/wave ')) {
+            let p = c.split(' ');
+            let w = parseInt(p[1]);
+            if (!isNaN(w) && w > 0) {
+                // 1. 強制清除現有敵人與 Boss (避免畫面混亂)
+                mobs.forEach(m => { 
+                    if (m.type !== 'npc' && m.type !== 'pig' && m.type !== 'sheep') { entityGroup.remove(m.mesh); } 
+                });
+                mobs = mobs.filter(m => m.type === 'npc' || m.type === 'pig' || m.type === 'sheep');
+                if (boss) { entityGroup.remove(boss.mesh); boss = null; document.getElementById('boss-bar-container').style.display='none'; }
+                
+                // 2. 設定波次，並把冷卻時間設為 0.5 秒，讓它立刻觸發
+                isWaveActive = true;
+                currentWave = w - 1; // 設為目標波次的前一波
+                waveCooldown = 0.5;  
+                showToast(`🛠️ 開發者：強制切換至第 ${w} 波！`, "#00ffff");
+            } else {
+                showToast("用法: /wave <數字>", "red");
+            }
+        }
+        else if (c === '/victory') {
+            // 1. 停止出怪並清空場上敵人
+            isWaveActive = false;
+            mobs.forEach(m => { 
+                if (m.type !== 'npc' && m.type !== 'pig' && m.type !== 'sheep') { entityGroup.remove(m.mesh); } 
+            });
+            mobs = mobs.filter(m => m.type === 'npc' || m.type === 'pig' || m.type === 'sheep');
+            if (boss) { entityGroup.remove(boss.mesh); boss = null; document.getElementById('boss-bar-container').style.display='none'; }
+
+            // 2. 叫出勝利 UI (包含置中修正)
+            if (!document.getElementById('victory-screen')) {
+                let div = document.createElement('div');
+                div.id = 'victory-screen';
+                div.style = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;color:#fff;pointer-events:none;box-sizing:border-box;opacity:0;animation:bwFade 2s ease-in forwards;";
+                div.innerHTML = `
+                    <h1 style="font-size:72px;color:#4caf50;text-shadow:0 0 30px #4caf50;margin-bottom:20px;letter-spacing:5px;">守護成功！</h1>
+                    <p style="font-size:24px;color:#ddd;text-shadow:2px 2px 5px #000;">你成功保護了八掌溪核心，清除了所有的污染源！</p>
+                    <p style="font-size:18px;color:#aaa;margin-top:40px;">感謝你的遊玩</p>`;
+                document.body.appendChild(div);
+            }
+            
+            // 3. 強制啟動勝利史詩運鏡與煙火
+            isCinematic = true;
+            cinematicTimer = 9999; 
+            window.victoryCinematic = true; 
+            window.victoryCamAngle = 0;
+            window.victoryCamHeight = camera.position.y;
+            window.victoryCamRadius = 10;
+            sfx.levelUp();
+            showToast("🛠️ 開發者：強制展示結局動畫！", "#00ffff");
+        }
 
         else if (c.startsWith('/give ')) { 
 
@@ -4923,13 +5112,17 @@ else if (c === '/start') {
     
 
     startBtn.onclick = () => { 
-
         document.getElementById('blocker').style.display = 'none'; sfx.init(); 
-
         if (!('ontouchstart' in window)) document.body.requestPointerLock(); 
-
-        isPaused = false; lastTime = performance.now(); requestAnimationFrame(loop); 
-
+        isPaused = false; 
+        
+        // 🌟 啟動開場生態破壞運鏡
+        isCinematic = true;
+        window.introCinematic = true;
+        window.introTimer = 0;
+        window.introDuration = 8.0; // 動畫長度 8 秒
+        
+        lastTime = performance.now(); requestAnimationFrame(loop); 
     };
 
 
