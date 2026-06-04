@@ -1060,37 +1060,49 @@ function openProjectEditor(projectId) {
   });
   modal.querySelector("#projectEditorForm").addEventListener("submit", async (event) => {
     event.preventDefault();
+    const message = document.querySelector("#editorMessage");
+    const submitButton = event.currentTarget.querySelector("button[type='submit']");
+    message.textContent = "正在處理圖片...";
+    submitButton.disabled = true;
     const form = new FormData(event.currentTarget);
     const file = form.get("cover");
     const boxFile = form.get("boxCover");
     const existing = getAdminOverrides();
-    const nextCover = modal.dataset.removeCover === "true"
-      ? ""
-      : file && file.size
-        ? await fileToDataUrl(file)
-        : project.cover || "";
-    const nextBoxCover = modal.dataset.removeBoxCover === "true"
-      ? ""
-      : boxFile && boxFile.size
-        ? await fileToDataUrl(boxFile)
-        : project.boxCover || "";
-    existing[project.id] = {
-      title: String(form.get("title") || "").trim(),
-      shortPitch: String(form.get("shortPitch") || "").trim(),
-      description: String(form.get("description") || "").trim(),
-      genre: splitList(form.get("genre")),
-      platform: String(form.get("platform") || "").trim(),
-      tags: splitList(form.get("tags")),
-      playUrl: String(form.get("playUrl") || "#").trim() || "#",
-      cover: nextCover,
-      boxCover: nextBoxCover,
-    };
-    setAdminOverrides(existing);
-    document.querySelector("#editorMessage").textContent = "已儲存。";
-    window.setTimeout(() => {
-      closeEditor();
-      route();
-    }, 350);
+    try {
+      const nextCover = modal.dataset.removeCover === "true"
+        ? ""
+        : file && file.size
+          ? await imageFileToDataUrl(file, { maxWidth: 1280, maxHeight: 720, quality: 0.82 })
+          : project.cover || "";
+      const nextBoxCover = modal.dataset.removeBoxCover === "true"
+        ? ""
+        : boxFile && boxFile.size
+          ? await imageFileToDataUrl(boxFile, { maxWidth: 900, maxHeight: 1350, quality: 0.84 })
+          : project.boxCover || "";
+      existing[project.id] = {
+        title: String(form.get("title") || "").trim(),
+        shortPitch: String(form.get("shortPitch") || "").trim(),
+        description: String(form.get("description") || "").trim(),
+        genre: splitList(form.get("genre")),
+        platform: String(form.get("platform") || "").trim(),
+        tags: splitList(form.get("tags")),
+        playUrl: String(form.get("playUrl") || "#").trim() || "#",
+        cover: nextCover,
+        boxCover: nextBoxCover,
+      };
+      setAdminOverrides(existing);
+      message.textContent = "已儲存。";
+      window.setTimeout(() => {
+        closeEditor();
+        route();
+      }, 350);
+    } catch (error) {
+      console.error(error);
+      submitButton.disabled = false;
+      message.textContent = isStorageQuotaError(error)
+        ? "儲存失敗：這台瀏覽器的本機儲存空間已滿。請先到後台清除本機修改，或改用較小圖片。"
+        : "儲存失敗：圖片處理時發生問題，請換一張圖片再試。";
+    }
   });
 }
 
@@ -1101,13 +1113,35 @@ function splitList(value) {
     .filter(Boolean);
 }
 
-function fileToDataUrl(file) {
+function imageFileToDataUrl(file, options) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => resolve(reader.result));
-    reader.addEventListener("error", reject);
-    reader.readAsDataURL(file);
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.addEventListener("load", () => {
+      const scale = Math.min(1, options.maxWidth / image.naturalWidth, options.maxHeight / image.naturalHeight);
+      const width = Math.max(1, Math.round(image.naturalWidth * scale));
+      const height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0, width, height);
+      URL.revokeObjectURL(objectUrl);
+      resolve(canvas.toDataURL("image/jpeg", options.quality));
+    });
+    image.addEventListener("error", () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Image could not be loaded."));
+    });
+    image.src = objectUrl;
   });
+}
+
+function isStorageQuotaError(error) {
+  return error?.name === "QuotaExceededError"
+    || error?.name === "NS_ERROR_DOM_QUOTA_REACHED"
+    || error?.code === 22
+    || error?.code === 1014;
 }
 
 function coverStyle(project) {

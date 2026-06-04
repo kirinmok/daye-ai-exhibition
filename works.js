@@ -25,7 +25,8 @@ const PROJECTS = [
   {
     id: "G02",
     title: "風味抉擇：漢堡帝國",
-    cover: "",
+    cover: "./assets/games/burger-empire/cover-16x9.png",
+    boxCover: "./assets/games/burger-empire/cover-2x3.png",
     genre: ["模擬經營", "策略"],
     tags: ["餐廳", "資源管理", "升級", "決策"],
     platform: "Web",
