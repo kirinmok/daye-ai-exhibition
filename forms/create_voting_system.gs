@@ -22,7 +22,7 @@ const PROJECT_CHOICES = [
   'G07 - 八掌溪環保爭霸戰',
   'G08 - 深淵騎士',
   'G09 - 永續島嶼建設者',
-  'G10 - Pixel Reef Runner',
+  "G10 - ECO Defender's Bizarre Adventure",
   'G11 - Neon Lab Rescue',
   'G12 - Sky Bento Courier',
   'G13 - Ghost Signal FM',
