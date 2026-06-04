@@ -339,7 +339,7 @@ function renderProjectCard(project) {
       <a class="project-card theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" href="#detail/${project.id}">
         <div class="cover-art" ${coverStyle(project)}>
           <span>${escapeHtml(project.id)}</span>
-          <strong>${escapeHtml(project.title)}</strong>
+          ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -366,10 +366,15 @@ function renderDetail(projectId) {
   const votingConfig = getVotingConfig();
   app.innerHTML = `
     <section class="detail-hero theme-${project.theme}">
-      <div class="detail-cover ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
-        ${renderAdminEditButton(project.id)}
-        <span>${escapeHtml(project.id)}</span>
-        <strong>${escapeHtml(project.title)}</strong>
+      <div class="detail-media">
+        <div class="detail-cover ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+          ${renderAdminEditButton(project.id)}
+          <span>${escapeHtml(project.id)}</span>
+          ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
+        </div>
+        ${project.boxCover ? `
+          <div class="box-cover" ${boxCoverStyle(project)}></div>
+        ` : ""}
       </div>
       <div class="detail-copy">
         <a class="back-link" href="#browse">返回 Browse</a>
@@ -660,7 +665,7 @@ function renderAbout() {
       <article class="panel schema-panel">
         <h2>後續資料串接建議</h2>
         <p>靜態原型可部署到 GitHub Pages；正式投票建議接 Google Forms + Apps Script + Sheets，或 Supabase/Firebase。前台只讀取彙整後的匿名統計 JSON，不直接公開原始回覆。</p>
-        <pre><code>projects: { id, title, cover, genre, tags, platform, shortPitch, description, playUrl, qrUrl }
+        <pre><code>projects: { id, title, cover, boxCover, genre, tags, platform, shortPitch, description, playUrl, qrUrl }
 votes: { projectId, likedMost, suggestion, creativity, art, gameplay, smoothness, completeness, createdAt }
 event_config: { title, subtitle, votingRule, rewardRule, notice }</code></pre>
       </article>
@@ -947,15 +952,25 @@ function openProjectEditor(projectId) {
         </div>
         <button class="text-button" type="button" data-close-editor>關閉</button>
       </div>
-      <div class="editor-preview theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
-        <span>${escapeHtml(project.id)}</span>
-        <strong>${escapeHtml(project.title)}</strong>
+      <div class="editor-cover-grid">
+        <div class="editor-preview theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+          <span>16:9</span>
+          <strong>${escapeHtml(project.title)}</strong>
+        </div>
+        <div class="editor-box-preview ${project.boxCover ? "has-cover-image" : ""}" ${boxCoverStyle(project)}>
+          <span>2:3</span>
+        </div>
       </div>
       <label class="field">
-        <span>上傳封面圖片</span>
+        <span>上傳橫式封面 16:9</span>
         <input name="cover" type="file" accept="image/*" />
       </label>
-      ${project.cover ? `<button class="text-button danger-text" type="button" data-action="remove-cover">移除目前封面</button>` : ""}
+      ${project.cover ? `<button class="text-button danger-text" type="button" data-action="remove-cover">移除橫式封面</button>` : ""}
+      <label class="field">
+        <span>上傳盒裝封面 2:3</span>
+        <input name="boxCover" type="file" accept="image/*" />
+      </label>
+      ${project.boxCover ? `<button class="text-button danger-text" type="button" data-action="remove-box-cover">移除盒裝封面</button>` : ""}
       <label class="field">
         <span>作品名稱</span>
         <input name="title" value="${escapeAttr(project.title)}" required />
@@ -1006,6 +1021,11 @@ function openProjectEditor(projectId) {
     modal.querySelector(".editor-preview").style.backgroundImage = "";
     modal.querySelector(".editor-preview").classList.remove("has-cover-image");
   });
+  modal.querySelector("[data-action='remove-box-cover']")?.addEventListener("click", () => {
+    modal.dataset.removeBoxCover = "true";
+    modal.querySelector(".editor-box-preview").style.backgroundImage = "";
+    modal.querySelector(".editor-box-preview").classList.remove("has-cover-image");
+  });
   modal.querySelector("[data-action='reset-project']").addEventListener("click", () => {
     const overrides = getAdminOverrides();
     delete overrides[project.id];
@@ -1017,12 +1037,18 @@ function openProjectEditor(projectId) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const file = form.get("cover");
+    const boxFile = form.get("boxCover");
     const existing = getAdminOverrides();
     const nextCover = modal.dataset.removeCover === "true"
       ? ""
       : file && file.size
         ? await fileToDataUrl(file)
         : project.cover || "";
+    const nextBoxCover = modal.dataset.removeBoxCover === "true"
+      ? ""
+      : boxFile && boxFile.size
+        ? await fileToDataUrl(boxFile)
+        : project.boxCover || "";
     existing[project.id] = {
       title: String(form.get("title") || "").trim(),
       shortPitch: String(form.get("shortPitch") || "").trim(),
@@ -1032,6 +1058,7 @@ function openProjectEditor(projectId) {
       tags: splitList(form.get("tags")),
       playUrl: String(form.get("playUrl") || "#").trim() || "#",
       cover: nextCover,
+      boxCover: nextBoxCover,
     };
     setAdminOverrides(existing);
     document.querySelector("#editorMessage").textContent = "已儲存。";
@@ -1061,6 +1088,11 @@ function fileToDataUrl(file) {
 function coverStyle(project) {
   if (!project.cover) return "";
   return `style="background-image: linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.48)), url('${escapeAttr(project.cover)}')"`;
+}
+
+function boxCoverStyle(project) {
+  if (!project.boxCover) return "";
+  return `style="background-image: linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.18)), url('${escapeAttr(project.boxCover)}')"`;
 }
 
 function escapeHtml(value) {

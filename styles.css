@@ -552,11 +552,44 @@ a {
   padding: 38px 0 32px;
 }
 
+.detail-media {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.36fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
 .detail-cover {
   position: relative;
   min-height: 360px;
   border-radius: 8px;
   box-shadow: var(--shadow);
+}
+
+.box-cover {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    #111;
+  background-position: center;
+  background-size: cover;
+  box-shadow: var(--shadow);
+}
+
+.box-cover span {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.56);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .detail-copy h1 {
@@ -863,6 +896,41 @@ a {
   background-size: cover;
 }
 
+.editor-cover-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.36fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.editor-cover-grid .editor-preview {
+  margin: 0;
+}
+
+.editor-box-preview {
+  position: relative;
+  min-height: 210px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    #20242d;
+  background-position: center;
+  background-size: cover;
+}
+
+.editor-box-preview span {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.42);
+  font-size: 12px;
+  font-weight: 950;
+}
+
 .editor-preview span {
   position: absolute;
   top: 14px;
@@ -988,6 +1056,17 @@ body.is-editing {
   .filter-panel {
     position: static;
     max-height: none;
+  }
+
+  .detail-media,
+  .editor-cover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .box-cover,
+  .editor-box-preview {
+    min-height: 420px;
+    max-width: min(100%, 320px);
   }
 
   .info-strip,

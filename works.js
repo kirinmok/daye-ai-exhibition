@@ -109,7 +109,8 @@ const PROJECTS = [
   {
     id: "G08",
     title: "深淵騎士",
-    cover: "",
+    cover: "./assets/games/dark-cell/cover-16x9.png",
+    boxCover: "./assets/games/dark-cell/cover-2x3.png",
     genre: ["平台跳躍", "動作"],
     tags: ["騎士", "關卡", "技能", "挑戰"],
     platform: "Web",
