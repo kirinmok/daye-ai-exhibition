@@ -21,6 +21,7 @@ const state = {
   dashboardGenre: "all",
   compareOverall: true,
   isAdmin: sessionStorage.getItem(ADMIN_SESSION_KEY) === "active",
+  homeSeed: Number(sessionStorage.getItem("daye-home-feature-seed") || Date.now()),
   remoteVotes: [],
   resultsSyncMessage: "",
 };
@@ -204,7 +205,7 @@ function setActiveNav(page) {
 
 function renderHome() {
   const projects = getProjects();
-  const featured = projects.filter((project) => project.featured).slice(0, 5);
+  const featured = homeFeaturedProjects(projects);
   const totalVotes = allVotes().length;
   app.innerHTML = `
     <section class="hero">
@@ -241,16 +242,40 @@ function renderHome() {
 
     <section class="section-head">
       <div>
-        <p class="eyebrow">Featured</p>
-        <h2>先從這幾款開始試玩</h2>
+        <p class="eyebrow">Random Picks</p>
+        <h2>隨機抽幾款開始試玩</h2>
       </div>
-      <a href="#browse">看全部作品</a>
+      <div class="section-actions">
+        <button class="text-button" data-action="shuffle-home">換一批</button>
+        <a href="#browse">看全部作品</a>
+      </div>
     </section>
     <div class="card-grid featured-grid">
       ${featured.map(renderProjectCard).join("")}
     </div>
   `;
+  document.querySelector("[data-action='shuffle-home']")?.addEventListener("click", () => {
+    state.homeSeed = Date.now();
+    sessionStorage.setItem("daye-home-feature-seed", String(state.homeSeed));
+    renderHome();
+  });
   bindAdminEditButtons();
+}
+
+function homeFeaturedProjects(projects) {
+  const playable = projects.filter((project) => project.playUrl && project.playUrl !== "#");
+  return seededShuffle(playable.length ? playable : projects, state.homeSeed).slice(0, 4);
+}
+
+function seededShuffle(items, seed) {
+  const shuffled = [...items];
+  let value = Math.max(1, Math.floor(seed) % 2147483647);
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    value = (value * 16807) % 2147483647;
+    const swapIndex = value % (index + 1);
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  return shuffled;
 }
 
 function renderBrowse() {
