@@ -11,7 +11,7 @@ Form A 不收集 Email，不公開個資。Form B 的資料不發布為 CSV，�
 
 ## 推薦流程
 
-1. Google Forms 建立投票表單。
+1. 使用 `forms/create_voting_system.gs` 建立投票表單。
 2. Forms 回應綁定 Google Sheet。
 3. Google Sheet 只保留公開統計需要欄位，不放姓名、Email、班級、座號等個資。
 4. Sheet 選擇「檔案」→「共用」→「發布到網路」。

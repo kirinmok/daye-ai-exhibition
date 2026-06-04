@@ -1,42 +1,56 @@
 # 大業 AI 繪圖社期末成果展
 
-公開展示用 GitHub Pages 網站。內容只放成果展首頁、學生遊戲檔、公開展示素材與不含個資的操作文件。
+校內遊戲成果展展示網站，用來瀏覽學生本學期完成的 AI 視覺與遊戲創作。前台只顯示作品代號與作品內容，不公開學生姓名、班級、座號或學號。
 
-學生作品展示以匿名作品代號呈現，不公開學生真名、班級、座號或學號。
+公開網址：
 
-## 管理後台
+https://kirinmok.github.io/daye-ai-exhibition/
 
-- 入口：`/#admin`
-- 管理碼位於前端 `app.js`，僅適合校內臨時管理原型。
-- 修改封面與文字會存在目前瀏覽器的 `localStorage`。
-- 若要多人共用正式後台，需改接 Supabase / Firebase / Google Sheets Apps Script。
+## 網站功能
 
-## 表單決策
+- 活動首頁：成果展介紹、投票規則、抽獎與獎勵資訊。
+- 活動說明：社團與參與方式。
+- 作品瀏覽：搜尋、分類、排序與作品卡片。
+- 作品詳情：封面、簡介、遊玩連結、QR code、投票入口、建議回饋。
+- 投票結果：總票數、排行榜、分類統計、五維度雷達圖。
+- 管理後台：靜態原型後台，供老師本機試改作品資料。
 
-正式投票與抽獎採兩份表單：
+## 投票系統
 
-- Form A「投票」：匿名，只記作品代號、評分與建議。
-- Form B「抽獎登記」：收集抽獎聯絡資訊，與投票內容脫鉤。
+正式投票採兩份 Google Forms：
 
-投票表單應設定：
+- Form A「匿名投票」：需登入學校 Google 帳號，每人限填一次，不收集 Email，只記作品代號、五項評分與建議。
+- Form B「抽獎登記」：收集抽獎聯絡資料，與投票內容脫鉤。
 
-- 需登入學校 Google Workspace 帳號。
-- 每人限填一次。
-- 不收集回覆者 Email。
-- 作品代號使用 G01 至 G20 下拉選單。
+建立表單請使用：
 
-尚待 KIRIN 最終決定：一人只能投 1 件、可評全部作品，或選 3 件最愛。
+```txt
+forms/create_voting_system.gs
+forms/voting_system_setup.md
+```
 
-## 投票結果串接
+Form A 回覆試算表發布為 CSV 後，填入 `site-config.js`：
 
-- `site-config.js` 的 `results.csvUrl` 可填入 Google Sheet 發布後的 CSV URL。
-- `results.publicRankingsOpen: false` 時，投票期間只顯示總票數。
-- 截止後可改為 `true` 公開排行與雷達圖。
-- 公開 CSV 不可含姓名、Email、班級、座號、學號。
+```js
+results: {
+  csvUrl: "貼上 Form A 回覆試算表 CSV URL",
+  refreshSeconds: 60,
+  publicRankingsOpen: false,
+  useMockVotes: false
+}
+```
 
-## 文件
+投票期間建議維持 `publicRankingsOpen: false`，只顯示總投票狀態；截止並檢查資料後再改成 `true` 公開排行與雷達圖。
 
-- `docs/form_decisions.md`：表單固定決策清單。
-- `docs/google_forms_results_setup.md`：Google Forms / Sheets CSV 串接說明。
-- `docs/event_plan_template.md`：成果展企劃補完模板。
-- `docs/deployment_checklist.md`：GitHub Pages 與表單部署檢查清單。
+## 管理後台限制
+
+`#admin` 是 GitHub Pages 靜態網站上的本機管理原型。它可以讓老師快速試改作品名稱、封面、文案、類型、標籤與連結，但修改只存在目前瀏覽器的 `localStorage`。
+
+正式公開資料仍建議由 `works.js`、Google Sheets、Supabase 或 Firebase 管理。不要把學生個資、抽獎名單、API key 或任何密碼提交到 GitHub。
+
+## 隱私原則
+
+- 前台不顯示學生真實身份。
+- Form A 投票 CSV 不可包含姓名、Email、班級、座號、學號。
+- Form B 抽獎資料不可發布為公開 CSV。
+- 留言送出前提醒觀眾不要填入個資。

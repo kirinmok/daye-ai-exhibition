@@ -3,7 +3,7 @@ const VOTE_STORE_KEY = "daye-ai-exhibition-votes";
 const VOTED_STORE_KEY = "daye-ai-exhibition-voted-projects";
 const ADMIN_OVERRIDE_KEY = "daye-ai-exhibition-project-overrides";
 const ADMIN_SESSION_KEY = "daye-ai-exhibition-admin-session";
-const ADMIN_PASSCODE = "Aimyon520";
+const ADMIN_PASSCODE = "daye2026";
 const SCORE_FIELDS = [
   ["creativity", "創意"],
   ["art", "美術風格"],
@@ -27,6 +27,10 @@ const state = {
 
 function getResultsConfig() {
   return (window.SITE_CONFIG || {}).results || {};
+}
+
+function getVotingConfig() {
+  return (window.SITE_CONFIG || {}).voting || {};
 }
 
 function getLocalVotes() {
@@ -75,10 +79,17 @@ function findProject(projectId) {
 }
 
 function allVotes() {
-  if (getResultsConfig().csvUrl) {
+  const resultsConfig = getResultsConfig();
+  if (resultsConfig.csvUrl) {
     return state.remoteVotes;
   }
-  return [...MOCK_VOTES, ...getLocalVotes()];
+  if (resultsConfig.useMockVotes) {
+    return [...MOCK_VOTES, ...(getVotingConfig().prototypeVotingEnabled ? getLocalVotes() : [])];
+  }
+  if (getVotingConfig().prototypeVotingEnabled) {
+    return getLocalVotes();
+  }
+  return [];
 }
 
 function projectVotes(projectId) {
@@ -352,6 +363,7 @@ function renderDetail(projectId) {
   const stats = projectStats(project);
   const overall = scoreStats(allVotes());
   const voted = getVotedProjects().has(project.id);
+  const votingConfig = getVotingConfig();
   app.innerHTML = `
     <section class="detail-hero theme-${project.theme}">
       <div class="detail-cover ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
@@ -367,7 +379,7 @@ function renderDetail(projectId) {
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
         <div class="detail-actions">
           <a class="btn primary" href="${project.playUrl}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
-          <button class="btn ghost" data-action="scroll-vote">${voted ? "已投票" : "匿名投票"}</button>
+          <button class="btn ghost" data-action="scroll-vote">${votingConfig.formUrl ? "前往投票" : "投票狀態"}</button>
           ${state.isAdmin ? `<button class="btn ghost" data-action="edit-project" data-project-id="${escapeAttr(project.id)}">編輯作品</button>` : ""}
         </div>
       </div>
@@ -393,24 +405,7 @@ function renderDetail(projectId) {
     </section>
 
     <section id="voteSection" class="feedback-layout">
-      <form class="panel vote-form" id="voteForm">
-        <div class="panel-head">
-          <h2>匿名投票與建議</h2>
-          <span>${voted ? "本裝置已投過" : "每件作品 1 次"}</span>
-        </div>
-        <p class="notice">${EVENT_CONFIG.notice}</p>
-        ${SCORE_FIELDS.map(([key, label]) => renderRating(key, label)).join("")}
-        <label class="field">
-          <span>最喜歡的地方</span>
-          <textarea name="likedMost" rows="3" placeholder="例如：操作很直覺、角色美術很有記憶點"></textarea>
-        </label>
-        <label class="field">
-          <span>建議改進</span>
-          <textarea name="suggestion" rows="3" placeholder="例如：新手提示可以更清楚、音效可以再多一點"></textarea>
-        </label>
-        <button class="btn primary" type="submit" ${voted ? "disabled" : ""}>${voted ? "已完成投票" : "送出匿名投票"}</button>
-        <p id="formMessage" class="form-message"></p>
-      </form>
+      ${renderVotePanel(project, voted)}
       <article class="panel comments-panel">
         <h2>留言摘錄</h2>
         ${renderComments(stats.votes)}
@@ -437,6 +432,70 @@ function renderRating(key, label) {
   `;
 }
 
+function renderVotePanel(project, voted) {
+  const votingConfig = getVotingConfig();
+  const voteUrl = getExternalVoteUrl(project);
+  if (voteUrl) {
+    return `
+      <article class="panel vote-form">
+        <div class="panel-head">
+          <h2>匿名投票與建議</h2>
+          <span>Google Form</span>
+        </div>
+        <p class="notice">正式投票會開啟 Google 表單。此頁不儲存投票，避免把本機資料誤認成真實票數。</p>
+        <p>作品代號：<strong>${escapeHtml(project.id)}</strong></p>
+        <div class="hero-actions">
+          <a class="btn primary" href="${voteUrl}" target="_blank" rel="noreferrer">前往投票表單</a>
+        </div>
+      </article>
+    `;
+  }
+
+  if (!votingConfig.prototypeVotingEnabled) {
+    return `
+      <article class="panel vote-form">
+        <div class="panel-head">
+          <h2>匿名投票與建議</h2>
+          <span>尚未開放</span>
+        </div>
+        <p class="notice">正式投票表單尚未接上。接上 Google Form 後，這裡會改成「前往投票表單」。</p>
+        <p>目前不啟用本機假投票，避免把 localStorage 測試資料誤認成真實票數。</p>
+      </article>
+    `;
+  }
+
+  return `
+    <form class="panel vote-form" id="voteForm">
+      <div class="panel-head">
+        <h2>匿名投票與建議</h2>
+        <span>${voted ? "本裝置已投過" : "本機測試"}</span>
+      </div>
+      <p class="notice">這是本機原型測試，不會同步到公開網站或老師後台。</p>
+      ${SCORE_FIELDS.map(([key, label]) => renderRating(key, label)).join("")}
+      <label class="field">
+        <span>最喜歡的地方</span>
+        <textarea name="likedMost" rows="3" placeholder="例如：操作很直覺、角色美術很有記憶點"></textarea>
+      </label>
+      <label class="field">
+        <span>建議改進</span>
+        <textarea name="suggestion" rows="3" placeholder="例如：新手提示可以更清楚、音效可以再多一點"></textarea>
+      </label>
+      <button class="btn primary" type="submit" ${voted ? "disabled" : ""}>${voted ? "已完成投票" : "送出本機測試投票"}</button>
+      <p id="formMessage" class="form-message"></p>
+    </form>
+  `;
+}
+
+function getExternalVoteUrl(project) {
+  const votingConfig = getVotingConfig();
+  if (!votingConfig.enabled || !votingConfig.formUrl) return "";
+  const url = new URL(votingConfig.formUrl, window.location.href);
+  if (votingConfig.gameParamName) {
+    url.searchParams.set(votingConfig.gameParamName, project.id);
+  }
+  return url.href;
+}
+
 function bindDetailControls(project) {
   document.querySelector("[data-action='edit-project']")?.addEventListener("click", () => openProjectEditor(project.id));
   document.querySelector("[data-action='scroll-vote']").addEventListener("click", () => {
@@ -446,7 +505,7 @@ function bindDetailControls(project) {
     state.compareOverall = event.target.checked;
     renderDetail(project.id);
   });
-  document.querySelector("#voteForm").addEventListener("submit", (event) => {
+  document.querySelector("#voteForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const voted = getVotedProjects();
     if (voted.has(project.id)) return;
@@ -476,6 +535,26 @@ function renderResults() {
   const votes = allVotes();
   const resultsConfig = getResultsConfig();
   const usingExternalResults = Boolean(resultsConfig.csvUrl);
+  if (!usingExternalResults && !resultsConfig.useMockVotes && votes.length === 0) {
+    app.innerHTML = `
+      <section class="section-head dashboard-head">
+        <div>
+          <p class="eyebrow">Results Dashboard</p>
+          <h1>投票統計</h1>
+          <p>正式 Google Form / Sheet 尚未接上，因此目前不顯示假排行或假評分。</p>
+        </div>
+      </section>
+      <section class="stats-grid private-results-grid">
+        <article><span>目前已投</span><strong>0</strong><small>票</small></article>
+        <article><span>資料來源</span><strong>未連接</strong><small>等待 Sheet CSV</small></article>
+      </section>
+      <article class="panel">
+        <h2>下一步</h2>
+        <p>建立 Google 投票表單，將回應試算表發布為 CSV，並把 CSV URL 填入 <code>site-config.js</code> 的 <code>results.csvUrl</code>。</p>
+      </article>
+    `;
+    return;
+  }
   if (usingExternalResults && !resultsConfig.publicRankingsOpen) {
     app.innerHTML = `
       <section class="section-head dashboard-head">
@@ -781,7 +860,7 @@ function parseCsv(csv) {
 
 function normalizeCsvVote(row, index) {
   const columns = getResultsConfig().columns || {};
-  const projectId = getCsvValue(row, columns.projectId, ["作品代號", "遊戲代號", "projectId", "project_id"]);
+  const projectId = normalizeProjectId(getCsvValue(row, columns.projectId, ["作品代號", "遊戲代號", "projectId", "project_id"]));
   if (!projectId) return null;
   return {
     id: `csv_${index}_${projectId}`,
@@ -795,6 +874,11 @@ function normalizeCsvVote(row, index) {
     completeness: toScore(getCsvValue(row, columns.completeness, ["完成度", "completeness"])),
     createdAt: getCsvValue(row, columns.createdAt, ["時間戳記", "Timestamp", "createdAt"]) || new Date().toISOString(),
   };
+}
+
+function normalizeProjectId(value) {
+  const match = String(value || "").trim().match(/G\d{2}/iu);
+  return match ? match[0].toUpperCase() : "";
 }
 
 function getCsvValue(row, preferred, fallbacks = []) {

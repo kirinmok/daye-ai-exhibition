@@ -6,11 +6,13 @@ window.SITE_CONFIG = {
     gameParamName: "",
     deadline: "待公告",
     prizeSummary: "待公告",
+    prototypeVotingEnabled: false,
   },
   results: {
     csvUrl: "",
     refreshSeconds: 60,
     publicRankingsOpen: false,
+    useMockVotes: false,
     columns: {
       projectId: "projectId",
       likedMost: "likedMost",
