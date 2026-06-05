@@ -165,6 +165,20 @@ const PROJECTS = [
     featured: false,
     createdAt: "2026-06-05",
   },
+  {
+    id: "K01",
+    title: "Pico W 3D Racing",
+    cover: "",
+    genre: ["3D 賽車", "體感控制"],
+    tags: ["橢圓賽道", "Pico W", "手把", "Three.js"],
+    platform: "Web",
+    shortPitch: "把 Pico W、手把與網頁賽車接在一起，跑一場現場感很強的橢圓賽。",
+    description: "老師自製的 3D 賽車示範遊戲，支援鍵盤、手把與 Pico W 控制資料，包含倒數、圈數、速度、甩尾與排名等完整賽車介面。",
+    playUrl: "./games/kirin-racing/index.html",
+    theme: "ember",
+    featured: true,
+    createdAt: "2026-06-06",
+  },
 ];
 
 const MOCK_VOTES = PROJECTS.flatMap((project, index) => {
