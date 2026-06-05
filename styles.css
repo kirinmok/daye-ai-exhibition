@@ -560,17 +560,22 @@ a {
 }
 
 .detail-media {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.36fr);
-  gap: 14px;
-  align-items: stretch;
+  display: block;
 }
 
 .detail-cover {
   position: relative;
-  min-height: 360px;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: 16 / 9;
   border-radius: 8px;
   box-shadow: var(--shadow);
+}
+
+.detail-cover.has-cover-image {
+  background-color: #050607;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .box-cover {

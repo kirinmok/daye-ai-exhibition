@@ -397,9 +397,6 @@ function renderDetail(projectId) {
           <span>${escapeHtml(project.id)}</span>
           ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
         </div>
-        ${project.boxCover ? `
-          <div class="box-cover" ${boxCoverStyle(project)}></div>
-        ` : ""}
       </div>
       <div class="detail-copy">
         <a class="back-link" href="#browse">返回 Browse</a>
