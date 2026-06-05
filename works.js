@@ -96,7 +96,8 @@ const PROJECTS = [
   {
     id: "G07",
     title: "八掌溪環保爭霸戰",
-    cover: "",
+    cover: "./assets/games/bazhang-eco-battle/cover-16x9.jpg",
+    boxCover: "./assets/games/bazhang-eco-battle/cover-2x3.jpg",
     genre: ["環境教育", "策略"],
     tags: ["八掌溪", "永續", "知識", "對戰"],
     platform: "Web",
