@@ -2,7 +2,7 @@
  * 大業 AI 繪圖社期末成果展 - 投票與抽獎表單建立器
  *
  * 建立兩份表單：
- * Form A「投票」：匿名，只收作品代號、評分、建議。
+ * Form A「投票」：匿名，只收作品代號、人氣票、評分、建議。
  * Form B「抽獎登記」：收聯絡資料，與投票內容脫鉤。
  *
  * 使用方式：
@@ -57,6 +57,7 @@ function createVotingSystem() {
   Logger.log('Form B 抽獎登記填答網址：' + lotteryForm.getPublishedUrl());
   Logger.log('Form B 回覆試算表：' + lotterySheet.getUrl());
   Logger.log('下一步：將 Form A 回覆試算表發布為 CSV，貼到 site-config.js 的 results.csvUrl。');
+  Logger.log('網站 voting.formUrl 請填：' + votingForm.getPublishedUrl());
 }
 
 function createVotingForm_(sheet) {
@@ -67,6 +68,7 @@ function createVotingForm_(sheet) {
     '請登入學校 Google 帳號後填寫。表單不收集 Email，不公開個人資料。',
     '請勿在文字回饋中填入姓名、班級、座號、學號或聯絡方式。',
     '',
+    '每位觀眾限投 1 件最想支持的作品。',
     '投票期間網站只公開總投票人次，截止後才公布作品排行。'
   ].join('\n'));
   form.setCollectEmail(false);
@@ -85,27 +87,33 @@ function createVotingForm_(sheet) {
 
   form.addSectionHeaderItem()
     .setTitle('匿名投票')
-    .setHelpText('請選出你要支持的作品，並給予 1 到 5 分評分。');
+    .setHelpText('請選出你最想支持的作品，並給予 1 到 5 分評分。');
 
   form.addListItem()
-    .setTitle('projectId')
-    .setHelpText('請選擇作品代號。')
+    .setTitle('作品代號')
+    .setHelpText('請選擇你最想支持的作品。每人限投 1 件。')
     .setChoiceValues(PROJECT_CHOICES)
     .setRequired(true);
 
-  addScoreItem_(form, 'creativity', '創意');
-  addScoreItem_(form, 'art', '美術風格');
-  addScoreItem_(form, 'gameplay', '遊戲性');
-  addScoreItem_(form, 'smoothness', '操作流暢度');
-  addScoreItem_(form, 'completeness', '完成度');
+  form.addMultipleChoiceItem()
+    .setTitle('人氣票')
+    .setHelpText('確認你要把本次人氣票投給上方選擇的作品。')
+    .setChoiceValues(['我把人氣票投給這件作品'])
+    .setRequired(true);
+
+  addScoreItem_(form, '創意');
+  addScoreItem_(form, '美術風格');
+  addScoreItem_(form, '遊戲性');
+  addScoreItem_(form, '操作流暢度');
+  addScoreItem_(form, '完成度');
 
   form.addParagraphTextItem()
-    .setTitle('likedMost')
+    .setTitle('最喜歡的地方')
     .setHelpText('最喜歡的地方。請勿填個資。')
     .setRequired(false);
 
   form.addParagraphTextItem()
-    .setTitle('suggestion')
+    .setTitle('建議改進')
     .setHelpText('建議改進。請勿填個資。')
     .setRequired(false);
 
@@ -158,9 +166,9 @@ function createLotteryForm_(sheet) {
   return form;
 }
 
-function addScoreItem_(form, fieldName, label) {
+function addScoreItem_(form, label) {
   form.addScaleItem()
-    .setTitle(fieldName)
+    .setTitle(label)
     .setHelpText(label + '：1 分最低，5 分最高。')
     .setBounds(1, 5)
     .setLabels('1', '5')
