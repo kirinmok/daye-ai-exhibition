@@ -290,6 +290,20 @@ const PROJECTS = [
     featured: false,
     createdAt: "2026-05-30",
   },
+  {
+    id: "G21",
+    title: "霓虹星際突擊",
+    cover: "",
+    genre: ["射擊", "動作"],
+    tags: ["霓虹", "宇宙", "自動射擊", "BOSS戰"],
+    platform: "Web",
+    shortPitch: "戰機自動開火，撐到 BOSS 降臨前先把火力堆起來。",
+    description: "一款霓虹風格的星際射擊遊戲，玩家操控戰機閃避敵人、收集水晶、開啟 AI 託管與整備商店，在逐步升級的彈幕中挑戰 BOSS。",
+    playUrl: "./games/neon-star-assault/index.html",
+    theme: "magenta",
+    featured: false,
+    createdAt: "2026-06-05",
+  },
 ];
 
 const MOCK_VOTES = PROJECTS.flatMap((project, index) => {
