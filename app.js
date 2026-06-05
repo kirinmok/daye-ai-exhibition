@@ -401,7 +401,7 @@ function renderDetail(projectId) {
       <div class="detail-copy">
         <a class="back-link" href="#browse">返回 Browse</a>
         <p class="eyebrow">${escapeHtml(project.genre.join(" / "))} · ${escapeHtml(project.platform)}</p>
-        <h1>${renderDetailTitle(project.title)}</h1>
+        <h1>${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.description)}</p>
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
         <div class="detail-actions">
@@ -1149,13 +1149,6 @@ function coverStyle(project) {
 function boxCoverStyle(project) {
   if (!project.boxCover) return "";
   return `style="background-image: linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.18)), url('${escapeAttr(project.boxCover)}')"`;
-}
-
-function renderDetailTitle(title) {
-  const text = String(title ?? "").trim();
-  const match = text.match(/^(.+?[：:])\s*(.+)$/);
-  if (!match) return escapeHtml(text);
-  return `${escapeHtml(match[1])}<span>${escapeHtml(match[2])}</span>`;
 }
 
 function escapeHtml(value) {
