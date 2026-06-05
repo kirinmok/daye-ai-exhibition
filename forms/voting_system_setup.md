@@ -9,6 +9,33 @@
 
 ## 1. 建立表單
 
+### A. 如果你已經有投票表單
+
+你目前提供的投票表單：
+
+`https://docs.google.com/forms/d/1xn0abYP7l1_DxAGoxYy5XkQJIz76re5bx3HxVsu-CIc/edit`
+
+請使用：
+
+`forms/update_existing_voting_form.gs`
+
+執行函式：
+
+`rebuildExistingVotingFormAndCreateLotteryForm()`
+
+這會：
+
+- 更新既有投票表單標題、說明與題目。
+- 設定需登入 Google 帳號。
+- 設定每人限填一次。
+- 投票表單不收集 Email，維持匿名。
+- 另外建立抽獎登記表單，抽獎表單會收 Email / 班級座號。
+- 建立投票回覆試算表與抽獎回覆試算表。
+
+注意：這會刪除既有表單題目並重建，請在正式收票前執行。
+
+### B. 如果要從零建立兩份表單
+
 1. 開啟 https://script.google.com/
 2. 建立新專案。
 3. 貼上 `forms/create_voting_system.gs`。

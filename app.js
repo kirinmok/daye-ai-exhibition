@@ -228,11 +228,11 @@ function renderHome() {
     <section class="info-strip">
       <article>
         <h2>投票辦法</h2>
-        <p>${EVENT_CONFIG.votingRule}送出後可填寫最喜歡的地方與建議改進，分數會整理成作品雷達圖。</p>
+        <p>${EVENT_CONFIG.votingRule}</p>
       </article>
       <article>
         <h2>抽獎辦法</h2>
-        <p>${EVENT_CONFIG.rewardRule}主辦單位可用後台表單資料核對抽獎資格，前台不公開個人資料。</p>
+        <p>${EVENT_CONFIG.rewardRule}</p>
       </article>
       <article>
         <h2>隱私提醒</h2>

@@ -1,10 +1,10 @@
 const EVENT_CONFIG = {
   title: "大業 AI 繪圖社期末成果展",
   subtitle: "遊戲創作 × AI 視覺 × 匿名票選",
-  votingRule: "每位觀眾可投 1 件最想支持的作品。",
-  rewardRule: "完成投票與具體建議，可參加成果展抽獎。",
+  votingRule: "投票時間依主辦老師公告。觀眾請先試玩作品，再到作品詳情頁點「前往投票」，每人可投 1 件最想支持的作品，並留下五項評分與具體建議。",
+  rewardRule: "完成匿名投票後，可另外填寫抽獎登記表。抽獎登記需要 Google 帳號登入，並留下 Email / 班級座號供領獎聯絡，但不詢問投票內容。",
   notice: "留言與建議請勿填寫姓名、班級、座號、學號或聯絡方式。",
-  deadline: "待公告",
+  deadline: "依公告",
 };
 
 const PROJECTS = [
