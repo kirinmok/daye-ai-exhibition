@@ -606,8 +606,15 @@ a {
 
 .detail-copy h1 {
   margin: 0;
-  font-size: clamp(40px, 5.8vw, 78px);
-  line-height: 0.98;
+  max-width: 12ch;
+  font-size: clamp(38px, 4.8vw, 68px);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.detail-copy h1 span {
+  display: block;
+  white-space: nowrap;
 }
 
 .detail-copy p {
