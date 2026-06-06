@@ -20,18 +20,11 @@ const PROJECT_CHOICES = [
   'G05 - 深海設施射擊戰',
   'G07 - 八掌溪環保爭霸戰',
   'G08 - 深淵騎士',
-  'G09 - 永續島嶼建設者',
+  'G09 - 拯救永續島',
   "G10 - ECO Defender's Bizarre Adventure",
-  'G11 - Neon Lab Rescue',
-  'G12 - Sky Bento Courier',
-  'G13 - Ghost Signal FM',
-  'G14 - Botanic Defense',
-  'G15 - Rocket Grammar',
-  'G16 - Tiny Factory Panic',
-  'G17 - Memory Lantern',
-  'G18 - Trash Sort Sprint',
-  'G19 - Cyber Drum Duel',
-  'G20 - Museum Night Shift'
+  'G21 - 霓虹星際突擊',
+  'G22 - 貪婪之星：乘數與炸彈',
+  'K01 - 瘋狂大賽車'
 ];
 
 const SCORE_CHOICES = ['1', '2', '3', '4', '5'];

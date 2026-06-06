@@ -166,6 +166,21 @@ const PROJECTS = [
     featured: true,
     createdAt: "2026-06-06",
   },
+  {
+    id: "G22",
+    title: "貪婪之星：乘數與炸彈",
+    cover: "./assets/games/greedy-star/cover-16x9.jpg",
+    boxCover: "./assets/games/greedy-star/cover-2x3.jpg",
+    genre: ["運氣挑戰", "決策"],
+    tags: ["乘數", "炸彈", "分數挑戰", "風險決策", "最高紀錄"],
+    platform: "Web",
+    shortPitch: "你敢賭嗎？分數可能翻倍暴增，也可能下一抽瞬間歸零。",
+    description: "按下「要」繼續抽取星星、方塊與鑽石，累積乘數和分數；看好時機就收手存分，否則炸彈可能讓成果瞬間歸零。簡單好上手，卻很考驗膽量與決策。",
+    playUrl: "./games/greedy-star/index.html",
+    theme: "violet",
+    featured: false,
+    createdAt: "2026-06-06",
+  },
 ];
 
 const MOCK_VOTES = PROJECTS.flatMap((project, index) => {
