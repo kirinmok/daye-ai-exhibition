@@ -978,8 +978,8 @@ function openProjectEditor(projectId) {
         <button class="text-button" type="button" data-close-editor>關閉</button>
       </div>
       <div class="editor-cover-grid">
-        <div class="editor-preview theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
-          <span>16:9</span>
+        <div class="editor-preview theme-${project.theme}">
+          <span>4:3</span>
           <strong>${escapeHtml(project.title)}</strong>
         </div>
         <div class="editor-box-preview ${project.boxCover ? "has-cover-image" : ""}" ${boxCoverStyle(project)}>
@@ -987,7 +987,7 @@ function openProjectEditor(projectId) {
         </div>
       </div>
       <label class="field">
-        <span>上傳橫式封面 16:9</span>
+        <span>上傳封面 4:3</span>
         <input name="cover" type="file" accept="image/*" />
       </label>
       ${project.cover ? `<button class="text-button danger-text" type="button" data-action="remove-cover">移除橫式封面</button>` : ""}
@@ -1072,7 +1072,7 @@ function openProjectEditor(projectId) {
       const nextCover = modal.dataset.removeCover === "true"
         ? ""
         : file && file.size
-          ? await imageFileToDataUrl(file, { maxWidth: 1280, maxHeight: 720, quality: 0.82 })
+          ? await imageFileToDataUrl(file, { maxWidth: 1280, maxHeight: 960, quality: 0.82 })
           : project.cover || "";
       const nextBoxCover = modal.dataset.removeBoxCover === "true"
         ? ""
@@ -1142,11 +1142,6 @@ function isStorageQuotaError(error) {
     || error?.name === "NS_ERROR_DOM_QUOTA_REACHED"
     || error?.code === 22
     || error?.code === 1014;
-}
-
-function coverStyle(project) {
-  if (!project.cover) return "";
-  return `style="background-image: linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.48)), url('${escapeAttr(project.cover)}')"`;
 }
 
 function coverImage(project) {
