@@ -358,6 +358,7 @@ a {
   position: relative;
   display: flex;
   min-height: 168px;
+  aspect-ratio: 4 / 3;
   align-items: end;
   padding: 16px;
   overflow: hidden;
@@ -366,6 +367,16 @@ a {
     #222;
   background-position: center;
   background-size: cover;
+}
+
+.project-card.has-cover-image .cover-art,
+.detail-cover.has-cover-image,
+.admin-row-cover.has-cover-image,
+.editor-preview.has-cover-image {
+  background-color: #050607;
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-size: cover, contain;
 }
 
 .cover-art::before,
@@ -567,15 +578,13 @@ a {
   position: relative;
   width: 100%;
   min-height: 0;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   border-radius: 8px;
   box-shadow: var(--shadow);
 }
 
 .detail-cover.has-cover-image {
   background-color: #050607;
-  background-repeat: no-repeat;
-  background-size: contain;
 }
 
 .box-cover {
@@ -832,7 +841,7 @@ a {
 .admin-row-cover {
   display: grid;
   width: 92px;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   place-items: start;
   padding: 9px;
   overflow: hidden;
@@ -899,6 +908,7 @@ a {
   position: relative;
   display: flex;
   min-height: 210px;
+  aspect-ratio: 4 / 3;
   align-items: end;
   margin: 16px 0;
   padding: 16px;
