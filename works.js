@@ -126,7 +126,7 @@ const PROJECTS = [
   {
     id: "G09",
     title: "拯救永續島",
-    cover: "",
+    cover: "./assets/games/sdg/cover-16x9.png",
     genre: ["建設模擬", "策略"],
     tags: ["SDG", "城市", "永續", "治理", "五分鐘決策"],
     platform: "Web",
