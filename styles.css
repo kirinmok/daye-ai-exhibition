@@ -856,6 +856,7 @@ a {
 }
 
 .admin-row-cover {
+  position: relative;
   display: grid;
   width: 92px;
   aspect-ratio: 4 / 3;
