@@ -362,7 +362,8 @@ function renderProjectCard(project) {
     <article class="project-card-wrap">
       ${renderAdminEditButton(project.id)}
       <a class="project-card theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" href="#detail/${project.id}">
-        <div class="cover-art" ${coverStyle(project)}>
+        <div class="cover-art">
+          ${coverImage(project)}
           <span>${escapeHtml(project.id)}</span>
           ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
         </div>
@@ -392,7 +393,8 @@ function renderDetail(projectId) {
   app.innerHTML = `
     <section class="detail-hero theme-${project.theme}">
       <div class="detail-media">
-        <div class="detail-cover ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+        <div class="detail-cover ${project.cover ? "has-cover-image" : ""}">
+          ${coverImage(project)}
           ${renderAdminEditButton(project.id)}
           <span>${escapeHtml(project.id)}</span>
           ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
@@ -750,7 +752,8 @@ function renderAdmin() {
     <div class="admin-project-list">
       ${projects.map((project) => `
         <article class="admin-project-row ${overrides[project.id] ? "has-local-edit" : ""}">
-          <div class="admin-row-cover theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" ${coverStyle(project)}>
+          <div class="admin-row-cover theme-${project.theme} ${project.cover ? "has-cover-image" : ""}">
+            ${coverImage(project)}
             <span>${escapeHtml(project.id)}</span>
           </div>
           <div>
@@ -1144,6 +1147,11 @@ function isStorageQuotaError(error) {
 function coverStyle(project) {
   if (!project.cover) return "";
   return `style="background-image: linear-gradient(180deg, rgba(0,0,0,.1), rgba(0,0,0,.48)), url('${escapeAttr(project.cover)}')"`;
+}
+
+function coverImage(project) {
+  if (!project.cover) return "";
+  return `<img class="cover-image" src="${escapeAttr(project.cover)}" alt="${escapeAttr(project.title)} 封面" loading="lazy" />`;
 }
 
 function boxCoverStyle(project) {
