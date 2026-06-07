@@ -9,9 +9,9 @@ window.SITE_CONFIG = {
     prototypeVotingEnabled: false,
   },
   results: {
-    csvUrl: "",
+    csvUrl: "https://docs.google.com/spreadsheets/d/1r61IuxeCxEE8VNvw_ArUzbsmusc2Vhf4_evi6NGZs_E/gviz/tq?tqx=out:csv&gid=731019646",
     refreshSeconds: 60,
-    publicRankingsOpen: false,
+    publicRankingsOpen: true,
     useMockVotes: false,
     columns: {
       projectId: "作品代號",
