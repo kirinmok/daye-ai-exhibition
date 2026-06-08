@@ -154,8 +154,8 @@ const PROJECTS = [
   {
     id: "K01",
     title: "瘋狂大賽車",
-    cover: "./assets/games/kirin-racing/cover-16x9.png",
-    boxCover: "./assets/games/kirin-racing/cover-2x3.png",
+    cover: "./assets/games/kirin-racing/cover-16x9.jpg",
+    boxCover: "./assets/games/kirin-racing/cover-2x3.jpg",
     genre: ["3D 賽車", "體感控制"],
     tags: ["橢圓賽道", "Pico W", "手把", "Three.js", "pico-car"],
     platform: "Web",
