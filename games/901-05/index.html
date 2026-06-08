@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大業實中：永續大作戰 3D FPS 版（901-05）</title>
+  <!-- 載入 Tailwind CSS 用於現代化 UI 樣式 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center m-0 overflow-hidden select-none">
+
+  <!-- React 渲染的根節點 -->
+  <div id="root" class="w-full h-full"></div>
+
+  <!-- 使用現代 ES Modules 載入所有依賴庫，保證高效與安全 -->
+  <script type="module">
+    import React, { useState, useEffect, useRef, useCallback } from 'https://esm.sh/react@18';
+    import ReactDOM from 'https://esm.sh/react-dom@18/client';
+    import * as THREE from 'https://esm.sh/three@0.128.0';
+    import {
+      Leaf, Coins, HeartHandshake, Utensils, AlertCircle, ShoppingBag,
+      Store, RotateCcw, Trophy, Globe, Monitor, Clock, Package, Users,
+      ShoppingCart, X, UserPlus, Zap, CheckCircle2, BookOpen, HelpCircle, CheckCircle, XCircle, Settings, Save, Download, RefreshCw, Crosshair
+    } from 'https://esm.sh/lucide-react';
+    import { initializeApp } from 'https://esm.sh/firebase@10.8.0/app';
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://esm.sh/firebase@10.8.0/auth';
+    import { getFirestore, doc, setDoc, getDoc } from 'https://esm.sh/firebase@10.8.0/firestore';
+
+    // === 一天長度（秒）— 修補：原版未定義 DAY_LENGTH 會導致白屏 ===
+    const DAY_LENGTH = 120;
+
+    // === Firebase 環境設定保護 ===
+    let app = null;
+    let auth = null;
+    let db = null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    try {
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        const config = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+        app = initializeApp(config);
+        auth = getAuth(app);
+        db = getFirestore(app);
+      }
+    } catch (error) {
+      console.warn("Firebase 未偵測到或初始化失敗，已切換至本機暫存/無雲端模式。");
+    }
+
+    // === 商品資料庫 (深化 SDG 連結) ===
+    const PRODUCTS = {
+      alishan_tea: { id: 'alishan_tea', name: '阿里山冷泡茶', type: 'local', cost: 30, basePrice: 60, eco: 3, health: 3, desc: '低碳足跡，健康無糖。', sdgs: ['SDG 12', 'SDG 3'], color: 0x22c55e },
+      turkey: { id: 'turkey', name: '生鮮火雞肉排', type: 'local', cost: 50, basePrice: 100, eco: 2, health: 2, desc: '支持在地禽農，新鮮營養豐富。', sdgs: ['SDG 12', 'SDG 2'], color: 0xfca5a5 },
+      oyster: { id: 'oyster', name: '東石新鮮蚵仔', type: 'local', cost: 40, basePrice: 80, eco: 2, health: 2, desc: '嘉義沿海直送，極低運輸碳排。', sdgs: ['SDG 14', 'SDG 12'], color: 0xd8b4fe },
+      bamboo: { id: 'bamboo', name: '大林烏殼綠竹筍', type: 'local', cost: 20, basePrice: 45, eco: 3, health: 2, desc: '友善農法種植，當季健康蔬菜。', sdgs: ['SDG 15', 'SDG 3'], color: 0x86efac },
+      pineapple: { id: 'pineapple', name: '民雄金鑽鳳梨', type: 'local', cost: 25, basePrice: 55, eco: 2, health: 3, desc: '在地鮮甜水果，富含酵素。', sdgs: ['SDG 12', 'SDG 3'], color: 0xfde047 },
+
+      syrup: { id: 'syrup', name: '進口化學糖漿', type: 'processed', cost: 5, basePrice: 30, eco: -3, health: -3, desc: '海運碳排高，含人工色素。', sdgs: ['違背 SDG 12', '違背 SDG 3'], color: 0x93c5fd },
+      processed_meat: { id: 'processed_meat', name: '冷凍微波組合肉', type: 'processed', cost: 15, basePrice: 50, eco: -2, health: -2, desc: '工廠製造，營養價值極低。', sdgs: ['違背 SDG 3'], color: 0xb45309 },
+      frozen_pizza: { id: 'frozen_pizza', name: '微波冷凍披薩', type: 'processed', cost: 20, basePrice: 65, eco: -1, health: -2, desc: '高度加工，熱量與鈉含量極高。', sdgs: ['違背 SDG 3'], color: 0xf97316 },
+    };
+
+    // === 知識問答題庫 ===
+    const TRIVIA_QUESTIONS = [
+      {
+        q: "歷史題：聯合國大會是在哪一年正式發布並通過了「2030 永續發展目標」(SDGs)？",
+        options: ["2000年", "2015年", "2020年"],
+        answerIndex: 1,
+        explanation: "聯合國於 2015 年通過了這 17 項核心目標，期望全球能在 2030 年共同達成永續未來。",
+        reward: { money: 600, eco: 10 }
+      },
+      {
+        q: "歷史題：在 SDGs 於 2015 年推出之前，聯合國推動的上一階段全球發展目標稱為？",
+        options: ["全球環保目標 (GEGs)", "千禧年發展目標 (MDGs)", "世紀和平計畫 (CPPs)"],
+        answerIndex: 1,
+        explanation: "前身是 2000 年發布的「千禧年發展目標 (MDGs)」，後來才演進為範疇更廣的 SDGs。",
+        reward: { money: 800, social: 10 }
+      },
+      {
+        q: "數據題：SDGs 總共包含了 17 個核心目標，請問這 17 個目標之下，包含幾個「具體細項目標 (Targets)」？",
+        options: ["50 個", "100 個", "169 個"],
+        answerIndex: 2,
+        explanation: "SDGs 的架構非常嚴謹，17 項大目標之下細分了 169 項具體細項目標來衡量進度。",
+        reward: { money: 800, social: 15 }
+      },
+      {
+        q: "在 SDG 12 (責任消費與生產) 中，聯合國期望在 2030 年前，將零售與消費者端人均糧食浪費減少多少？",
+        options: ["減少一半 (50%)", "減少四分之一 (25%)", "完全消除 (100%)"],
+        answerIndex: 0,
+        explanation: "SDG 12.3 指出，目標在 2030 年將全球人均糧食浪費減少一半。這也是妥善處理剩食的原因！",
+        reward: { money: 600, eco: 15 }
+      }
+    ];
+
+    // === 修補：原版未定義 RenderProgressBar 會導致 React 崩潰 ===
+    const RenderProgressBar = ({ label, value, color }) => {
+      const barColor = { green: 'bg-green-500', red: 'bg-red-500', blue: 'bg-blue-500' }[color] || 'bg-slate-400';
+      const clamped = Math.max(0, Math.min(100, value || 0));
+      return (
+        <div>
+          <div className="flex justify-between mb-1">
+            <span>{label}</span>
+            <span className="text-white">{Math.round(clamped)}</span>
+          </div>
+          <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className={`h-full ${barColor} transition-all`} style={{ width: `${clamped}%` }}></div>
+          </div>
+        </div>
+      );
+    };
+
+    const FoodChainGame = () => {
+      const [gameState, setGameState] = useState('start');
+      const [day, setDay] = useState(1);
+      const [time, setTime] = useState(0);
+
+      const [money, setMoney] = useState(2500);
+      const [ecoScore, setEcoScore] = useState(50);
+      const [socialScore, setSocialScore] = useState(50);
+      const [healthScore, setHealthScore] = useState(50);
+
+      const [inventory, setInventory] = useState({});
+      const [shelves, setShelves] = useState({});
+      const [customers, setCustomers] = useState([]);
+      const [employees, setEmployees] = useState({ cashier: false, restocker: false });
+
+      const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+      const [dashboardTab, setDashboardTab] = useState('order');
+      const [logs, setLogs] = useState([]);
+      const [currentEvent, setCurrentEvent] = useState(null);
+      const [nearObject, setNearObject] = useState(null);
+      const [rProgress, setRProgress] = useState(0);
+      const [isPointerLocked, setIsPointerLocked] = useState(false);
+
+      const [hasBlaster, setHasBlaster] = useState(false);
+      const [activeTrivia, setActiveTrivia] = useState(null);
+      const [triviaResult, setTriviaResult] = useState(null);
+      const [hasSpawnedRich, setHasSpawnedRich] = useState(false);
+
+      const [user, setUser] = useState(null);
+
+      const mountRef = useRef(null);
+      const gameRef = useRef({});
+      const cameraRef = useRef({ yaw: 0, pitch: 0 });
+
+      useEffect(() => {
+        if (!auth) return;
+        const initAuth = async () => {
+          try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+              await signInAnonymously(auth);
+            }
+          } catch(e) { console.error("Firebase Auth Error:", e); }
+        };
+        initAuth();
+        const unsubscribe = onAuthStateChanged(auth, setUser);
+        return () => unsubscribe();
+      }, []);
+
+      useEffect(() => {
+        gameRef.current = { gameState, day, time, shelves, customers, employees, isDashboardOpen, money, inventory, activeTrivia, hasSpawnedRich, hasBlaster };
+      }, [gameState, day, time, shelves, customers, employees, isDashboardOpen, money, inventory, activeTrivia, hasSpawnedRich, hasBlaster]);
+
+      const addLog = useCallback((message, type = 'info') => {
+        setLogs(prev => [{ time: new Date().toLocaleTimeString(), message, type }, ...prev].slice(0, 30));
+      }, []);
+
+      const startGame = () => {
+        setGameState('playing');
+        setDay(1); setTime(0); setMoney(2500);
+        setEcoScore(50); setSocialScore(50); setHealthScore(50);
+        setInventory({}); setShelves({}); setCustomers([]);
+        setEmployees({ cashier: false, restocker: false });
+        setLogs([]); setIsDashboardOpen(true); setActiveTrivia(null); setTriviaResult(null);
+        setHasSpawnedRich(false); setHasBlaster(false);
+        addLog("遊戲開始！在收銀台左邊的小門裡放有永續宣導槍，按 O 可以裝備！", "success");
+      };
+
+      const purifyCustomerInState = (customerId) => {
+        setShelves(prevShelves => {
+          let newShelves = { ...prevShelves };
+          const availableItems = Object.keys(newShelves).filter(id => newShelves[id].qty > 0);
+
+          let customerCart = [];
+          let cartTotal = 0;
+
+          if (availableItems.length > 0) {
+            const itemsToLookAt = availableItems.sort(() => 0.5 - Math.random()).slice(0, 2);
+            itemsToLookAt.forEach(id => {
+              const product = PRODUCTS[id];
+              const shelfItem = newShelves[id];
+              let buyQty = Math.min(2, shelfItem.qty);
+              if (buyQty > 0) {
+                customerCart.push({ id, qty: buyQty, price: shelfItem.price });
+                cartTotal += buyQty * shelfItem.price;
+                newShelves[id].qty -= buyQty;
+              }
+            });
+          }
+
+          setCustomers(prevCustomers => {
+            return prevCustomers.map(cust => {
+              if (cust.id === customerId) {
+                return {
+                  ...cust,
+                  isRudeBoy: false,
+                  cart: customerCart,
+                  total: cartTotal
+                };
+              }
+              return cust;
+            });
+          });
+
+          return newShelves;
+        });
+      };
+
+      // --- Three.js 核心 3D 渲染迴圈 ---
+      useEffect(() => {
+        if (gameState !== 'playing' || !mountRef.current) return;
+
+        const container = mountRef.current;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xa5f3fc);
+
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.set(0, 4, 3);
+        camera.rotation.order = 'YXZ';
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d6e63, 0.5);
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        dirLight.position.set(5, 15, 5);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        scene.add(dirLight);
+
+        const sharedItemGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const sharedItemMats = {};
+        const sharedHeadGeo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+        const sharedBodyGeo = new THREE.BoxGeometry(1.2, 1.5, 0.8);
+        const sharedArmGeo = new THREE.BoxGeometry(0.4, 1.2, 0.4);
+        const sharedLegGeo = new THREE.BoxGeometry(0.45, 1.2, 0.45);
+        const sharedEyeGeo = new THREE.BoxGeometry(0.15, 0.15, 0.1);
+
+        const sharedHeadMat = new THREE.MeshStandardMaterial({ color: 0xffe0bd, roughness: 0.5 }); sharedHeadMat.isShared = true;
+        const sharedEyeMat = new THREE.MeshBasicMaterial({ color: 0x1e293b }); sharedEyeMat.isShared = true;
+        const sharedLegMat = new THREE.MeshStandardMaterial({ color: 0x334155 }); sharedLegMat.isShared = true;
+
+        const colliders = [
+          { x: 0, z: -15, w: 40, d: 2 },
+          { x: -15, z: 0, w: 2, d: 40 },
+          { x: 15, z: 0, w: 2, d: 40 },
+          { x: 0, z: 15, w: 40, d: 2 },
+          { x: 0, z: 8, w: 6.5, d: 3 },
+          { x: -8, z: -5, w: 4.5, d: 2 },
+          { x: 0, z: -5, w: 4.5, d: 2 },
+          { x: 8, z: -5, w: 4.5, d: 2 },
+          { x: -5, z: 10, w: 1, d: 10 },
+        ];
+
+        const checkCollision = (px, pz, radius = 0.8) => {
+          for (let c of colliders) {
+            if (px + radius > c.x - c.w/2 && px - radius < c.x + c.w/2 && pz + radius > c.z - c.d/2 && pz - radius < c.z + c.d/2) {
+              if (c.x === -5 && pz > 6.5 && pz < 9.5) continue;
+              return true;
+            }
+          }
+          return false;
+        };
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 1024; canvas.height = 1024;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#e5c9a0'; ctx.fillRect(0, 0, 1024, 1024);
+        ctx.strokeStyle = '#c49a6c'; ctx.lineWidth = 4;
+        for(let i = 0; i < 1024; i += 64) {
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke();
+          const offset = (i / 64) % 2 === 0 ? 0 : 256;
+          for(let j = offset; j < 1280; j += 512) {
+            ctx.beginPath(); ctx.moveTo(j, i); ctx.lineTo(j, i + 64); ctx.stroke();
+          }
+        }
+        ctx.fillStyle = '#d3b085';
+        for(let k = 0; k < 3000; k++) { ctx.fillRect(Math.random() * 1024, Math.random() * 1024, Math.random() * 30 + 10, 2); }
+
+        const floorTex = new THREE.CanvasTexture(canvas);
+        floorTex.wrapS = THREE.RepeatWrapping; floorTex.wrapT = THREE.RepeatWrapping;
+        floorTex.repeat.set(10, 10);
+        const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.6 });
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), floorMat);
+        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+        const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.9 });
+        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), ceilingMat);
+        ceiling.rotation.x = Math.PI / 2; ceiling.position.y = 10; scene.add(ceiling);
+
+        const lightGeo = new THREE.PlaneGeometry(3, 0.5);
+        const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const addFluorescentLight = (lx, lz) => {
+          const lightMesh = new THREE.Mesh(lightGeo, lightMat);
+          lightMesh.rotation.x = Math.PI / 2; lightMesh.position.set(lx, 9.9, lz); scene.add(lightMesh);
+        };
+        addFluorescentLight(-8, -2); addFluorescentLight(0, -2); addFluorescentLight(8, -2);
+        addFluorescentLight(-8, 5); addFluorescentLight(0, 5); addFluorescentLight(8, 5);
+
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xc8a279 });
+        const backWall = new THREE.Mesh(new THREE.BoxGeometry(40, 12, 1), wallMat); backWall.position.set(0, 6, -15); scene.add(backWall);
+        const leftWall = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 40), wallMat); leftWall.position.set(-15, 6, 0); scene.add(leftWall);
+        const rightWall = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 40), wallMat); rightWall.position.set(15, 6, 0); scene.add(rightWall);
+
+        const innerRoomWall = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 4.5), wallMat); innerRoomWall.position.set(-5, 6, 12.25); scene.add(innerRoomWall);
+        const innerRoomWall2 = new THREE.Mesh(new THREE.BoxGeometry(1, 12, 3), wallMat); innerRoomWall2.position.set(-5, 6, 5); scene.add(innerRoomWall2);
+
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.45, roughness: 0.1, metalness: 0.5 });
+        const frontWallLeft = new THREE.Mesh(new THREE.BoxGeometry(11, 12, 1), wallMat); frontWallLeft.position.set(-9.5, 6, 14.5); scene.add(frontWallLeft);
+        const frontWallRight = new THREE.Mesh(new THREE.BoxGeometry(11, 12, 1), wallMat); frontWallRight.position.set(9.5, 6, 14.5); scene.add(frontWallRight);
+        const frontWallTop = new THREE.Mesh(new THREE.BoxGeometry(8, 5, 1), wallMat); frontWallTop.position.set(0, 9.5, 14.5); scene.add(frontWallTop);
+        const frontWallBotL = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2, 1), wallMat); frontWallBotL.position.set(-2.75, 1, 14.5); scene.add(frontWallBotL);
+        const frontWallBotR = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2, 1), wallMat); frontWallBotR.position.set(2.75, 1, 14.5); scene.add(frontWallBotR);
+
+        const windowL = new THREE.Mesh(new THREE.BoxGeometry(2.5, 5, 0.2), glassMat); windowL.position.set(-2.75, 4.5, 14.5); scene.add(windowL);
+        const windowR = new THREE.Mesh(new THREE.BoxGeometry(2.5, 5, 0.2), glassMat); windowR.position.set(2.75, 4.5, 14.5); scene.add(windowR);
+
+        const doorPivot = new THREE.Group();
+        doorPivot.position.set(-1.5, 0, 14.5); scene.add(doorPivot);
+        const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(3, 7, 0.2), glassMat); doorMesh.position.set(1.5, 3.5, 0); doorPivot.add(doorMesh);
+        const doorHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1), new THREE.MeshStandardMaterial({color: 0x333333}));
+        doorHandle.position.set(2.7, 3.5, 0.15); doorPivot.add(doorHandle);
+
+        const outsideGroup = new THREE.Group(); scene.add(outsideGroup);
+        const grassMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 1 });
+        const outGrass = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), grassMat); outGrass.rotation.x = -Math.PI / 2; outGrass.position.set(0, -0.2, 35); outsideGroup.add(outGrass);
+        const roadMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(80, 10), roadMat); road.rotation.x = -Math.PI / 2; road.position.set(0, -0.15, 20); outsideGroup.add(road);
+
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        for(let i=-35; i<=35; i+=6) {
+           const line = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.2), lineMat); line.rotation.x = -Math.PI/2; line.position.set(i, -0.14, 20); outsideGroup.add(line);
+        }
+        const createTree = (x, z) => {
+           const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 3), new THREE.MeshStandardMaterial({color: 0x78350f})); trunk.position.set(x, 1.5, z); outsideGroup.add(trunk);
+           const leaves = new THREE.Mesh(new THREE.ConeGeometry(2.5, 5, 8), new THREE.MeshStandardMaterial({color: 0x166534})); leaves.position.set(x, 4.5, z); outsideGroup.add(leaves);
+        };
+        createTree(-8, 28); createTree(8, 29); createTree(-12, 35); createTree(14, 26);
+
+        const roomBlasterBase = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.1, 0.5, 16), new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8 }));
+        roomBlasterBase.position.set(-10, 0.25, 10); scene.add(roomBlasterBase);
+
+        const baseGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.1, 16), new THREE.MeshBasicMaterial({ color: 0x3b82f6 }));
+        baseGlow.position.set(-10, 0.51, 10); scene.add(baseGlow);
+
+        const blasterModelGroup = new THREE.Group();
+        blasterModelGroup.position.set(-10, 1.8, 10);
+        scene.add(blasterModelGroup);
+
+        const bBody = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 1.5), new THREE.MeshStandardMaterial({ color: 0x10b981, metalness: 0.5 }));
+        bBody.position.set(0, 0, 0); blasterModelGroup.add(bBody);
+        const bBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.8), new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.8 }));
+        bBarrel.rotation.x = Math.PI / 2; bBarrel.position.set(0, 0.1, 0.8); blasterModelGroup.add(bBarrel);
+        const bGrip = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.6, 0.3), new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
+        bGrip.rotation.x = -0.3; bGrip.position.set(0, -0.4, -0.3); blasterModelGroup.add(bGrip);
+
+        const handBlasterGroup = new THREE.Group();
+        handBlasterGroup.position.set(0.6, -0.8, -1.5);
+        camera.add(handBlasterGroup);
+        scene.add(camera);
+
+        const hbBody = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.3, 1), new THREE.MeshStandardMaterial({ color: 0x10b981, metalness: 0.6 }));
+        handBlasterGroup.add(hbBody);
+        const hbBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6), new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.8 }));
+        hbBarrel.rotation.x = Math.PI / 2; hbBarrel.position.set(0, 0.06, 0.5); handBlasterGroup.add(hbBarrel);
+
+        const registerGroup = new THREE.Group();
+        const desk = new THREE.Mesh(new THREE.BoxGeometry(6, 2, 2.5), new THREE.MeshStandardMaterial({ color: 0xf1f5f9 })); desk.position.set(0, 1, 0); registerGroup.add(desk);
+        const woodTop = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.2, 2.7), new THREE.MeshStandardMaterial({ color: 0xd97706 })); woodTop.position.set(0, 2.1, 0); registerGroup.add(woodTop);
+        const posMachine = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8, 1), new THREE.MeshStandardMaterial({ color: 0x1e293b })); posMachine.position.set(1.5, 2.6, 0); registerGroup.add(posMachine);
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5), new THREE.MeshBasicMaterial({ color: 0x10b981 })); screen.position.set(1.5, 2.7, 0.51); registerGroup.add(screen);
+        registerGroup.position.set(0, 0, 8); scene.add(registerGroup);
+
+        const shelfInstances = [];
+        const createShelf = (posId) => {
+          const group = new THREE.Group();
+          const frameMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.4 });
+          const leftSide = new THREE.Mesh(new THREE.BoxGeometry(0.2, 5, 1.8), frameMat); leftSide.position.set(-1.9, 2.5, 0); group.add(leftSide);
+          const rightSide = new THREE.Mesh(new THREE.BoxGeometry(0.2, 5, 1.8), frameMat); rightSide.position.set(1.9, 2.5, 0); group.add(rightSide);
+          const itemsGroup = new THREE.Group(); group.add(itemsGroup);
+          for(let i=1; i<=4; i++) {
+              const board = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.1, 1.8), frameMat); board.position.set(0, i*1.2, 0); group.add(board);
+              const tag = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 0.2), new THREE.MeshBasicMaterial({ color: 0xef4444 })); tag.position.set(0, i*1.2 + 0.05, 0.91); group.add(tag);
+          }
+          return { root: group, itemsGroup };
+        };
+
+        const shelfPositions = [{ x: -8, z: -5, id: 0 }, { x: 0, z: -5, id: 1 }, { x: 8, z: -5, id: 2 }];
+        shelfPositions.forEach(pos => {
+          const shelf = createShelf(pos.id); shelf.root.position.set(pos.x, 0, pos.z); scene.add(shelf.root); shelfInstances.push(shelf);
+        });
+
+        const createCharacter = (bodyColor, isRudeBoy = false) => {
+          const group = new THREE.Group();
+          const headGroup = new THREE.Group();
+          const head = new THREE.Mesh(sharedHeadGeo, sharedHeadMat); head.position.set(0, 0, 0); head.castShadow = true; headGroup.add(head);
+
+          const leftEye = new THREE.Mesh(sharedEyeGeo, sharedEyeMat); leftEye.position.set(-0.25, 0.1, 0.46); headGroup.add(leftEye);
+          const rightEye = new THREE.Mesh(sharedEyeGeo, sharedEyeMat); rightEye.position.set(0.25, 0.1, 0.46); headGroup.add(rightEye);
+
+          if (isRudeBoy) {
+            const hairMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.9 });
+            const mohawk = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 1.1), hairMat);
+            mohawk.position.set(0, 0.6, 0);
+            headGroup.add(mohawk);
+          }
+
+          headGroup.position.set(0, 3.2, 0); group.add(headGroup);
+
+          const bodyMat = new THREE.MeshStandardMaterial({ color: bodyColor });
+          const body = new THREE.Mesh(sharedBodyGeo, bodyMat); body.position.set(0, 1.95, 0); body.castShadow = true; group.add(body);
+
+          const leftArm = new THREE.Group(); const leftArmMesh = new THREE.Mesh(sharedArmGeo, bodyMat);
+          leftArmMesh.position.set(0, -0.5, 0); leftArm.add(leftArmMesh); leftArm.position.set(-0.8, 2.5, 0); group.add(leftArm);
+
+          const rightArm = new THREE.Group(); const rightArmMesh = new THREE.Mesh(sharedArmGeo, bodyMat);
+          rightArmMesh.position.set(0, -0.5, 0); rightArm.add(rightArmMesh); rightArm.position.set(0.8, 2.5, 0); group.add(rightArm);
+
+          const leftLeg = new THREE.Group(); const leftLegMesh = new THREE.Mesh(sharedLegGeo, sharedLegMat);
+          leftLegMesh.position.set(0, -0.6, 0); leftLeg.add(leftLegMesh); leftLeg.position.set(-0.3, 1.2, 0); group.add(leftLeg);
+
+          const rightLeg = new THREE.Group(); const rightLegMesh = new THREE.Mesh(sharedLegGeo, sharedLegMat);
+          rightLegMesh.position.set(0, -0.6, 0); rightLeg.add(rightLegMesh); rightLeg.position.set(0.3, 1.2, 0); group.add(rightLeg);
+
+          group.userData = { leftArm, rightArm, leftLeg, rightLeg, head: headGroup, animOffset: Math.random() * Math.PI, isRudeBoy, hits: 0 };
+          return group;
+        };
+
+        const cashierMesh = createCharacter(0xa855f7); cashierMesh.position.set(0, 0, 10.5); cashierMesh.rotation.y = Math.PI; cashierMesh.visible = false; scene.add(cashierMesh);
+        const restockerMesh = createCharacter(0xf97316); restockerMesh.position.set(10, 0, -10); restockerMesh.visible = false; scene.add(restockerMesh);
+
+        const npcsGroup = new THREE.Group(); scene.add(npcsGroup);
+        let npcMeshes = {};
+
+        const bullets = [];
+        const fireBullet = () => {
+          const bGeo = new THREE.SphereGeometry(0.2, 8, 8);
+          const bMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+          const bMesh = new THREE.Mesh(bGeo, bMat);
+
+          const worldPosition = new THREE.Vector3();
+          handBlasterGroup.getWorldPosition(worldPosition);
+          bMesh.position.copy(worldPosition);
+          scene.add(bMesh);
+
+          const targetDir = new THREE.Vector3(0, 0, -1);
+          targetDir.applyQuaternion(camera.quaternion);
+          targetDir.normalize();
+
+          bullets.push({ mesh: bMesh, dir: targetDir, spawnTime: Date.now() });
+        };
+
+        const keys = { w: false, a: false, s: false, d: false, r: false, f: false, o: false };
+        const handleKeyDown = (e) => {
+          const key = e.key.toLowerCase();
+          if(keys.hasOwnProperty(key)) keys[key] = true;
+
+          if (key === 'o') {
+            const state = gameRef.current;
+            const distToBase = camera.position.distanceTo(new THREE.Vector3(-10, 4, 10));
+            if (state.hasBlaster) {
+              setHasBlaster(false);
+              addLog("已經將永續宣導槍放回口袋中。", "info");
+            } else if (distToBase < 4) {
+              setHasBlaster(true);
+              addLog("🎒 成功拿起【永續宣導槍】！點擊滑鼠左鍵可以朝前方發射感化射線！", "success");
+            } else {
+              addLog("大聲公/宣導槍在收銀台左邊的永續小房間裡喔，走過去再按 O 拿起！", "warning");
+            }
+          }
+        };
+        const handleKeyUp = (e) => { if(keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false; };
+        window.addEventListener('keydown', handleKeyDown); window.addEventListener('keyup', handleKeyUp);
+
+        const onMouseMove = (event) => {
+          if (document.pointerLockElement === container) {
+            cameraRef.current.yaw -= event.movementX * 0.002;
+            cameraRef.current.pitch -= event.movementY * 0.002;
+            cameraRef.current.pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, cameraRef.current.pitch));
+          }
+        };
+        window.addEventListener('mousemove', onMouseMove);
+
+        const onMouseDown = (e) => {
+          const state = gameRef.current;
+          if (document.pointerLockElement === container && state.hasBlaster && e.button === 0) {
+            fireBullet();
+          }
+        };
+        window.addEventListener('mousedown', onMouseDown);
+
+        const handlePointerLockChange = () => { setIsPointerLocked(document.pointerLockElement === container); };
+        document.addEventListener('pointerlockchange', handlePointerLockChange);
+
+        const requestPointerLock = () => {
+          const state = gameRef.current;
+          if (state && state.gameState === 'playing' && !state.isDashboardOpen && !state.activeTrivia) {
+            container.requestPointerLock();
+          }
+        };
+        container.addEventListener('click', requestPointerLock);
+
+        let lastTime = Date.now();
+        let frameId;
+        let localRProgress = 0;
+        let timeAccumulator = 0;
+        let employeeTimer = 0;
+        let lastShelvesStr = "";
+        let rudeBoyTimer = 0;
+
+        const animate = () => {
+          frameId = requestAnimationFrame(animate);
+          const now = Date.now();
+          const delta = Math.min((now - lastTime) / 1000, 0.1);
+          lastTime = now;
+
+          const state = gameRef.current;
+
+          if (state.isDashboardOpen || state.activeTrivia) {
+            if (document.pointerLockElement === container) document.exitPointerLock();
+            renderer.render(scene, camera);
+            return;
+          }
+          if (!state || state.gameState !== 'playing') return;
+
+          if (!state.hasBlaster) {
+            blasterModelGroup.visible = true;
+            blasterModelGroup.rotation.y += delta * 1.5;
+            blasterModelGroup.position.y = 1.8 + Math.sin(now * 0.003) * 0.15;
+          } else {
+            blasterModelGroup.visible = false;
+          }
+
+          handBlasterGroup.visible = state.hasBlaster;
+
+          // --- 時間與生成邏輯 ---
+          timeAccumulator += delta;
+          if (timeAccumulator >= 1) {
+            timeAccumulator -= 1;
+            let nextTime = state.time + 1;
+
+            if (nextTime >= DAY_LENGTH) {
+              if (document.pointerLockElement === container) document.exitPointerLock();
+              state.gameState = 'event'; state.time = 0; setTime(0);
+              handleDayEnd(state.shelves); return;
+            } else {
+              state.time = nextTime; setTime(nextTime);
+            }
+
+            if ((nextTime === 40 || nextTime === 90) && Math.random() < 0.6) {
+              const randomQ = TRIVIA_QUESTIONS[Math.floor(Math.random() * TRIVIA_QUESTIONS.length)];
+              setActiveTrivia(randomQ);
+            }
+
+            rudeBoyTimer += 1;
+            if (rudeBoyTimer >= 35 && Math.random() < 0.7) {
+              spawnRudeBoy(state);
+              rudeBoyTimer = 0;
+            }
+
+            if (state.day === 2 && nextTime === 5 && !state.hasSpawnedRich) {
+              spawnRichCustomer(state); setHasSpawnedRich(true);
+            } else if (Math.random() < 0.3 && (state.customers || []).length < 8) {
+              spawnCustomer(state);
+            }
+          }
+
+          // --- 第一人稱視角與移動 ---
+          camera.rotation.y = cameraRef.current.yaw;
+          camera.rotation.x = cameraRef.current.pitch;
+
+          const speed = 14 * delta;
+          let moveX = 0, moveZ = 0;
+
+          if (keys.w) moveZ -= speed;
+          if (keys.s) moveZ += speed;
+          if (keys.a) moveX -= speed;
+          if (keys.d) moveX += speed;
+
+          if (moveX !== 0 || moveZ !== 0) {
+            const dir = new THREE.Vector3(moveX, 0, moveZ);
+            dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraRef.current.yaw);
+
+            if (!checkCollision(camera.position.x + dir.x, camera.position.z)) camera.position.x += dir.x;
+            if (!checkCollision(camera.position.x, camera.position.z + dir.z)) camera.position.z += dir.z;
+            camera.position.y = 4 + Math.abs(Math.sin(now * 0.01)) * 0.15;
+          } else {
+            camera.position.y = 4;
+          }
+
+          camera.position.x = Math.max(-14, Math.min(14, camera.position.x));
+          camera.position.z = Math.max(-14, Math.min(14, camera.position.z));
+
+          // --- 宣導雷射粒子更新與碰撞感化邏輯 ---
+          for (let i = bullets.length - 1; i >= 0; i--) {
+            const b = bullets[i];
+            const bSpeed = 40 * delta;
+            b.mesh.position.addScaledVector(b.dir, bSpeed);
+
+            if (Date.now() - b.spawnTime > 1500) {
+              scene.remove(b.mesh);
+              bullets.splice(i, 1);
+              continue;
+            }
+
+            state.customers.forEach((c) => {
+              const npcMesh = npcMeshes[c.id];
+              if (npcMesh) {
+                 const distToNpc = b.mesh.position.distanceTo(npcMesh.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+                 if (distToNpc < 1.5) {
+                    scene.remove(b.mesh);
+                    bullets.splice(i, 1);
+
+                    if (npcMesh.userData.isRudeBoy) {
+                       npcMesh.userData.hits += 1;
+                       addLog(`🎯 射中奧客！永續感化度：(${npcMesh.userData.hits}/5)`, "info");
+
+                       npcMesh.rotation.x = -0.3;
+                       setTimeout(() => { if (npcMesh) npcMesh.rotation.x = 0; }, 150);
+
+                       if (npcMesh.userData.hits >= 5) {
+                          npcMesh.userData.isRudeBoy = false;
+                          npcMesh.traverse(child => {
+                             if (child.isMesh && child.material && !child.material.isShared && child.geometry === sharedBodyGeo) {
+                                child.material.color.setHex(0x10b981);
+                             }
+                          });
+
+                          purifyCustomerInState(npcMesh.userData.id);
+                          addLog("💖 感化成功！奧客深受大業實中 SDGs 理念影響，變成了熱心環保的好客人！", "success");
+                       }
+                    } else {
+                       npcMesh.rotation.y += Math.PI * 2;
+                    }
+                 }
+              }
+            });
+          }
+
+          // --- 結帳區域偵測 ---
+          const registerLocation = new THREE.Vector3(0, camera.position.y, 8.5);
+          const distToRegister = camera.position.distanceTo(registerLocation);
+
+          let isNearRegister = distToRegister < 7.0 && camera.position.z < 11.5;
+          let isNearShelf = false;
+
+          shelfPositions.forEach(pos => {
+            const ddx = camera.position.x - pos.x, ddz = camera.position.z - pos.z;
+            if (Math.sqrt(ddx*ddx + ddz*ddz) < 5) isNearShelf = true;
+          });
+
+          if (isNearRegister) setNearObject('register');
+          else if (isNearShelf) setNearObject('shelf');
+          else setNearObject(null);
+
+          if (isNearRegister && keys.r && (state.customers || []).length > 0 && !(state.employees || {}).cashier) {
+            localRProgress += delta * 120;
+            if (localRProgress >= 100) {
+              checkoutFirstCustomer(state);
+              localRProgress = 0;
+              keys.r = false;
+            }
+          } else {
+            localRProgress = Math.max(0, localRProgress - delta * 200);
+          }
+          setRProgress(localRProgress);
+
+          if (isNearShelf && keys.f) { restockAllShelves(state); keys.f = false; }
+
+          // 貨架變動
+          const currentShelvesStr = JSON.stringify(state.shelves || {});
+          if (currentShelvesStr !== lastShelvesStr) {
+            lastShelvesStr = currentShelvesStr;
+            const shelfItems = Object.keys(state.shelves || {}).filter(id => state.shelves[id].qty > 0);
+
+            shelfInstances.forEach((shelfData, sIdx) => {
+              shelfData.itemsGroup.clear();
+              if (shelfItems[sIdx]) {
+                const prod = PRODUCTS[shelfItems[sIdx]];
+                const qty = Math.min(10, state.shelves[shelfItems[sIdx]].qty);
+
+                if (!sharedItemMats[prod.color]) sharedItemMats[prod.color] = new THREE.MeshStandardMaterial({ color: prod.color });
+                const boxMat = sharedItemMats[prod.color];
+
+                for (let i = 0; i < qty; i++) {
+                  const itemMesh = new THREE.Mesh(sharedItemGeo, boxMat);
+                  itemMesh.position.set((i % 5) * 0.7 - 1.4, (Math.floor(i / 5) + 2) * 1.2 + 0.3, 0);
+                  shelfData.itemsGroup.add(itemMesh);
+                }
+              }
+            });
+          }
+
+          if (state.employees) {
+            cashierMesh.visible = state.employees.cashier;
+            restockerMesh.visible = state.employees.restocker;
+
+            employeeTimer += delta;
+            if (employeeTimer >= 3) {
+              employeeTimer = 0;
+              if (state.employees.cashier && (state.customers || []).length > 0) checkoutFirstCustomer(gameRef.current);
+              if (state.employees.restocker) {
+                restockAllShelves(gameRef.current);
+                restockerMesh.position.y = 1.0; setTimeout(() => { if (restockerMesh) restockerMesh.position.y = 0; }, 200);
+              }
+            }
+          }
+
+          // NPC 與排隊
+          const currentCustIds = (state.customers || []).map(c => c.id);
+          Object.keys(npcMeshes).forEach(id => {
+            if (!currentCustIds.includes(id)) {
+              const mesh = npcMeshes[id];
+              npcsGroup.remove(mesh);
+              mesh.traverse(child => {
+                if (child.isMesh && child.material && !child.material.isShared) child.material.dispose();
+              });
+              delete npcMeshes[id];
+            }
+          });
+
+          (state.customers || []).forEach((c, index) => {
+            if (!npcMeshes[c.id]) {
+              let npcMesh;
+              if (c.isRich) {
+                npcMesh = createCharacter(0xfacc15);
+                const hatMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+                const hatTop = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.6), hatMat); hatTop.position.set(0, 0.8, 0);
+                const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.05), hatMat); hatBrim.position.set(0, 0.5, 0);
+                npcMesh.userData.head.add(hatTop); npcMesh.userData.head.add(hatBrim);
+              } else if (c.isRudeBoy) {
+                npcMesh = createCharacter(0x000000, true);
+              } else {
+                const colors = [0xef4444, 0xf59e0b, 0x10b981, 0xec4899];
+                npcMesh = createCharacter(colors[Math.floor(Math.random() * colors.length)]);
+              }
+              npcMesh.position.set((Math.random() * 4) - 2, 0, 28);
+              npcMesh.userData.id = c.id;
+              npcsGroup.add(npcMesh); npcMeshes[c.id] = npcMesh;
+            }
+
+            const mesh = npcMeshes[c.id];
+
+            if (mesh.userData.isRudeBoy) {
+               const t = now * 0.001 + mesh.userData.animOffset;
+               const targetX = Math.sin(t) * 10;
+               const targetZ = Math.cos(t * 0.5) * 5;
+
+               const dxNpc = targetX - mesh.position.x;
+               const dzNpc = targetZ - mesh.position.z;
+               mesh.position.x += dxNpc * 0.03;
+               mesh.position.z += dzNpc * 0.03;
+
+               const wCycle = now * 0.015;
+               mesh.userData.leftArm.rotation.x = Math.sin(wCycle) * 0.5;
+               mesh.userData.rightArm.rotation.x = -Math.sin(wCycle) * 0.5;
+               mesh.userData.leftLeg.rotation.x = -Math.sin(wCycle) * 0.5;
+               mesh.userData.rightLeg.rotation.x = Math.sin(wCycle) * 0.5;
+               mesh.position.y = Math.abs(Math.sin(wCycle * 2)) * 0.2;
+               mesh.rotation.y = Math.atan2(dxNpc, dzNpc);
+            } else {
+               const targetX = -2 + (index % 3) * 2.5;
+               const targetZ = 12.0 + Math.floor(index / 3) * 2.5;
+
+               const dxNpc = targetX - mesh.position.x;
+               const dzNpc = targetZ - mesh.position.z;
+               mesh.position.x += dxNpc * 0.05;
+               mesh.position.z += dzNpc * 0.05;
+
+               if (Math.abs(dxNpc) > 0.1 || Math.abs(dzNpc) > 0.1) {
+                 const wCycle = now * 0.01 + mesh.userData.animOffset;
+                 mesh.userData.leftArm.rotation.x = Math.sin(wCycle) * 0.5; mesh.userData.rightArm.rotation.x = -Math.sin(wCycle) * 0.5;
+                 mesh.userData.leftLeg.rotation.x = -Math.sin(wCycle) * 0.5; mesh.userData.rightLeg.rotation.x = Math.sin(wCycle) * 0.5;
+                 mesh.position.y = Math.abs(Math.sin(wCycle * 2)) * 0.2;
+                 mesh.rotation.y = Math.atan2(dxNpc, dzNpc);
+               } else {
+                 mesh.userData.leftArm.rotation.x = 0; mesh.userData.rightArm.rotation.x = 0;
+                 mesh.userData.leftLeg.rotation.x = 0; mesh.userData.rightLeg.rotation.x = 0;
+                 mesh.position.y = 0;
+                 mesh.rotation.y = 0;
+               }
+            }
+          });
+
+          // 自動玻璃門
+          let isDoorActive = false;
+          if (camera.position.z > 8 && Math.abs(camera.position.x) < 4) isDoorActive = true;
+          state.customers.forEach(c => {
+             if (npcMeshes[c.id]) {
+                 const nz = npcMeshes[c.id].position.z;
+                 if (nz > 10 && nz < 20) isDoorActive = true;
+             }
+          });
+          const targetDoorRot = isDoorActive ? -Math.PI / 2 : 0;
+          doorPivot.rotation.y += (targetDoorRot - doorPivot.rotation.y) * 0.1;
+
+          renderer.render(scene, camera);
+        };
+
+        animate();
+
+        return () => {
+          cancelAnimationFrame(frameId);
+          window.removeEventListener('keydown', handleKeyDown); window.removeEventListener('keyup', handleKeyUp);
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mousedown', onMouseDown);
+          document.removeEventListener('pointerlockchange', handlePointerLockChange);
+          container.removeEventListener('click', requestPointerLock);
+          sharedHeadGeo.dispose(); sharedBodyGeo.dispose(); sharedArmGeo.dispose(); sharedLegGeo.dispose(); sharedEyeGeo.dispose(); sharedItemGeo.dispose();
+          Object.values(sharedItemMats).forEach(mat => mat.dispose());
+          bullets.forEach(b => scene.remove(b.mesh));
+        };
+      // 修補：原版誤用未定義的 threeLoaded 變數導致 ReferenceError
+      }, [gameState]);
+
+      // === 遊戲邏輯 ===
+      const spawnCustomer = (state) => {
+        let newShelves = { ...state.shelves };
+        const availableItems = Object.keys(newShelves).filter(id => newShelves[id].qty > 0);
+
+        if (availableItems.length > 0) {
+          const customerCart = [];
+          let cartTotal = 0;
+          const itemsToLookAt = availableItems.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+          itemsToLookAt.forEach(id => {
+            const product = PRODUCTS[id];
+            const shelfItem = newShelves[id];
+            const priceRatio = product.basePrice / shelfItem.price;
+            let buyQty = Math.floor(Math.random() * 3 * priceRatio);
+
+            if (buyQty > 0) {
+              buyQty = Math.min(buyQty, shelfItem.qty);
+              customerCart.push({ id, qty: buyQty, price: shelfItem.price });
+              cartTotal += buyQty * shelfItem.price;
+              newShelves[id].qty -= buyQty;
+            }
+          });
+
+          if (customerCart.length > 0) {
+            setShelves(newShelves);
+            setCustomers(prev => [...prev, { id: Date.now().toString() + Math.random(), cart: customerCart, total: cartTotal }]);
+          }
+        }
+      };
+
+      const spawnRichCustomer = (state) => {
+        let newShelves = { ...state.shelves };
+        const availableItems = Object.keys(newShelves).filter(id => newShelves[id].qty > 0);
+
+        if (availableItems.length > 0) {
+          const customerCart = [];
+          let cartTotal = 0;
+          availableItems.forEach(id => {
+            const buyQty = newShelves[id].qty;
+            customerCart.push({ id, qty: buyQty, price: newShelves[id].price });
+            cartTotal += buyQty * newShelves[id].price;
+            newShelves[id].qty = 0;
+          });
+          setShelves(newShelves);
+          setCustomers(prev => [...prev, { id: 'rich_' + Date.now().toString() + Math.random(), cart: customerCart, total: cartTotal, isRich: true }]);
+          addLog("💰 特殊事件：神秘富豪出現了！他霸氣地買下了架上所有的商品！", "success");
+        } else {
+          addLog("👤 神秘富豪走進店裡，卻發現架上空無一物，失望地離開了。", "warning");
+        }
+      };
+
+      const spawnRudeBoy = (state) => {
+        const rId = 'rude_' + Date.now().toString() + Math.random();
+        setCustomers(prev => [...prev, { id: rId, cart: [], total: 0, isRudeBoy: true }]);
+        addLog("🚨 警告！有一名不遵守秩序的奧客進門了！他到處亂晃並妨礙店鋪營運。快去永續小房間拿起宣導槍感化他！", "error");
+      };
+
+      const checkoutFirstCustomer = (state) => {
+        if ((state.customers || []).length === 0) return;
+        const customer = state.customers[0];
+
+        if (customer.isRudeBoy) {
+          addLog("這名顧客是奧客！你必須先用宣導槍射擊 5 次將他感化為好顧客，才能為他結帳！", "warning");
+          return;
+        }
+
+        let healthImpact = 0;
+        customer.cart.forEach(item => { healthImpact += PRODUCTS[item.id].health * item.qty; });
+
+        setMoney(prev => prev + customer.total);
+        setHealthScore(prev => Math.min(100, Math.max(0, prev + healthImpact)));
+        setCustomers(prev => prev.slice(1));
+        addLog(`結帳成功！收入 $${customer.total}`, "success");
+      };
+
+      const restockAllShelves = (state) => {
+        let newInventory = { ...state.inventory };
+        let newShelves = { ...state.shelves };
+        let restockedAny = false;
+
+        Object.keys(newShelves).forEach(id => {
+          const needQty = 10 - newShelves[id].qty;
+          if (needQty > 0 && newInventory[id] > 0) {
+            const addQty = Math.min(needQty, newInventory[id]);
+            newShelves[id].qty += addQty;
+            newInventory[id] -= addQty;
+            restockedAny = true;
+          }
+        });
+
+        if (restockedAny) {
+          setInventory(newInventory); setShelves(newShelves);
+          addLog("📦 已將倉庫商品補貨至架上！", "info");
+        }
+      };
+
+      const handleOrder = (id, qty) => {
+        const p = PRODUCTS[id];
+        const cost = p.cost * qty;
+        if (money >= cost) {
+          setMoney(prev => prev - cost);
+          setInventory(prev => ({ ...prev, [id]: (prev[id] || 0) + qty }));
+          setEcoScore(prev => Math.min(100, Math.max(0, prev + (p.eco * qty))));
+          addLog(`訂購 ${p.name}。落實 ${p.sdgs.join(', ')}`, p.type === 'local' ? "success" : "warning");
+        }
+      };
+
+      const handleShelve = (id, price) => {
+        const priceNum = parseInt(price);
+        if (inventory[id] > 0 && priceNum > 0) {
+          const moveQty = Math.min(10, inventory[id]);
+          setInventory(prev => ({ ...prev, [id]: prev[id] - moveQty }));
+          setShelves(prev => ({ ...prev, [id]: { qty: (prev[id]?.qty || 0) + moveQty, price: priceNum } }));
+          addLog(`上架 ${PRODUCTS[id].name}，定價 $${priceNum}`, "info");
+        }
+      };
+
+      const handleUpdatePrice = (id, price) => {
+        const priceNum = parseInt(price);
+        if (priceNum > 0 && shelves[id]) {
+          setShelves(prev => ({ ...prev, [id]: { ...prev[id], price: priceNum } }));
+          addLog(`修改 ${PRODUCTS[id].name} 定價為 $${priceNum}`, "info");
+        }
+      };
+
+      const handleHire = (role, cost) => {
+        if (money >= cost) {
+          setMoney(prev => prev - cost);
+          setEmployees(prev => ({ ...prev, [role]: true }));
+          addLog(`🎉 成功雇用${role === 'cashier' ? '結帳員' : '補貨員'}！`, "success");
+        }
+      };
+
+      const handleSaveGame = async () => {
+        if (!auth || !user || !db) { addLog("⚠️ 雲端存檔在公開展覽版未啟用（GitHub Pages 沒有 Firebase 連線）。", "warning"); return; }
+        try {
+          const saveData = { day, time, money, ecoScore, socialScore, healthScore, inventory, shelves, employees, hasSpawnedRich, logs };
+          await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'saves', 'mysave'), saveData);
+          addLog("✅ 遊戲已成功存檔至雲端！", "success");
+        } catch (e) { addLog("存檔失敗！", "error"); }
+      };
+
+      const handleLoadGame = async () => {
+        if (!auth || !user || !db) { addLog("⚠️ 雲端載入在公開展覽版未啟用。", "warning"); return; }
+        try {
+          const docSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'saves', 'mysave'));
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setDay(data.day || 1); setTime(data.time || 0); setMoney(data.money || 2500);
+            setEcoScore(data.ecoScore || 50); setSocialScore(data.socialScore || 50); setHealthScore(data.healthScore || 50);
+            setInventory(data.inventory || {}); setShelves(data.shelves || {}); setEmployees(data.employees || { cashier: false, restocker: false });
+            setHasSpawnedRich(data.hasSpawnedRich || false); setLogs(data.logs || []); setCustomers([]);
+            addLog("📥 已成功載入雲端存檔！", "success"); setIsDashboardOpen(false);
+          } else {
+            addLog("找不到任何雲端存檔！", "warning");
+          }
+        } catch (e) { addLog("載入失敗！", "error"); }
+      };
+
+      const handleRestartGame = () => { setIsDashboardOpen(false); setGameState('start'); };
+
+      const handleDayEnd = (currentShelves) => {
+        setGameState('event'); setTime(0);
+        let leftoverCount = 0;
+        Object.keys(currentShelves).forEach(id => leftoverCount += currentShelves[id].qty);
+        Object.keys(inventory).forEach(id => leftoverCount += inventory[id]);
+
+        setCurrentEvent({
+          title: `第 ${day} 天營業結束 (SDG 結算)`,
+          description: leftoverCount > 0 ? `今天剩下了 ${leftoverCount} 份未賣出的食物。為了達成 SDG 2 (零飢餓) 與 SDG 12 (不浪費)，你該怎麼做？` : "完美！零剩食！你完美落實了 SDG 12 (負責任的消費與生產)！",
+          options: leftoverCount > 0 ? [
+            { text: "捐贈給食物銀行 (SDG 2 零飢餓)", cost: 50, socialImpact: 20, ecoImpact: 5, resultLog: "🤝 捐贈食物幫助弱勢！(社會+20)", type: "donate" },
+            { text: "當作一般垃圾丟棄 (違背 SDG 12)", cost: 0, socialImpact: -15, ecoImpact: -10, resultLog: "🗑️ 增加了垃圾負擔。(社會-15, 生態-10)", type: "trash" }
+          ] : [ { text: "結算今日營業！", cost: 0, socialImpact: 5, ecoImpact: 5, resultLog: "✨ 零剩食達標！", type: "perfect" } ]
+        });
+      };
+
+      const handleEventChoice = (opt) => {
+        setMoney(prev => prev - opt.cost);
+        setSocialScore(prev => Math.min(100, Math.max(0, prev + opt.socialImpact)));
+        setEcoScore(prev => Math.min(100, Math.max(0, prev + opt.ecoImpact)));
+        addLog(opt.resultLog, opt.socialImpact > 0 ? 'success' : 'error');
+        setDay(prev => prev + 1); setGameState('playing');
+      };
+
+      const handleTriviaAnswer = (index) => {
+        const isCorrect = index === activeTrivia.answerIndex;
+        if (isCorrect) {
+          setMoney(prev => prev + activeTrivia.reward.money);
+          if (activeTrivia.reward.eco) setEcoScore(prev => Math.min(100, prev + activeTrivia.reward.eco));
+          if (activeTrivia.reward.social) setSocialScore(prev => Math.min(100, prev + activeTrivia.reward.social));
+          if (activeTrivia.reward.health) setHealthScore(prev => Math.min(100, prev + activeTrivia.reward.health));
+          addLog(`⭐ 隨機問答答對了！獲得獎勵 $${activeTrivia.reward.money}`, 'success');
+        } else {
+          addLog(`❌ 隨機問答答錯了！沒關係，多看看 SDG 百科吧。`, 'error');
+        }
+        setTriviaResult({ isCorrect, explanation: activeTrivia.explanation, rewardText: isCorrect ? `獲得 $${activeTrivia.reward.money} 獎金` : '無獎勵' });
+      };
+
+      const closeTrivia = () => { setActiveTrivia(null); setTriviaResult(null); };
+
+      const SdgBadge = ({ text }) => {
+        const isBad = text.includes('違背');
+        return (
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ml-1 border ${isBad ? 'bg-red-100 text-red-700 border-red-200' : 'bg-blue-100 text-blue-700 border-blue-200'}`}>
+            {text}
+          </span>
+        );
+      };
+
+      return (
+        <div className="w-full h-screen bg-slate-900 font-sans flex flex-col items-center justify-center relative">
+
+          {gameState === 'playing' && (
+            <>
+              {/* HUD 界面 */}
+              <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-10 pointer-events-none">
+                <div className="space-y-2 pointer-events-auto w-72">
+                  <div className="bg-slate-900/98 text-white p-4 rounded-xl border border-slate-600 shadow-2xl">
+                    <h1 className="font-bold flex items-center mb-3 text-orange-400 text-lg">
+                      <Globe className="w-5 h-5 mr-2 animate-spin-slow" /> SDG 永續店長日常
+                    </h1>
+                    <div className="flex justify-between items-center bg-slate-800 p-2 rounded-lg mb-3">
+                      <span className="text-sm font-bold">Day {day}</span>
+                      <div className="text-yellow-400 font-black flex items-center text-xl">
+                        <Coins className="w-5 h-5 mr-1" /> ${money}
+                      </div>
+                    </div>
+                    <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden mb-4">
+                      <div className="h-full bg-blue-400 animate-pulse" style={{ width: `${(time / DAY_LENGTH) * 100}%` }}></div>
+                    </div>
+                    <div className="space-y-2 text-sm font-bold text-slate-300">
+                      <RenderProgressBar label="SDG 12 生態" value={ecoScore} color="green" />
+                      <RenderProgressBar label="SDG 2 社會" value={socialScore} color="red" />
+                      <RenderProgressBar label="SDG 3 健康" value={healthScore} color="blue" />
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900/98 rounded-xl p-3 h-32 overflow-y-auto text-xs font-mono border border-slate-700 pointer-events-auto shadow-xl">
+                    {logs.slice(0, 8).map((log, i) => (
+                      <div key={i} className={`mb-1 ${log.type === 'success' ? 'text-green-400' : log.type === 'error' ? 'text-red-400' : log.type === 'warning' ? 'text-yellow-400' : 'text-slate-300'}`}>
+                        {log.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end space-y-2 pointer-events-auto">
+                  <button onClick={() => setIsDashboardOpen(true)} className="flex items-center px-6 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black shadow-lg border-2 border-blue-400 transition hover:scale-105">
+                    <Monitor className="w-6 h-6 mr-2" /> 點此開電腦
+                  </button>
+                  <div className="bg-slate-900/98 text-white text-xs p-3 rounded-xl text-right border border-slate-600 shadow-xl leading-relaxed">
+                    <div className="font-bold mb-1 text-orange-400 border-b border-slate-600 pb-1">操作說明：</div>
+                    <div><kbd className="bg-slate-700 px-1 rounded">滑鼠</kbd>：轉動視角</div>
+                    <div><kbd className="bg-slate-700 px-1 rounded">WASD</kbd>：走動</div>
+                    <div><kbd className="bg-slate-700 px-1 rounded">長按 R</kbd>：結帳 / <kbd className="bg-slate-700 px-1 rounded">F</kbd>：補貨</div>
+                    <div><kbd className="bg-slate-700 px-1 rounded">按 O</kbd>：拿/放 宣導槍 (可在小房間獲得)</div>
+                    {hasBlaster && <div><kbd className="bg-slate-700 px-1 rounded">滑鼠左鍵</kbd>：發射永續宣導光束</div>}
+                    <div><kbd className="bg-slate-700 px-1 rounded">ESC</kbd>：解鎖滑鼠</div>
+                  </div>
+                </div>
+              </div>
+
+              {nearObject === 'register' && !employees.cashier && (
+                <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-10 flex flex-col items-center">
+                  <div className="bg-slate-900/98 text-white px-8 py-3 rounded-full font-black shadow-2xl border-2 border-yellow-500 flex items-center mb-2 animate-bounce text-sm">
+                    長按 <kbd className="mx-2 bg-yellow-500 text-slate-900 px-3 py-1 rounded">R</kbd> 結帳
+                  </div>
+                  {rProgress > 0 && (
+                    <div className="w-64 h-4 bg-slate-800 rounded-full overflow-hidden border-2 border-slate-600 shadow-lg">
+                      <div className="h-full bg-yellow-400" style={{ width: `${rProgress}%` }}></div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {nearObject === 'shelf' && (
+                <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-10">
+                  <div className="bg-slate-900/98 text-white px-8 py-3 rounded-full font-black shadow-2xl border-2 border-green-500 flex items-center text-sm">
+                    按 <kbd className="mx-2 bg-green-500 text-slate-900 px-3 py-1 rounded">F</kbd> 自動將庫存補滿架上
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* 3D 渲染區域 */}
+          <div ref={mountRef} className="w-full h-full" />
+
+          {/* FPS 準星 */}
+          {gameState === 'playing' && !isDashboardOpen && !activeTrivia && isPointerLocked && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20">
+              <Crosshair className="w-8 h-8 text-white/50" />
+            </div>
+          )}
+
+          {/* 滑鼠鎖定提示 */}
+          {gameState === 'playing' && !isDashboardOpen && !activeTrivia && !isPointerLocked && (
+            <div className="absolute inset-0 bg-slate-900/60 z-30 flex items-center justify-center backdrop-blur-sm pointer-events-none">
+              <div className="bg-blue-600 text-white px-8 py-4 rounded-full font-black text-2xl animate-pulse shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+                點擊畫面進入商店視角
+              </div>
+            </div>
+          )}
+
+          {/* 商店管理系統 overlay */}
+          {isDashboardOpen && (
+            <div className="absolute inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-8">
+              <div className="bg-slate-50 w-full h-full max-w-5xl rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+
+                <div className="bg-blue-800 text-white p-4 flex justify-between items-center shadow-md">
+                  <div className="font-black text-xl flex items-center">
+                    <Monitor className="w-6 h-6 mr-2" /> 永續商店管理系統 (SDG 核心)
+                    <span className="ml-4 text-sm bg-red-500 px-3 py-1 rounded-full animate-pulse shadow-inner">遊戲時間已暫停</span>
+                  </div>
+                  <button onClick={() => setIsDashboardOpen(false)} className="hover:bg-blue-900 p-2 rounded-lg transition"><X className="w-8 h-8" /></button>
+                </div>
+
+                <div className="flex bg-slate-200 border-b border-slate-300">
+                  <button onClick={() => setDashboardTab('order')} className={`px-8 py-4 font-bold flex items-center text-lg ${dashboardTab === 'order' ? 'bg-white text-blue-700 border-t-4 border-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}>進貨網</button>
+                  <button onClick={() => setDashboardTab('shelf')} className={`px-8 py-4 font-bold flex items-center text-lg ${dashboardTab === 'shelf' ? 'bg-white text-blue-700 border-t-4 border-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}>倉庫與定價</button>
+                  <button onClick={() => setDashboardTab('hr')} className={`px-8 py-4 font-bold flex items-center text-lg ${dashboardTab === 'hr' ? 'bg-white text-blue-700 border-t-4 border-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}>人力資源</button>
+                  <button onClick={() => setDashboardTab('sdg')} className={`px-8 py-4 font-bold flex items-center text-lg ${dashboardTab === 'sdg' ? 'bg-white text-green-600 border-t-4 border-green-500 shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}><BookOpen className="w-5 h-5 mr-2"/> SDG 百科</button>
+                  <button onClick={() => setDashboardTab('settings')} className={`px-8 py-4 font-bold flex items-center text-lg ${dashboardTab === 'settings' ? 'bg-white text-slate-800 border-t-4 border-slate-700 shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`}><Settings className="w-5 h-5 mr-2"/> 系統設定</button>
+                  <div className="ml-auto px-8 py-4 font-black text-2xl text-slate-800 flex items-center">資金: <span className="text-yellow-600 ml-2">${money}</span></div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 bg-slate-50">
+                  {dashboardTab === 'order' && (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {Object.values(PRODUCTS).map(p => {
+                        const OrderItem = () => {
+                          const [qty, setQty] = useState(10);
+                          return (
+                            <div className="bg-white p-5 rounded-2xl border-2 border-slate-200 shadow-sm flex flex-col">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <div className="font-black text-xl text-slate-800 mb-1">{p.name}</div>
+                                  <div className="flex flex-wrap gap-1 mb-2">
+                                    {p.sdgs.map(sdg => <SdgBadge key={sdg} text={sdg} />)}
+                                  </div>
+                                  <div className="text-sm text-slate-500 h-10">{p.desc}</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-slate-400 text-xs font-bold">進貨成本</div>
+                                  <div className="font-black text-3xl text-slate-800">${p.cost}</div>
+                                </div>
+                              </div>
+                              <div className="mt-auto pt-4 border-t flex items-center justify-between">
+                                <input type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} className="w-24 p-3 border-2 border-slate-300 rounded-xl text-center font-black text-xl outline-none focus:border-blue-500" />
+                                <button onClick={() => handleOrder(p.id, parseInt(qty))} disabled={money < (p.cost * qty)} className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-black transition flex items-center text-lg">
+                                  訂購 <span className="ml-2 bg-blue-800/40 px-2 py-1 rounded-lg">${p.cost * qty}</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        };
+                        return <OrderItem key={p.id} />;
+                      })}
+                    </div>
+                  )}
+
+                  {dashboardTab === 'shelf' && (
+                    <div className="space-y-4">
+                      {Object.keys(inventory).length === 0 ? (
+                        <div className="text-center text-slate-400 py-20 text-xl font-bold">倉庫空空如也，請先前往進貨網購買符合 SDG 的商品。</div>
+                      ) : (
+                        <div className="grid gap-4">
+                          {Object.keys(inventory).filter(id => inventory[id] > 0 || shelves[id]).map(id => {
+                            const ShelfItem = () => {
+                              const p = PRODUCTS[id];
+                              const cur = shelves[id] || { qty: 0, price: p.basePrice };
+                              const [price, setPrice] = useState(cur.price);
+                              return (
+                                <div className="bg-white p-5 rounded-xl border-2 border-slate-200 shadow-sm flex items-center justify-between">
+                                  <div className="w-1/3">
+                                    <div className="font-black text-xl text-slate-800">{p.name}</div>
+                                    <div className="text-slate-500 mt-2 font-bold">倉庫: <span className="text-slate-800">{inventory[id] || 0}</span> | 架上: <span className="text-orange-600">{cur.qty}</span></div>
+                                  </div>
+                                  <div className="flex space-x-6 items-center">
+                                    <div className="flex flex-col">
+                                      <label className="text-sm font-bold text-slate-500 mb-1">自訂售價($) - 建議: ${p.basePrice}</label>
+                                      <input type="number" min="1" value={price} onChange={(e) => setPrice(e.target.value)} className="w-32 p-3 border-4 border-orange-200 rounded-xl outline-none font-black text-2xl text-orange-600 focus:border-orange-400" />
+                                    </div>
+                                    {!shelves[id] && inventory[id] > 0 && (
+                                      <button onClick={() => handleShelve(id, price)} className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl font-black shadow-lg transition">決定上架</button>
+                                    )}
+                                    {shelves[id] && (
+                                      <button onClick={() => handleUpdatePrice(id, price)} className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-black shadow-lg transition">修改價格</button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            };
+                            return <ShelfItem key={id} />;
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {dashboardTab === 'hr' && (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="bg-white p-8 rounded-3xl border-2 border-purple-100 shadow-md">
+                        <h3 className="text-3xl font-black text-purple-800 mb-4 flex items-center"><UserPlus className="mr-3" /> 專業結帳員</h3>
+                        <p className="text-slate-600 mb-8 font-bold text-lg">自動幫排隊客人結帳，提升效率，達成 SDG 8 尊嚴勞動與經濟成長。</p>
+                        <div className="flex justify-between items-center border-t-2 pt-6">
+                          <div className="text-4xl font-black text-slate-800">$2000</div>
+                          {employees.cashier ? <span className="bg-slate-200 px-6 py-3 rounded-xl font-bold">已就職</span> : <button onClick={() => handleHire('cashier', 2000)} disabled={money < 2000} className="bg-purple-600 text-white px-8 py-3 rounded-xl font-black text-xl">雇用</button>}
+                        </div>
+                      </div>
+                      <div className="bg-white p-8 rounded-3xl border-2 border-orange-100 shadow-md">
+                        <h3 className="text-3xl font-black text-orange-800 mb-4 flex items-center"><Package className="mr-3" /> 勤奮補貨員</h3>
+                        <p className="text-slate-600 mb-8 font-bold text-lg">自動將倉庫物品補滿架上，確保商品供應無虞。</p>
+                        <div className="flex justify-between items-center border-t-2 pt-6">
+                          <div className="text-4xl font-black text-slate-800">$1500</div>
+                          {employees.restocker ? <span className="bg-slate-200 px-6 py-3 rounded-xl font-bold">已就職</span> : <button onClick={() => handleHire('restocker', 1500)} disabled={money < 1500} className="bg-orange-500 text-white px-8 py-3 rounded-xl font-black text-xl">雇用</button>}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {dashboardTab === 'sdg' && (
+                    <div className="space-y-6">
+                      <div className="bg-green-50 p-6 rounded-2xl border-2 border-green-200 flex items-center shadow-sm">
+                        <Globe className="w-12 h-12 text-green-500 mr-6 flex-shrink-0 animate-spin-slow" />
+                        <div>
+                          <h3 className="text-2xl font-black text-green-800 mb-2">大業實中 × 聯合國永續發展目標 (SDGs)</h3>
+                          <p className="text-slate-700 font-bold">了解你的每一個商業決定，如何影響真實世界的永續發展。答對隨機問答也能獲得這些知識喔！</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 p-6 rounded-2xl border border-blue-200 shadow flex flex-col">
+                        <h4 className="text-2xl font-black text-blue-900 mb-4 border-b-2 border-blue-200 pb-2">■ SDG 發展歷史與核心數據 (考試重點)</h4>
+                        <div className="grid md:grid-cols-2 gap-4 text-slate-700 font-bold leading-relaxed">
+                          <p>🎯 <strong className="text-blue-700">歷史演進</strong>：在 SDGs 之前，聯合國於 2000 年推動的是<strong className="text-red-500">「千禧年發展目標 (MDGs)」</strong>，後於 2015 年擴展為 SDGs。</p>
+                          <p>🎯 <strong className="text-blue-700">發布年份</strong>：聯合國大會於 <strong className="text-red-500">2015年</strong> 正式發布「2030永續發展目標」。</p>
+                          <p>🎯 <strong className="text-blue-700">目標年份</strong>：期盼全球能在 <strong className="text-red-500">2030年</strong> 共同達成這些永續挑戰。</p>
+                          <p>🎯 <strong className="text-blue-700">細項目標</strong>：17 項核心大目標之下，總共細分了 <strong className="text-red-500">169 項具體細項目標 (Targets)</strong>。</p>
+                          <p className="md:col-span-2">🎯 <strong className="text-blue-700">剩食目標</strong>：SDG 12 指出，預計在 2030 年前，要將全球零售與消費者端的人均糧食浪費 <strong className="text-red-500">減少一半 (50%)</strong>。</p>
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow flex flex-col">
+                          <div className="flex items-center mb-4"><div className="w-10 h-10 bg-[#e5243b] text-white flex items-center justify-center font-black text-xl rounded-lg mr-4">2</div><h4 className="text-2xl font-black text-slate-800">零飢餓 (Zero Hunger)</h4></div>
+                          <div className="space-y-4">
+                            <div>
+                              <h5 className="font-bold text-red-600 border-b border-red-100 pb-1 mb-1">■ 核心理念</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">消除世界各地的飢餓，確保所有人都能獲得營養充足的食物，並推動永續農業。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-red-600 border-b border-red-100 pb-1 mb-1">■ 遊戲與真實實踐</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">遊戲中打烊後的剩食，若當作垃圾丟棄會造成嚴重浪費。透過<strong className="text-red-500">捐贈給「食物銀行 (Food Bank)」</strong>，能將多餘資源重新分配給社區中的弱勢家庭，直接對抗飢餓。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-red-600 border-b border-red-100 pb-1 mb-1">■ 嘉義在地連結</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">嘉義市設有實體食物銀行，不僅收集即期品，也會收受在地農民外觀不佳的「醜蔬果（格外品）」，達到惜食與濟貧的雙重效益。</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow flex flex-col">
+                          <div className="flex items-center mb-4"><div className="w-10 h-10 bg-[#4c9f38] text-white flex items-center justify-center font-black text-xl rounded-lg mr-4">3</div><h4 className="text-2xl font-black text-slate-800">良好健康與福祉</h4></div>
+                          <div className="space-y-4">
+                            <div>
+                              <h5 className="font-bold text-green-700 border-b border-green-100 pb-1 mb-1">■ 核心理念</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">確保各年齡層的人們都能享有健康的生活方式，降低非傳染性疾病（如心血管疾病、糖尿病）的發生率。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-green-700 border-b border-green-100 pb-1 mb-1">■ 遊戲與真實實踐</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">拒絕進口化學糖漿與高度加工的組合肉，選擇<strong className="text-green-600">富含膳食纖維的竹筍或無糖冷泡茶</strong>。良好的飲食選擇能降低個人與社會醫療體系的負擔。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-green-700 border-b border-green-100 pb-1 mb-1">■ 跨域素養</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">健康不僅是「醫學」問題，更是「經濟學」與「教育」問題。培養大業實中學生選擇健康食材的眼光，就是預防醫學的起點。</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow flex flex-col">
+                          <div className="flex items-center mb-4"><div className="w-10 h-10 bg-[#bf8b2e] text-white flex items-center justify-center font-black text-xl rounded-lg mr-4">12</div><h4 className="text-2xl font-black text-slate-800">責任消費與生產</h4></div>
+                          <div className="space-y-4">
+                            <div>
+                              <h5 className="font-bold text-yellow-700 border-b border-yellow-100 pb-1 mb-1">■ 核心理念</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">減少資源消耗，將「線性經濟 (開採-製造-丟棄)」轉型為「循環經濟」，大幅減少碳足跡與廢棄物。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-yellow-700 border-b border-yellow-100 pb-1 mb-1">■ 遊戲與真實實踐</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">作為店長，選擇<strong className="text-yellow-600">嘉義在地小農的特產</strong>，能省去跨國海運、空運產生的大量溫室氣體。這在環境科學上被稱為減少「食物里程 (Food Miles)」。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-yellow-700 border-b border-yellow-100 pb-1 mb-1">■ 消費者力量</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">「每一次消費，都在為你想要的世界投票。」身為消費者，選擇低碳、友善農法的商品，能反向驅動企業與生產者改變。</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow flex flex-col">
+                          <div className="flex items-center mb-4"><div className="w-10 h-10 bg-[#0a97d9] text-white flex items-center justify-center font-black text-xl rounded-lg mr-4">14</div><h4 className="text-2xl font-black text-slate-800">水下生命</h4></div>
+                          <div className="space-y-4">
+                            <div>
+                              <h5 className="font-bold text-blue-600 border-b border-blue-100 pb-1 mb-1">■ 核心理念</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">保護和永續利用海洋和海洋資源，防止海洋污染（如塑膠微粒、優養化）與過度捕撈。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-blue-600 border-b border-blue-100 pb-1 mb-1">■ 遊戲與真實實踐</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">遊戲中選購<strong className="text-blue-500">東石新鮮蚵仔 (牡蠣)</strong>。牡蠣是天然的濾食性生物，大規模養殖不僅能提供優質蛋白質，更能有效「淨化海水水質」，平衡海洋生態。</p>
+                            </div>
+                            <div>
+                              <h5 className="font-bold text-blue-600 border-b border-blue-100 pb-1 mb-1">■ 海洋廢棄物危機</h5>
+                              <p className="text-slate-600 text-sm leading-relaxed">過度包裝的化學加工食品往往會產生大量塑膠垃圾，這些微塑膠最終會流入海洋，破壞生態鏈。源頭減量才是解方。</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {dashboardTab === 'settings' && (
+                    <div className="max-w-3xl mx-auto space-y-6">
+                      <div className="bg-slate-800 p-8 rounded-3xl text-white shadow-xl flex items-center">
+                        <Settings className="w-16 h-16 text-slate-400 mr-6 animate-[spin_10s_linear_infinite]" />
+                        <div>
+                          <h3 className="text-3xl font-black mb-2">系統設定與存檔</h3>
+                          <p className="text-slate-300 font-bold text-lg">你可以將目前的營業進度存入雲端，或是重新啟動遊戲。（公開展覽版未連線 Firebase，存檔功能僅於原作環境啟用。）</p>
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6 mt-8">
+                        <button onClick={handleSaveGame} className="bg-blue-600 hover:bg-blue-500 text-white p-8 rounded-2xl shadow-lg transition flex flex-col items-center justify-center group">
+                          <Save className="w-12 h-12 mb-4 group-hover:scale-110 transition-transform" />
+                          <div className="text-2xl font-black">儲存遊戲至雲端</div>
+                          <div className="text-blue-200 mt-2 font-bold">記錄目前的資金、庫存與天數</div>
+                        </button>
+
+                        <button onClick={handleLoadGame} className="bg-green-600 hover:bg-green-500 text-white p-8 rounded-2xl shadow-lg transition flex flex-col items-center justify-center group">
+                          <Download className="w-12 h-12 mb-4 group-hover:scale-110 transition-transform" />
+                          <div className="text-2xl font-black">從雲端載入進度</div>
+                          <div className="text-green-200 mt-2 font-bold">讀取上一次儲存的營業狀態</div>
+                        </button>
+
+                        <button onClick={handleRestartGame} className="md:col-span-2 bg-red-500 hover:bg-red-400 text-white p-6 rounded-2xl shadow-lg transition flex items-center justify-center group mt-4">
+                          <RefreshCw className="w-8 h-8 mr-4 group-hover:rotate-180 transition-transform duration-500" />
+                          <div className="text-2xl font-black">放棄進度並重新開始遊戲</div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 遊戲開始畫面 */}
+          {gameState === 'start' && (
+            <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 z-50">
+              <Globe className="w-32 h-32 text-blue-400 mb-8 animate-bounce-slow" />
+              <h2 className="text-6xl font-black text-white mb-6 tracking-wider">永續大作戰 <span className="text-amber-300">FPS</span></h2>
+              <div className="bg-slate-800 p-8 rounded-3xl max-w-2xl text-slate-300 space-y-6 border-2 border-slate-700 shadow-2xl">
+                <p className="text-2xl text-center font-bold text-white mb-2"><CheckCircle2 className="inline mr-2 text-green-400"/> V6 第一人稱視角與獨立網頁輸出版</p>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-600">
+                    <h3 className="font-bold text-amber-300 mb-3 text-lg">🚶 FPS 物理操作</h3>
+                    <ul className="space-y-2 font-bold text-sm">
+                      <li><strong className="text-white">點擊畫面：鎖定滑鼠視角</strong></li>
+                      <li>滑鼠移動：轉動視角</li>
+                      <li>WASD 鍵：前後左右移動</li>
+                      <li>按 ESC 鍵：解鎖滑鼠</li>
+                    </ul>
+                  </div>
+                  <div className="bg-slate-900 p-6 rounded-2xl border border-slate-600">
+                    <h3 className="font-bold text-green-400 mb-3 text-lg">🎯 SDG 專家挑戰</h3>
+                    <ul className="space-y-2 font-bold text-sm">
+                      <li>SDG 12 責任消費 (選在地食材)</li>
+                      <li>SDG 2 零飢餓 (捐贈剩食)</li>
+                      <li><strong className="text-yellow-400">注意：營業時會出現高難度的 SDG 歷史年代考題喔！</strong></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <button onClick={startGame} className="mt-10 bg-amber-500 hover:bg-amber-400 text-slate-900 text-3xl font-black py-5 px-20 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.5)] transform transition hover:scale-105">
+                開始實踐 SDGs
+              </button>
+            </div>
+          )}
+
+          {/* 事件結算 */}
+          {gameState === 'event' && currentEvent && (
+            <div className="absolute inset-0 bg-slate-900/98 flex items-center justify-center p-8 z-50">
+              <div className="bg-white p-12 rounded-[2.5rem] max-w-2xl w-full text-center shadow-2xl border-8 border-slate-200">
+                <Leaf className="w-24 h-24 mx-auto text-green-500 mb-6 animate-pulse" />
+                <h2 className="text-4xl font-black text-slate-800 mb-6">{currentEvent.title}</h2>
+                <p className="text-2xl text-slate-600 mb-10 font-bold leading-relaxed">{currentEvent.description}</p>
+
+                <div className="space-y-5">
+                  {currentEvent.options.map((opt, idx) => (
+                    <button key={idx} onClick={() => handleEventChoice(opt)} className={`w-full p-6 border-4 rounded-3xl text-left transition hover:scale-[1.02] ${opt.type === 'donate' ? 'border-blue-300 hover:bg-blue-50' : opt.type === 'perfect' ? 'border-green-400 text-center text-green-800 bg-green-50' : 'border-slate-300 hover:bg-slate-50'}`}>
+                      <div className="font-black text-2xl text-slate-800 flex items-center justify-between">
+                        {opt.text}
+                        {opt.cost > 0 && <span className="text-xl text-red-600 bg-red-100 px-4 py-2 rounded-xl">-$ {opt.cost}</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 知識問答 */}
+          {activeTrivia && (
+            <div className="absolute inset-0 bg-slate-900/98 flex items-center justify-center p-8 z-[60]">
+              <div className="bg-white p-10 rounded-[2rem] max-w-2xl w-full text-center shadow-2xl border-4 border-blue-400 animate-zoom-in">
+                {!triviaResult ? (
+                  <>
+                    <HelpCircle className="w-20 h-20 mx-auto text-blue-500 mb-6 animate-bounce" />
+                    <div className="bg-blue-50 text-blue-800 px-4 py-1 rounded-full inline-block font-bold mb-4">SDG 專家級突發考題</div>
+                    <h2 className="text-2xl font-black text-slate-800 mb-8 leading-relaxed">{activeTrivia.q}</h2>
+
+                    <div className="space-y-4">
+                      {activeTrivia.options.map((opt, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => handleTriviaAnswer(idx)}
+                          className="w-full p-4 border-2 border-slate-200 rounded-2xl text-left transition hover:border-blue-400 hover:bg-blue-50"
+                        >
+                          <div className="font-bold text-xl text-slate-700 flex items-center">
+                            <span className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center mr-4 flex-shrink-0">{String.fromCharCode(65 + idx)}</span>
+                            {opt}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="animate-fade-in py-4">
+                    {triviaResult.isCorrect ? (
+                      <CheckCircle className="w-24 h-24 mx-auto text-green-500 mb-4" />
+                    ) : (
+                      <XCircle className="w-24 h-24 mx-auto text-red-500 mb-4" />
+                    )}
+                    <h2 className={`text-3xl font-black mb-4 ${triviaResult.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                      {triviaResult.isCorrect ? '太厲害了！答對了！' : '哎呀，答錯了！記得去翻看百科。'}
+                    </h2>
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8 text-left">
+                      <p className="text-lg font-bold text-slate-700 leading-relaxed">{triviaResult.explanation}</p>
+                    </div>
+                    {triviaResult.isCorrect && (
+                      <div className="text-xl font-black text-yellow-500 mb-8 flex items-center justify-center">
+                        <Coins className="w-6 h-6 mr-2" /> {triviaResult.rewardText}
+                      </div>
+                    )}
+                    <button
+                      onClick={closeTrivia}
+                      className="bg-blue-600 hover:bg-blue-500 text-white text-xl font-black py-4 px-12 rounded-full shadow-lg transform transition hover:scale-105"
+                    >
+                      繼續營業
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    };
+
+    // 啟動 React App
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<FoodChainGame />);
+  </script>
+
+  <!-- 加強一些輔助樣式與動畫（zoom-in / fade-in 為修補新增） -->
+  <style>
+    @keyframes spin-slow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: spin-slow 12s linear infinite;
+    }
+    @keyframes bounce-slow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .animate-bounce-slow {
+      animation: bounce-slow 4s ease-in-out infinite;
+    }
+    @keyframes zoom-in {
+      0% { transform: scale(.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-zoom-in { animation: zoom-in 0.25s ease-out; }
+    @keyframes fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .animate-fade-in { animation: fade-in 0.3s ease-out; }
+  </style>
+</body>
+</html>
