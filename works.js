@@ -180,6 +180,20 @@ const PROJECTS = [
     featured: false,
     createdAt: "2026-06-08",
   },
+  {
+    id: "G24",
+    title: "極限孤島：終極包圍圈",
+    cover: "",
+    genre: ["射擊", "大逃殺"],
+    tags: ["FPS", "Three.js", "AI 對手", "縮圈生存", "空投物資"],
+    platform: "Web",
+    shortPitch: "50 名 AI 玩家、縮圈毒霧、空投寶箱——你是最後一人嗎？",
+    description: "純 Three.js 打造的 3D 大逃殺：800x800 隨機地形、50 個帶 AI 狀態機（巡邏/交戰/搜刮）的對手、毒圈定時縮小、隨機空投 M416/AWM/UMP45/S12K 武器。第一人稱射擊 + 載具系統 + 動態天氣，自閉執行不靠任何後端。",
+    playUrl: "./games/survival-arena/index.html",
+    theme: "ember",
+    featured: false,
+    createdAt: "2026-06-08",
+  },
 ];
 
 const MOCK_VOTES = PROJECTS.flatMap((project, index) => {
