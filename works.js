@@ -168,8 +168,9 @@ const PROJECTS = [
   },
   {
     id: "G23",
-    title: "永續大作戰 FPS",
-    cover: "",
+    title: "Chiayi Tycoon：永續大作戰",
+    cover: "./assets/games/sdg-fps/cover-16x9.jpg",
+    boxCover: "./assets/games/sdg-fps/cover-2x3.jpg",
     genre: ["模擬經營", "教育學習"],
     tags: ["SDG", "第一人稱", "嘉義在地", "Three.js", "經營決策"],
     platform: "Web",
