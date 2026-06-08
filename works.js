@@ -182,8 +182,9 @@ const PROJECTS = [
   },
   {
     id: "G24",
-    title: "極限孤島：終極包圍圈",
-    cover: "",
+    title: "ZONE X：極限孤島大逃殺",
+    cover: "./assets/games/survival-arena/cover-16x9.jpg",
+    boxCover: "./assets/games/survival-arena/cover-2x3.jpg",
     genre: ["射擊", "大逃殺"],
     tags: ["FPS", "Three.js", "AI 對手", "縮圈生存", "空投物資"],
     platform: "Web",
