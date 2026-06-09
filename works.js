@@ -40,7 +40,8 @@ const PROJECTS = [
   {
     id: "G03",
     title: "八掌溪跑酷",
-    cover: "",
+    cover: "./assets/games/bazhang-parkour/cover-16x9.jpg",
+    boxCover: "./assets/games/bazhang-parkour/cover-2x3.jpg",
     genre: ["跑酷", "動作"],
     tags: ["第一人稱", "在地場景", "速度", "反應"],
     platform: "Web",
