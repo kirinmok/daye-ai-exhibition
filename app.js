@@ -5,11 +5,11 @@ const ADMIN_OVERRIDE_KEY = "daye-ai-exhibition-project-overrides";
 const ADMIN_SESSION_KEY = "daye-ai-exhibition-admin-session";
 const ADMIN_PASSCODE = "daye2026";
 const SCORE_FIELDS = [
-  ["creativity", "創意"],
-  ["art", "美術風格"],
-  ["gameplay", "遊戲性"],
+  ["creativity", "AI 結合創意"],
+  ["art", "畫面精緻度"],
+  ["gameplay", "遊戲趣味性"],
   ["smoothness", "操作流暢度"],
-  ["completeness", "完成度"],
+  ["completeness", "整體體驗滿意度"],
 ];
 
 const state = {
@@ -633,8 +633,8 @@ function renderResults() {
 
     <section class="stats-grid">
       <article><span>總投票數</span><strong>${votes.length}</strong></article>
-      <article><span>平均創意分最高</span><strong>${topCreativity.id}</strong><small>${topCreativity.title}</small></article>
-      <article><span>平均遊戲性分最高</span><strong>${topGameplay.id}</strong><small>${topGameplay.title}</small></article>
+      <article><span>平均 AI 結合創意分最高</span><strong>${topCreativity.id}</strong><small>${topCreativity.title}</small></article>
+      <article><span>平均遊戲趣味性分最高</span><strong>${topGameplay.id}</strong><small>${topGameplay.title}</small></article>
       <article><span>留言數最多</span><strong>${topComments.id}</strong><small>${topComments.title}</small></article>
       <article><span>最受歡迎類型</span><strong>${popularGenre.genre}</strong><small>${popularGenre.count} 票</small></article>
     </section>
@@ -897,11 +897,11 @@ function normalizeCsvVote(row, index) {
     projectId,
     likedMost: getCsvValue(row, columns.likedMost, ["最喜歡的地方", "likedMost"]),
     suggestion: getCsvValue(row, columns.suggestion, ["建議改進", "suggestion"]),
-    creativity: toScore(getCsvValue(row, columns.creativity, ["創意", "creativity"])),
-    art: toScore(getCsvValue(row, columns.art, ["美術風格", "art"])),
-    gameplay: toScore(getCsvValue(row, columns.gameplay, ["遊戲性", "gameplay"])),
+    creativity: toScore(getCsvValue(row, columns.creativity, ["AI 結合創意", "創意", "creativity"])),
+    art: toScore(getCsvValue(row, columns.art, ["畫面精緻度", "美術風格", "art"])),
+    gameplay: toScore(getCsvValue(row, columns.gameplay, ["遊戲趣味性", "遊戲性", "gameplay"])),
     smoothness: toScore(getCsvValue(row, columns.smoothness, ["操作流暢度", "smoothness"])),
-    completeness: toScore(getCsvValue(row, columns.completeness, ["完成度", "completeness"])),
+    completeness: toScore(getCsvValue(row, columns.completeness, ["整體體驗滿意度", "完成度", "completeness"])),
     createdAt: getCsvValue(row, columns.createdAt, ["時間戳記", "Timestamp", "createdAt"]) || new Date().toISOString(),
   };
 }
