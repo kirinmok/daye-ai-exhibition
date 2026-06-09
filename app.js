@@ -30,6 +30,13 @@ function getResultsConfig() {
   return (window.SITE_CONFIG || {}).results || {};
 }
 
+function isVotingEnded() {
+  const cfg = (typeof window !== "undefined" && window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
+  if (!cfg.endDate) return false;
+  const end = new Date(`${cfg.endDate}T23:59:59+08:00`);
+  return !isNaN(end.getTime()) && Date.now() > end.getTime();
+}
+
 function getVotingConfig() {
   return (window.SITE_CONFIG || {}).voting || {};
 }
@@ -584,7 +591,7 @@ function renderResults() {
     `;
     return;
   }
-  if (usingExternalResults && !resultsConfig.publicRankingsOpen) {
+  if (usingExternalResults && !resultsConfig.publicRankingsOpen && !isVotingEnded()) {
     app.innerHTML = `
       <section class="section-head dashboard-head">
         <div>
@@ -678,21 +685,14 @@ function renderAbout() {
     <section class="about-page">
       <div>
         <p class="eyebrow">About Event</p>
-        <h1>社團介紹與參與方式</h1>
-        <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。</p>
+        <h1>社團介紹與評分標準</h1>
+        <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。本次成果展開放校內試玩、匿名投票與建議，作品創作者以代號展示。</p>
       </div>
       <div class="info-strip about-strip">
-        <article><h2>參與方式</h2><p>觀眾先瀏覽 Browse，進入作品 Detail 試玩，再匿名投票與留下具體建議。</p></article>
-        <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示。</p></article>
-        <article><h2>資料原則</h2><p>前台不公開學生姓名、班級、座號或學號，只展示作品代號、內容與統計。</p></article>
+        <article><h2>展期與時程</h2><p>6/15（一）開展、6/19（五）投票截止。期間每人可投 1 件最想支持的作品，截止後排行自動公開。</p></article>
+        <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示，本次共展出 ${getProjects().length} 件作品。</p></article>
+        <article><h2>五項評分標準</h2><p>AI 結合創意、畫面精緻度、遊戲趣味性、操作流暢度、整體體驗滿意度，每項 1～5 分，請依實際試玩體驗給分。</p></article>
       </div>
-      <article class="panel schema-panel">
-        <h2>後續資料串接建議</h2>
-        <p>靜態原型可部署到 GitHub Pages；正式投票建議接 Google Forms + Apps Script + Sheets，或 Supabase/Firebase。前台只讀取彙整後的匿名統計 JSON，不直接公開原始回覆。</p>
-        <pre><code>projects: { id, title, cover, boxCover, genre, tags, platform, shortPitch, description, playUrl, qrUrl }
-votes: { projectId, likedMost, suggestion, creativity, art, gameplay, smoothness, completeness, createdAt }
-event_config: { title, subtitle, votingRule, rewardRule, notice }</code></pre>
-      </article>
     </section>
   `;
 }
