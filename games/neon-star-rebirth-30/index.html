@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON STAR: REBIRTH 30</title>
+    <title>NEON STAR: REBIRTH 30 - CARD PACK EDITION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
@@ -13,14 +13,52 @@
             --neon-purple: #bc13fe;
             --neon-gold: #ffaa00;
         }
-        body { background: #020208; font-family: 'Orbitron', sans-serif; color: white; overflow: hidden; margin: 0; touch-action: none; }
+        body {
+            background: #020208;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            overflow: hidden;
+            margin: 0;
+            touch-action: none;
+        }
         canvas { display: block; image-rendering: auto; }
-        .glass { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
         .text-glow { text-shadow: 0 0 15px currentColor; }
-        @keyframes evo-flash { 0% { background: white; opacity: 0; } 50% { background: white; opacity: 1; } 100% { background: transparent; opacity: 0; } }
+
+        @keyframes evo-flash {
+            0% { background: white; opacity: 0; }
+            50% { background: white; opacity: 1; }
+            100% { background: transparent; opacity: 0; }
+        }
         .flash-active { animation: evo-flash 0.6s cubic-bezier(0.2, 0, 0.2, 1); }
-        @keyframes card-flip { 0% { transform: scale(0) rotateY(0deg); opacity: 0; } 50% { transform: scale(1.2) rotateY(180deg); opacity: 1; } 100% { transform: scale(1) rotateY(360deg); opacity: 1; } }
+
+
+        @keyframes card-flip {
+            0% { transform: scale(0) rotateY(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotateY(180deg); opacity: 1; }
+            100% { transform: scale(1) rotateY(360deg); opacity: 1; }
+        }
         .card-anim { animation: card-flip 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+
+        #custom-cursor {
+            width: 30px; height: 30px;
+            border: 1px solid var(--neon-cyan);
+            border-radius: 50%;
+            position: absolute;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            transition: transform 0.1s;
+        }
+        .shop-btn { transition: all 0.3s ease; box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+        .shop-btn:hover { box-shadow: 0 0 25px rgba(0, 242, 255, 0.5); transform: scale(1.05); }
+        .shop-item { transition: all 0.2s ease; }
+        .shop-item:hover:not(.disabled) { background: rgba(0, 242, 255, 0.1); border-color: var(--neon-cyan); }
     </style>
 </head>
 <body>
@@ -28,42 +66,12 @@
 
     <div id="game-container" class="relative w-full h-screen overflow-hidden">
         <div id="flash-overlay" class="absolute inset-0 pointer-events-none z-50"></div>
+        <div id="custom-cursor" class="hidden md:block"></div>
+
         <canvas id="mainCanvas"></canvas>
 
 
-        <!-- 主選單 -->
-        <div id="main-menu" class="absolute inset-0 flex flex-col items-center justify-center z-40 bg-[#020208]">
-            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--neon-cyan)_0%,_transparent_70%)]"></div>
-            <div class="z-10 text-center">
-                <h1 class="text-7xl md:text-8xl font-black tracking-tighter mb-4 italic text-white">
-                    NEON<span class="text-cyan-400">STAR</span>
-                </h1>
-                <p class="text-white/30 text-xs tracking-[0.6em] mb-20 uppercase">Card Pack & 30-Phase Evolution</p>
-                <div class="flex flex-col gap-4">
-                    <button id="start-btn" class="group relative px-16 py-5 bg-transparent transition-all">
-                        <div class="absolute inset-0 border border-cyan-400 rounded-full group-hover:bg-cyan-400/10 transition-all"></div>
-                        <span class="relative text-cyan-400 font-bold text-xl tracking-[0.5em]">START SYNC</span>
-                    </button>
-                    <button id="settings-btn" class="group relative px-16 py-5 bg-transparent transition-all">
-                        <div class="absolute inset-0 border border-white/30 rounded-full group-hover:bg-white/10 transition-all"></div>
-                        <span class="relative text-white/50 group-hover:text-white font-bold text-lg tracking-[0.3em] transition-all">SETTINGS</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- 設定頁面 (暫無功能) -->
-        <div id="settings-overlay" class="absolute inset-0 flex items-center justify-center z-[100] bg-black/90 hidden">
-            <div class="glass w-full max-w-sm p-8 rounded-3xl border border-white/20 text-center">
-                <h2 class="text-2xl font-black text-white mb-6">SETTINGS</h2>
-                <div class="text-white/30 text-sm italic mb-8">Currently Offline / No Options Available</div>
-                <button id="close-settings-btn" class="px-8 py-2 border border-white/50 text-white/50 rounded-full hover:border-white hover:text-white transition-all">BACK</button>
-            </div>
-        </div>
-
-
-        <!-- HUD (遊戲中顯示) -->
+        <!-- HUD -->
         <div id="hud" class="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none opacity-0 transition-opacity duration-1000">
             <div class="flex flex-col gap-4 items-start">
                 <div class="glass p-5 rounded-2xl border-l-4 border-cyan-400">
@@ -74,40 +82,514 @@
                     <div class="w-64 h-2 bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
                         <div id="exp-bar" class="w-0 h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_15px_rgba(0,242,255,0.8)] transition-all duration-300"></div>
                     </div>
+                    <div id="weapon-tag" class="text-[9px] mt-1 tracking-[0.3em] text-pink-400 uppercase font-bold">Standard Fire</div>
                 </div>
-                <button id="open-shop-btn" class="pointer-events-auto px-6 py-3 glass rounded-full border border-cyan-400/50 flex items-center gap-3 text-cyan-400 text-xs font-bold tracking-[0.3em]">
-                    卡包商店 PACK SHOP
+
+
+                <button id="open-shop-btn" class="shop-btn pointer-events-auto px-6 py-3 glass rounded-full border border-cyan-400/50 flex items-center gap-3">
+                    <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                    <span class="text-cyan-400 text-xs font-bold tracking-[0.3em]">卡包商店 PACK SHOP</span>
                 </button>
             </div>
-            <div id="score-text" class="text-4xl font-black text-white text-glow font-raj tracking-tighter">000,000</div>
+
+            <div class="text-right">
+                <div id="score-text" class="text-4xl font-black text-white text-glow font-raj tracking-tighter">000,000</div>
+                <div id="hp-container" class="flex gap-2 mt-4 justify-end"></div>
+            </div>
+        </div>
+
+
+        <div id="shop-overlay" class="absolute inset-0 flex items-center justify-center z-50 bg-black/80 backdrop-blur-xl hidden">
+            <div class="glass w-full max-w-lg p-8 rounded-3xl border border-cyan-400/30">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-3xl font-black italic tracking-tighter text-cyan-400">CARD PACKS</h2>
+                        <p class="text-[10px] text-white/40 tracking-widest uppercase">抽取隨機經驗或稀有彈幕</p>
+                    </div>
+                    <button id="close-shop-btn" class="text-white/40 hover:text-white transition-colors">CLOSE [X]</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="shop-item p-4 border border-white/10 rounded-2xl cursor-pointer text-center" onclick="buyPack('common')">
+                        <div class="text-cyan-400 font-black text-xs mb-1 tracking-widest">COMMON PACK</div>
+                        <div class="text-white/60 text-[10px] mb-4 uppercase">低機率彈幕 / 少量 EXP</div>
+                        <div class="text-cyan-400 font-bold font-raj text-xl">2,000 PTS</div>
+                    </div>
+
+
+                    <div class="shop-item p-4 border border-pink-500/30 rounded-2xl cursor-pointer text-center" onclick="buyPack('rare')">
+                        <div class="text-pink-500 font-black text-xs mb-1 tracking-widest">RARE PACK</div>
+                        <div class="text-white/60 text-[10px] mb-4 uppercase">中機率彈幕 / 中量 EXP</div>
+                        <div class="text-pink-500 font-bold font-raj text-xl">8,000 PTS</div>
+                    </div>
+
+
+                    <div class="shop-item col-span-2 p-6 border border-yellow-500/30 rounded-2xl cursor-pointer text-center" onclick="buyPack('legend')">
+                        <div class="text-yellow-500 font-black text-lg mb-1 tracking-[0.2em]">LEGENDARY PACK</div>
+                        <div class="text-white/60 text-[10px] mb-4 uppercase">保底特殊彈幕 / 巨量 EXP</div>
+                        <div class="text-yellow-500 font-bold font-raj text-2xl">25,000 PTS</div>
+                    </div>
+                </div>
+
+
+                <div class="mt-8 pt-6 border-t border-white/10">
+                    <div class="flex justify-between items-center text-xs tracking-widest opacity-60">
+                        <span>目前持有積分</span>
+                        <span id="shop-current-score" class="text-cyan-400 font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="card-reveal" class="absolute inset-0 flex items-center justify-center z-[60] bg-black/90 hidden">
+            <div id="card-inner" class="glass w-64 h-96 rounded-3xl border-2 border-white/20 flex flex-col items-center justify-center text-center p-8 card-anim">
+                <div id="card-rarity" class="text-[10px] font-black tracking-[0.3em] mb-4 uppercase">RARE</div>
+                <div id="card-icon" class="text-6xl mb-6">⚡</div>
+                <div id="card-name" class="text-xl font-black text-white italic mb-2 uppercase">MEGA EXP</div>
+                <div id="card-desc" class="text-[10px] text-white/40 tracking-widest mb-8 uppercase">+50 EXP POINTS</div>
+                <button id="card-confirm" class="px-8 py-2 border border-white text-white text-[10px] font-bold rounded-full hover:bg-white hover:text-black transition-all">CONFIRM</button>
+            </div>
+        </div>
+
+
+        <div id="main-menu" class="absolute inset-0 flex flex-col items-center justify-center z-40 bg-[#020208]">
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--neon-cyan)_0%,_transparent_70%)]"></div>
+            <div class="z-10 text-center">
+                <h1 class="text-7xl md:text-8xl font-black tracking-tighter mb-4 italic">
+                    NEON<span class="text-cyan-400">STAR</span>
+                </h1>
+                <p class="text-white/30 text-xs tracking-[0.6em] mb-20 uppercase">Card Pack & 30-Phase Evolution</p>
+                <button id="start-btn" class="group relative px-16 py-5 bg-transparent transition-all">
+                    <div class="absolute inset-0 border border-cyan-400 rounded-full group-hover:bg-cyan-400/10 transition-all"></div>
+                    <span class="relative text-cyan-400 font-bold text-xl tracking-[0.5em]">START SYNC</span>
+                </button>
+            </div>
+        </div>
+
+
+        <div id="death-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-red-950/95 backdrop-blur-3xl z-40 hidden">
+            <h2 class="text-6xl font-black text-red-500 mb-2 tracking-tighter italic">SYNC SEVERED</h2>
+            <div id="final-stats" class="text-white/60 mb-12 text-center"></div>
+            <button id="restart-btn" class="px-16 py-4 border border-white text-white font-black text-lg rounded-full hover:bg-white hover:text-black transition-all tracking-widest">
+                REBOOT
+            </button>
         </div>
     </div>
 
 
     <script>
-        // 基礎遊戲邏輯
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
-        const mainMenu = document.getElementById('main-menu');
-        const settingsOverlay = document.getElementById('settings-overlay');
-        const hud = document.getElementById('hud');
+        const flashOverlay = document.getElementById('flash-overlay');
+        const shopOverlay = document.getElementById('shop-overlay');
+        const cardReveal = document.getElementById('card-reveal');
+
+
+        let width, height, player, gameActive = false, score = 0, frame = 0;
+        let isPaused = false;
+        let bullets = [], enemies = [], particles = [], stars = [];
+        let screenShake = 0;
+
+
+        const WEAPON_MODS = {
+            'STANDARD': { name: 'Standard Fire', color: '#00f2ff' },
+            'SPIRAL': { name: 'Spiral Nebula', color: '#bc13fe' },
+            'CROSS': { name: 'Cross Judgment', color: '#ffaa00' },
+            'WAVE': { name: 'Wave Tracker', color: '#ff007b' },
+            'RING': { name: 'Ring Burst', color: '#ffffff' }
+        };
+
+
+        const RANK_NAMES = [
+            "核心脈衝", "原型三角", "偵查之翼", "攔截矩陣", "先鋒獵手",
+            "裂變掠奪", "側衛重裝", "重力刀鋒", "征服者級", "銀河獵手",
+            "神諭武裝", "星核要塞", "虛空領主", "宇宙神格", "神性核心",
+            "次元之影", "星光裁決", "以太主宰", "時空織者", "混沌核心",
+            "星河律法", "永恆守護", "維度裂隙", "幽靈之光", "純白奇點",
+            "萬象之源", "因果斷律", "無盡餘燼", "太初之芒", "歐米茄終焉"
+        ];
+
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+
+        class Star {
+            constructor() { this.reset(); this.y = Math.random() * height; }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = -20;
+                this.size = Math.random() * 2 + 0.5;
+                this.speed = this.size * 2 + 1;
+                this.alpha = Math.random() * 0.4 + 0.1;
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height) this.reset();
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+
+        class Particle {
+            constructor(x, y, color, size = 3) {
+                this.x = x; this.y = y; this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const spd = Math.random() * 8 + 2;
+                this.vx = Math.cos(angle) * spd;
+                this.vy = Math.sin(angle) * spd;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.04 + 0.02;
+                this.size = size;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= this.decay;
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+
+        class Player {
+            constructor() {
+                this.x = width / 2;
+                this.y = height * 0.85;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.radius = 20;
+                this.health = 5;
+                this.maxHealth = 5;
+                this.level = 1;
+                this.exp = 0;
+                this.tilt = 0;
+                this.pulse = 0;
+                this.weaponMode = 'STANDARD';
+            }
+
+
+            getColor() {
+                if (this.level <= 10) return "#00f2ff";
+                if (this.level <= 20) return "#ff007b";
+                return "#bc13fe";
+            }
+
+
+            draw() {
+                this.pulse += 0.1;
+                ctx.save();
+                if (screenShake > 0) ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.tilt);
+
+                const color = this.getColor();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2;
+
+
+                this.renderGeometry(this.level, color);
+                ctx.restore();
+            }
+
+
+            renderGeometry(lv, color) {
+                ctx.beginPath();
+                if (lv < 5) ctx.arc(0, 0, 8 + lv, 0, Math.PI*2);
+                else if (lv < 15) {
+                    ctx.moveTo(0, -20); ctx.lineTo(20, 15); ctx.lineTo(-20, 15);
+                } else if (lv < 25) {
+                    ctx.strokeRect(-25, -25, 50, 50); ctx.arc(0,0,15,0,Math.PI*2);
+                } else {
+                    ctx.save(); ctx.rotate(this.pulse*0.5); ctx.strokeRect(-35,-35,70,70); ctx.restore();
+                    ctx.arc(0,0,25,0,Math.PI*2);
+                }
+                ctx.closePath(); ctx.stroke();
+                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
+            }
+
+
+            update() {
+                this.x += (this.targetX - this.x) * 0.15;
+                this.y += (this.targetY - this.y) * 0.15;
+                this.tilt = (this.targetX - this.x) * 0.005;
+
+                if (frame % 8 === 0) this.shoot();
+                this.draw();
+            }
+
+
+            shoot() {
+                const c = WEAPON_MODS[this.weaponMode].color;
+                const s = -18;
+
+                switch(this.weaponMode) {
+                    case 'STANDARD':
+                        bullets.push(new Bullet(this.x, this.y - 20, 0, s, c));
+                        break;
+                    case 'SPIRAL':
+                        const ang = frame * 0.5;
+                        bullets.push(new Bullet(this.x, this.y, Math.cos(ang)*8, Math.sin(ang)*8, c));
+                        break;
+                    case 'CROSS':
+                        bullets.push(new Bullet(this.x, this.y, 0, s, c));
+                        bullets.push(new Bullet(this.x, this.y, 0, -s, c));
+                        bullets.push(new Bullet(this.x, this.y, s, 0, c));
+                        bullets.push(new Bullet(this.x, this.y, -s, 0, c));
+                        break;
+                    case 'WAVE':
+                        const wave = Math.sin(frame * 0.2) * 5;
+                        bullets.push(new Bullet(this.x, this.y - 20, wave, s, c));
+                        break;
+                    case 'RING':
+                        for(let i=0; i<8; i++) {
+                            const a = (i/8)*Math.PI*2;
+                            bullets.push(new Bullet(this.x, this.y, Math.cos(a)*10, Math.sin(a)*10, c));
+                        }
+                        break;
+                }
+            }
+
+
+            evolve() {
+                if (this.level < 30) {
+                    this.level++; this.exp = 0;
+                    screenShake = 20;
+                    flashOverlay.classList.add('flash-active');
+                    setTimeout(() => flashOverlay.classList.remove('flash-active'), 600);
+                    updateHUD();
+                }
+            }
+        }
+
+
+        class Bullet {
+            constructor(x, y, vx, vy, color) {
+                this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+                this.color = color; this.dead = false;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if (this.y < -50 || this.y > height + 50 || this.x < -50 || this.x > width + 50) this.dead = true;
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+
+        class Enemy {
+            constructor() {
+                this.radius = Math.random() * 25 + 15;
+                this.x = Math.random() * (width - 100) + 50;
+                this.y = -100;
+                this.speed = Math.random() * 2 + 2 + (score / 15000);
+                this.hp = Math.ceil(this.radius / 8) + Math.floor(player.level / 3);
+                this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                this.dead = false;
+                this.points = [];
+                const v = 5 + Math.floor(Math.random() * 8);
+                for(let i=0; i<v; i++) {
+                    const a = (i/v)*Math.PI*2;
+                    const r = this.radius * (0.6 + Math.random()*0.8);
+                    this.points.push({x: Math.cos(a)*r, y: Math.sin(a)*r});
+                }
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > height + 100) this.dead = true;
+                ctx.save(); ctx.translate(this.x, this.y); ctx.strokeStyle = this.color; ctx.lineWidth = 2;
+                ctx.beginPath(); this.points.forEach((p,i)=> i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+                ctx.closePath(); ctx.stroke(); ctx.restore();
+            }
+        }
+
+
+        function buyPack(type) {
+            let cost = 0;
+            if (type === 'common') cost = 2000;
+            if (type === 'rare') cost = 8000;
+            if (type === 'legend') cost = 25000;
+
+
+            if (score >= cost) {
+                score -= cost;
+                openCard(type);
+                updateHUD();
+            } else {
+                const shopModal = document.querySelector('#shop-overlay > div');
+                shopModal.classList.add('translate-x-2');
+                setTimeout(() => shopModal.classList.remove('translate-x-2'), 100);
+            }
+        }
+
+
+        function openCard(type) {
+            isPaused = true;
+            cardReveal.classList.remove('hidden');
+
+            const roll = Math.random();
+            let rarity = 'COMMON';
+            let name = 'EXP BOOST';
+            let desc = '+5 EXP';
+            let icon = '⚡';
+            let resultType = 'EXP';
+            let resultVal = 5;
+
+
+            if (type === 'common') {
+                if (roll > 0.8) { rarity = 'RARE'; resultType = 'WEAPON'; }
+            } else if (type === 'rare') {
+                rarity = roll > 0.5 ? 'RARE' : 'COMMON';
+                if (roll > 0.4) resultType = 'WEAPON';
+                resultVal = 20;
+            } else {
+                rarity = roll > 0.7 ? 'LEGEND' : 'RARE';
+                resultType = 'WEAPON';
+                resultVal = 100;
+            }
+
+
+            if (resultType === 'EXP') {
+                name = rarity === 'LEGEND' ? 'ULTIMATE EXP' : (rarity === 'RARE' ? 'MEGA EXP' : 'BASE EXP');
+                desc = `+${resultVal} EVOLUTION POINTS`;
+                icon = '💎';
+            } else {
+                const keys = Object.keys(WEAPON_MODS).filter(k => k !== 'STANDARD');
+                const key = keys[Math.floor(Math.random() * keys.length)];
+                name = WEAPON_MODS[key].name;
+                desc = 'NEW FIRING PATTERN EQUIPPED';
+                icon = '⚔️';
+                resultVal = key;
+            }
+
+
+            document.getElementById('card-rarity').innerText = rarity;
+            document.getElementById('card-icon').innerText = icon;
+            document.getElementById('card-name').innerText = name;
+            document.getElementById('card-desc').innerText = desc;
+
+            const colors = { COMMON: '#00f2ff', RARE: '#ff007b', LEGEND: '#ffaa00' };
+            document.getElementById('card-inner').style.borderColor = colors[rarity];
+            document.getElementById('card-rarity').style.color = colors[rarity];
+
+
+            document.getElementById('card-confirm').onclick = () => {
+                if (resultType === 'EXP') {
+                    player.exp += resultVal;
+                    while(player.exp >= (5+player.level)) player.evolve();
+                } else {
+                    player.weaponMode = resultVal;
+                    document.getElementById('weapon-tag').innerText = WEAPON_MODS[resultVal].name;
+                }
+                cardReveal.classList.add('hidden');
+                isPaused = false;
+                updateHUD();
+                gameLoop();
+            };
+        }
+
+
+        function updateHUD() {
+            document.getElementById('rank-badge').innerText = `LV.${player.level}`;
+            document.getElementById('rank-badge').style.backgroundColor = player.getColor();
+            document.getElementById('rank-title').innerText = RANK_NAMES[player.level-1];
+            document.getElementById('rank-title').style.color = player.getColor();
+            document.getElementById('score-text').innerText = score.toLocaleString().padStart(6, '0');
+            document.getElementById('shop-current-score').innerText = score.toLocaleString();
+
+            const req = 5 + player.level;
+            document.getElementById('exp-bar').style.width = `${Math.min(100, (player.exp / req) * 100)}%`;
+
+
+            const hGrid = document.getElementById('hp-container'); hGrid.innerHTML = '';
+            for(let i=0; i<player.maxHealth; i++) {
+                const cell = document.createElement('div');
+                cell.className = `w-4 h-8 border rounded-sm ${i < player.health ? 'bg-pink-500' : 'bg-transparent border-white/10'}`;
+                hGrid.appendChild(cell);
+            }
+        }
+
+
+        function gameLoop() {
+            if (!gameActive || isPaused) return;
+            frame++;
+            if (screenShake > 0) screenShake *= 0.9; else screenShake = 0;
+
+
+            ctx.fillStyle = 'rgba(2, 2, 8, 0.4)'; ctx.fillRect(0, 0, width, height);
+            stars.forEach(s => s.update());
+            player.update();
+
+
+            if (frame % 40 === 0) enemies.push(new Enemy());
+
+
+            [bullets, enemies, particles].forEach(list => {
+                for(let i = list.length - 1; i >= 0; i--) {
+                    list[i].update();
+                    if (list[i].dead || (list[i].life !== undefined && list[i].life <= 0)) list.splice(i, 1);
+                }
+            });
+
+
+            enemies.forEach(e => {
+                if (Math.hypot(player.x - e.x, player.y - e.y) < player.radius + e.radius) {
+                    e.dead = true; player.health--; screenShake = 15; updateHUD();
+                    if (player.health <= 0) endGame();
+                }
+                bullets.forEach(b => {
+                    if (Math.hypot(b.x - e.x, b.y - e.y) < e.radius + 10) {
+                        b.dead = true; e.hp--;
+                        if (e.hp <= 0) {
+                            e.dead = true; score += 200; player.exp++;
+                            if (player.exp >= (5+player.level)) player.evolve();
+                            updateHUD();
+                            for(let i=0; i<15; i++) particles.push(new Particle(e.x, e.y, e.color));
+                        }
+                    }
+                });
+            });
+            requestAnimationFrame(gameLoop);
+        }
+
+
+        function endGame() {
+            gameActive = false;
+            document.getElementById('death-screen').classList.remove('hidden');
+            document.getElementById('final-stats').innerHTML = `<div class="text-5xl font-black text-white mb-2">${score}</div><div class="text-cyan-400 font-bold uppercase">RANK: ${RANK_NAMES[player.level-1]}</div>`;
+        }
 
 
         function init() {
-            // 設定按鈕邏輯
+            stars = []; for(let i=0; i<100; i++) stars.push(new Star());
             document.getElementById('start-btn').onclick = () => {
-                mainMenu.classList.add('hidden');
-                hud.classList.remove('opacity-0');
-                // 這裡可以加入啟動遊戲的邏輯
+                document.getElementById('main-menu').classList.add('hidden');
+                document.getElementById('hud').classList.remove('opacity-0');
+                resetGame();
             };
+            document.getElementById('restart-btn').onclick = resetGame;
+            document.getElementById('open-shop-btn').onclick = () => { isPaused = true; shopOverlay.classList.remove('hidden'); };
+            document.getElementById('close-shop-btn').onclick = () => { isPaused = false; shopOverlay.classList.add('hidden'); gameLoop(); };
+            window.addEventListener('pointermove', e => {
+                if (player && !isPaused) { player.targetX = e.clientX; player.targetY = e.clientY; }
+            });
+        }
 
-            document.getElementById('settings-btn').onclick = () => {
-                settingsOverlay.classList.remove('hidden');
-            };
 
-            document.getElementById('close-settings-btn').onclick = () => {
-                settingsOverlay.classList.add('hidden');
-            };
+        function resetGame() {
+            player = new Player(); score = 0; frame = 0;
+            bullets = []; enemies = []; particles = [];
+            document.getElementById('death-screen').classList.add('hidden');
+            gameActive = true; updateHUD(); gameLoop();
         }
 
 

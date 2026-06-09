@@ -206,7 +206,7 @@ const PROJECTS = [
     tags: ["霓虹", "宇宙", "30階進化", "卡包商店"],
     platform: "Web",
     shortPitch: "卡包商店版 & 30 階進化，從核心脈衝開始重生。",
-    description: "霓虹宇宙風的卡包進化原型：30 階段成長系統、核心脈衝起手、卡包商店設計。目前為主選單與 HUD 介面雛形。",
+    description: "霓虹宇宙風卡牌射擊：30 階段進化系統、5 種武器模式（標準/螺旋/十字/波動/環爆）、Common/Rare/Legendary 三種卡包，用積分抽 EXP 或新彈幕。從核心脈衝一路進化到歐米茄終焉。",
     playUrl: "./games/neon-star-rebirth-30/index.html",
     theme: "magenta",
     featured: false,
