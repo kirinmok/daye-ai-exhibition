@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEON STAR: REBIRTH 30</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --neon-pink: #ff007b;
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffaa00;
+        }
+        body { background: #020208; font-family: 'Orbitron', sans-serif; color: white; overflow: hidden; margin: 0; touch-action: none; }
+        canvas { display: block; image-rendering: auto; }
+        .glass { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .text-glow { text-shadow: 0 0 15px currentColor; }
+        @keyframes evo-flash { 0% { background: white; opacity: 0; } 50% { background: white; opacity: 1; } 100% { background: transparent; opacity: 0; } }
+        .flash-active { animation: evo-flash 0.6s cubic-bezier(0.2, 0, 0.2, 1); }
+        @keyframes card-flip { 0% { transform: scale(0) rotateY(0deg); opacity: 0; } 50% { transform: scale(1.2) rotateY(180deg); opacity: 1; } 100% { transform: scale(1) rotateY(360deg); opacity: 1; } }
+        .card-anim { animation: card-flip 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    </style>
+</head>
+<body>
+
+
+    <div id="game-container" class="relative w-full h-screen overflow-hidden">
+        <div id="flash-overlay" class="absolute inset-0 pointer-events-none z-50"></div>
+        <canvas id="mainCanvas"></canvas>
+
+
+        <!-- 主選單 -->
+        <div id="main-menu" class="absolute inset-0 flex flex-col items-center justify-center z-40 bg-[#020208]">
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--neon-cyan)_0%,_transparent_70%)]"></div>
+            <div class="z-10 text-center">
+                <h1 class="text-7xl md:text-8xl font-black tracking-tighter mb-4 italic text-white">
+                    NEON<span class="text-cyan-400">STAR</span>
+                </h1>
+                <p class="text-white/30 text-xs tracking-[0.6em] mb-20 uppercase">Card Pack & 30-Phase Evolution</p>
+                <div class="flex flex-col gap-4">
+                    <button id="start-btn" class="group relative px-16 py-5 bg-transparent transition-all">
+                        <div class="absolute inset-0 border border-cyan-400 rounded-full group-hover:bg-cyan-400/10 transition-all"></div>
+                        <span class="relative text-cyan-400 font-bold text-xl tracking-[0.5em]">START SYNC</span>
+                    </button>
+                    <button id="settings-btn" class="group relative px-16 py-5 bg-transparent transition-all">
+                        <div class="absolute inset-0 border border-white/30 rounded-full group-hover:bg-white/10 transition-all"></div>
+                        <span class="relative text-white/50 group-hover:text-white font-bold text-lg tracking-[0.3em] transition-all">SETTINGS</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- 設定頁面 (暫無功能) -->
+        <div id="settings-overlay" class="absolute inset-0 flex items-center justify-center z-[100] bg-black/90 hidden">
+            <div class="glass w-full max-w-sm p-8 rounded-3xl border border-white/20 text-center">
+                <h2 class="text-2xl font-black text-white mb-6">SETTINGS</h2>
+                <div class="text-white/30 text-sm italic mb-8">Currently Offline / No Options Available</div>
+                <button id="close-settings-btn" class="px-8 py-2 border border-white/50 text-white/50 rounded-full hover:border-white hover:text-white transition-all">BACK</button>
+            </div>
+        </div>
+
+
+        <!-- HUD (遊戲中顯示) -->
+        <div id="hud" class="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none opacity-0 transition-opacity duration-1000">
+            <div class="flex flex-col gap-4 items-start">
+                <div class="glass p-5 rounded-2xl border-l-4 border-cyan-400">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span id="rank-badge" class="px-2 py-0.5 bg-cyan-400 text-black text-[10px] font-black rounded">LV.1</span>
+                        <div id="rank-title" class="text-xl font-black italic tracking-widest text-glow text-cyan-400 uppercase">核心脈衝</div>
+                    </div>
+                    <div class="w-64 h-2 bg-white/10 rounded-full overflow-hidden border border-white/5 relative">
+                        <div id="exp-bar" class="w-0 h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_15px_rgba(0,242,255,0.8)] transition-all duration-300"></div>
+                    </div>
+                </div>
+                <button id="open-shop-btn" class="pointer-events-auto px-6 py-3 glass rounded-full border border-cyan-400/50 flex items-center gap-3 text-cyan-400 text-xs font-bold tracking-[0.3em]">
+                    卡包商店 PACK SHOP
+                </button>
+            </div>
+            <div id="score-text" class="text-4xl font-black text-white text-glow font-raj tracking-tighter">000,000</div>
+        </div>
+    </div>
+
+
+    <script>
+        // 基礎遊戲邏輯
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const mainMenu = document.getElementById('main-menu');
+        const settingsOverlay = document.getElementById('settings-overlay');
+        const hud = document.getElementById('hud');
+
+
+        function init() {
+            // 設定按鈕邏輯
+            document.getElementById('start-btn').onclick = () => {
+                mainMenu.classList.add('hidden');
+                hud.classList.remove('opacity-0');
+                // 這裡可以加入啟動遊戲的邏輯
+            };
+
+            document.getElementById('settings-btn').onclick = () => {
+                settingsOverlay.classList.remove('hidden');
+            };
+
+            document.getElementById('close-settings-btn').onclick = () => {
+                settingsOverlay.classList.add('hidden');
+            };
+        }
+
+
+        window.onload = init;
+    </script>
+</body>
+</html>

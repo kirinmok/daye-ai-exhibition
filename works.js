@@ -141,7 +141,7 @@ const PROJECTS = [
   {
     id: "G21",
     title: "霓虹星際突擊",
-    cover: "./assets/games/neon-star-assault/cover-16x9.jpg",
+    cover: "",
     genre: ["射擊", "動作"],
     tags: ["霓虹", "宇宙", "自動射擊", "BOSS戰"],
     platform: "Web",
@@ -196,6 +196,21 @@ const PROJECTS = [
     theme: "ember",
     featured: false,
     createdAt: "2026-06-08",
+  },
+  {
+    id: "G25",
+    title: "NEON STAR：REBIRTH 30",
+    cover: "./assets/games/neon-star-rebirth-30/cover-16x9.jpg",
+    boxCover: "./assets/games/neon-star-rebirth-30/cover-2x3.jpg",
+    genre: ["射擊", "卡牌"],
+    tags: ["霓虹", "宇宙", "30階進化", "卡包商店"],
+    platform: "Web",
+    shortPitch: "卡包商店版 & 30 階進化，從核心脈衝開始重生。",
+    description: "霓虹宇宙風的卡包進化原型：30 階段成長系統、核心脈衝起手、卡包商店設計。目前為主選單與 HUD 介面雛形。",
+    playUrl: "./games/neon-star-rebirth-30/index.html",
+    theme: "magenta",
+    featured: false,
+    createdAt: "2026-06-09",
   },
 ];
 
