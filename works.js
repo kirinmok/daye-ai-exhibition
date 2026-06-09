@@ -55,7 +55,8 @@ const PROJECTS = [
   {
     id: "G04",
     title: "嘉義美食大亨",
-    cover: "",
+    cover: "./assets/games/chiayi-food-tycoon/cover-16x9.jpg",
+    boxCover: "./assets/games/chiayi-food-tycoon/cover-2x3.jpg",
     genre: ["模擬經營", "收集"],
     tags: ["嘉義", "美食", "抽卡", "養成"],
     platform: "Web",
