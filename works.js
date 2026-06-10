@@ -10,13 +10,13 @@ const EVENT_CONFIG = {
 const PROJECTS = [
   {
     id: "G01",
-    title: "REACT.X",
-    cover: "",
-    genre: ["反應挑戰", "動作"],
-    tags: ["節奏", "短局", "高分挑戰", "單人"],
+    title: "歡樂時光屋",
+    cover: "./assets/games/happy-house-3d/cover-16x9.jpg",
+    genre: ["3D", "劇情探索"],
+    tags: ["3D", "馬戲團", "劇情", "氛圍"],
     platform: "Web",
-    shortPitch: "0.3 秒的猶豫，就會讓你輸掉這一局。",
-    description: "一款適合現場挑戰的短局遊戲，節奏加速後會立刻測出玩家的手眼協調與反應極限。",
+    shortPitch: "推開歡樂時光屋的帳篷，每個齒輪轉動都是線索。",
+    description: "3D 劇情探索類遊戲，玩家在馬戲團與機械世界的混合空間中尋找線索、解開時光屋的秘密。重視氛圍、視覺與探索節奏。",
     playUrl: "./games/701-04/index.html",
     theme: "ember",
     featured: true,
@@ -25,7 +25,7 @@ const PROJECTS = [
   {
     id: "G02",
     title: "風味抉擇：漢堡帝國",
-    cover: "./assets/games/burger-empire/cover-16x9.png",
+    cover: "./assets/games/burger-empire/cover-16x9.jpg",
     boxCover: "./assets/games/burger-empire/cover-2x3.png",
     genre: ["模擬經營", "策略"],
     tags: ["餐廳", "資源管理", "升級", "決策"],
