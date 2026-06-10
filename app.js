@@ -12,6 +12,187 @@ const SCORE_FIELDS = [
   ["completeness", "整體體驗滿意度"],
 ];
 
+// ====== 投票按鈕系統（Apps Script API + 本機鎖）======
+const VOTE_LOCK_KEY = "daye-vote-lock-v1";
+const VOTE_TAG_PRESET = ["畫面好看", "玩法有趣", "創意特別", "想推薦朋友", "期待後續更新"];
+let voteModalProject = null;
+
+function getVoteApiUrl() {
+  const cfg = (typeof window !== "undefined" && window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
+  return cfg.apiUrl || "";
+}
+
+function deviceFingerprint() {
+  try {
+    const raw = [
+      navigator.userAgent,
+      navigator.language,
+      `${screen.width}x${screen.height}`,
+      new Date().getTimezoneOffset(),
+    ].join("|");
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+    }
+    return `fp_${Math.abs(hash).toString(36)}`;
+  } catch (err) {
+    return "fp_unknown";
+  }
+}
+
+function getVoteLockMap() {
+  try { return JSON.parse(localStorage.getItem(VOTE_LOCK_KEY) || "{}"); }
+  catch (err) { return {}; }
+}
+
+function hasVotedLocal(projectId) {
+  return !!getVoteLockMap()[projectId];
+}
+
+function markVotedLocal(projectId) {
+  const map = getVoteLockMap();
+  map[projectId] = Date.now();
+  try { localStorage.setItem(VOTE_LOCK_KEY, JSON.stringify(map)); } catch (err) {}
+}
+
+async function submitVoteApi(projectId, { comment = "", tags = "" } = {}) {
+  const url = getVoteApiUrl();
+  if (!url) return false;
+  const body = new URLSearchParams({
+    id: projectId,
+    comment,
+    tags,
+    fp: deviceFingerprint(),
+  }).toString();
+  try {
+    await fetch(url, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+async function fetchVoteCounts() {
+  const url = getVoteApiUrl();
+  if (!url) return {};
+  try {
+    const r = await fetch(url, { method: "GET" });
+    const data = await r.json();
+    const cleaned = {};
+    Object.entries(data || {}).forEach(([k, v]) => {
+      if (/^[GK]\d{2}$/.test(k)) cleaned[k] = Number(v) || 0;
+    });
+    return cleaned;
+  } catch (err) {
+    return {};
+  }
+}
+
+function apiVoteCountOf(projectId) {
+  return (state.apiVoteCounts && state.apiVoteCounts[projectId]) || 0;
+}
+
+function refreshVoteCountDisplays(projectId) {
+  const count = apiVoteCountOf(projectId);
+  document.querySelectorAll(`[data-vote-count-for="${projectId}"]`).forEach((el) => {
+    el.textContent = `${count} 票`;
+  });
+}
+
+function refreshVoteButtonStates(projectId) {
+  const voted = hasVotedLocal(projectId);
+  document.querySelectorAll(`[data-action="vote"][data-project="${projectId}"]`).forEach((btn) => {
+    btn.disabled = voted;
+    btn.textContent = voted ? "✓ 已投" : (btn.classList.contains("vote-btn-detail") ? "👍 投我一票" : "👍 投票");
+  });
+}
+
+async function handleVoteClick(btn) {
+  const id = btn.dataset.project;
+  if (!id || hasVotedLocal(id)) return;
+  markVotedLocal(id);
+  if (!state.apiVoteCounts) state.apiVoteCounts = {};
+  state.apiVoteCounts[id] = (state.apiVoteCounts[id] || 0) + 1;
+  refreshVoteCountDisplays(id);
+  refreshVoteButtonStates(id);
+  openVoteFeedbackModal(id);
+}
+
+function openVoteFeedbackModal(projectId) {
+  const project = findProject(projectId);
+  if (!project) return;
+  voteModalProject = projectId;
+  const overlay = document.createElement("div");
+  overlay.className = "vote-modal-overlay";
+  overlay.id = "voteModalOverlay";
+  overlay.innerHTML = `
+    <div class="vote-modal" role="dialog" aria-modal="true">
+      <h2>✓ 已投給 ${escapeHtml(project.id)} ${escapeHtml(project.title)}！</h2>
+      <p class="notice">想再多說兩句？選填，可直接跳過。</p>
+      <div class="tag-cloud">
+        ${VOTE_TAG_PRESET.map((t) => `
+          <label class="tag-chip">
+            <input type="checkbox" value="${escapeAttr(t)}">
+            <span>${escapeHtml(t)}</span>
+          </label>
+        `).join("")}
+      </div>
+      <label class="field">
+        <span class="sr-only">自由留言</span>
+        <textarea id="voteFeedbackComment" rows="3" placeholder="自由留言（給作者看，可不填）"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button class="btn primary" type="button" data-action="vote-submit-feedback">送出建議</button>
+        <button class="btn ghost" type="button" data-action="vote-skip-feedback">跳過</button>
+      </div>
+    </div>
+  `;
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeVoteModal(false);
+  });
+  document.body.appendChild(overlay);
+}
+
+async function closeVoteModal(withFeedback) {
+  const overlay = document.getElementById("voteModalOverlay");
+  const projectId = voteModalProject;
+  voteModalProject = null;
+  if (!projectId) {
+    if (overlay) overlay.remove();
+    return;
+  }
+  let comment = "", tags = "";
+  if (withFeedback && overlay) {
+    const checked = Array.from(overlay.querySelectorAll('input[type="checkbox"]:checked'));
+    tags = checked.map((c) => c.value).join(",");
+    const ta = overlay.querySelector("#voteFeedbackComment");
+    comment = (ta && ta.value || "").trim();
+  }
+  if (overlay) overlay.remove();
+  // 實際送進試算表（這是真正寫入的時刻，無論有沒有 feedback 都會 +1 票）
+  await submitVoteApi(projectId, { comment, tags });
+}
+
+// 全域 click + ESC 委派
+document.addEventListener("click", (event) => {
+  const voteBtn = event.target.closest('[data-action="vote"]');
+  if (voteBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    return handleVoteClick(voteBtn);
+  }
+  if (event.target.closest('[data-action="vote-submit-feedback"]')) return closeVoteModal(true);
+  if (event.target.closest('[data-action="vote-skip-feedback"]')) return closeVoteModal(false);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && voteModalProject) closeVoteModal(false);
+});
+
 const state = {
   query: "",
   genres: new Set(),
@@ -24,6 +205,8 @@ const state = {
   homeSeed: Number(sessionStorage.getItem("daye-home-feature-seed") || Date.now()),
   remoteVotes: [],
   resultsSyncMessage: "",
+  apiVoteCounts: {},
+  apiVoteLoaded: false,
 };
 
 function getResultsConfig() {
@@ -364,7 +547,8 @@ function bindBrowseControls() {
 }
 
 function renderProjectCard(project) {
-  const stats = projectStats(project);
+  const voted = hasVotedLocal(project.id);
+  const apiEnabled = !!getVoteApiUrl();
   return `
     <article class="project-card-wrap">
       ${renderAdminEditButton(project.id)}
@@ -382,11 +566,16 @@ function renderProjectCard(project) {
           <h2>${escapeHtml(project.title)}</h2>
           <p>${escapeHtml(project.shortPitch)}</p>
           <div class="card-footer">
-            <span>${stats.voteCount} 票</span>
-            <span>${stats.averageScore ? stats.averageScore.toFixed(1) : "0.0"} / 5</span>
+            <span data-vote-count-for="${project.id}">${apiVoteCountOf(project.id)} 票</span>
           </div>
         </div>
       </a>
+      ${apiEnabled ? `
+      <div class="card-vote-row">
+        <button class="btn ghost vote-btn-card" type="button" data-action="vote" data-project="${project.id}" ${voted ? "disabled" : ""}>
+          ${voted ? "✓ 已投" : "👍 投票"}
+        </button>
+      </div>` : ""}
     </article>
   `;
 }
@@ -470,6 +659,27 @@ function renderRating(key, label) {
 
 function renderVotePanel(project, voted) {
   const votingConfig = getVotingConfig();
+  const apiEnabled = !!getVoteApiUrl();
+
+  // 新版：按鈕投票（Apps Script API）
+  if (apiEnabled) {
+    const isVoted = hasVotedLocal(project.id);
+    const formUrl = getExternalVoteUrl(project);
+    return `
+      <article class="panel vote-form vote-api-panel">
+        <div class="panel-head">
+          <h2>支持這款作品</h2>
+          <span class="vote-count-large" data-vote-count-for="${project.id}">${apiVoteCountOf(project.id)} 票</span>
+        </div>
+        <p class="notice">點下方按鈕就完成投票，不需要填表單。每個裝置每件作品限 1 票。</p>
+        <button class="btn primary vote-btn-detail" type="button" data-action="vote" data-project="${project.id}" ${isVoted ? "disabled" : ""}>
+          ${isVoted ? "✓ 已投這件" : "👍 投我一票"}
+        </button>
+        ${formUrl ? `<p class="hint">想給作者更多建議？<a href="${escapeAttr(formUrl)}" target="_blank" rel="noreferrer">填一份深度回饋表單 →</a></p>` : ""}
+      </article>
+    `;
+  }
+
   const voteUrl = getExternalVoteUrl(project);
   if (voteUrl) {
     return `
@@ -568,6 +778,10 @@ function bindDetailControls(project) {
 }
 
 function renderResults() {
+  // 新版：API 按鈕投票結果（取代舊雷達圖系統）
+  if (getVoteApiUrl()) {
+    return renderApiResults();
+  }
   const votes = allVotes();
   const resultsConfig = getResultsConfig();
   const usingExternalResults = Boolean(resultsConfig.csvUrl);
@@ -678,6 +892,78 @@ function renderResults() {
     state.dashboardGenre = event.target.value;
     renderResults();
   });
+}
+
+function renderApiResults() {
+  const projects = getProjects();
+  const counts = state.apiVoteCounts || {};
+  const total = Object.values(counts).reduce((a, b) => a + Number(b || 0), 0);
+  const ended = isVotingEnded();
+  const publicOpen = (window.SITE_CONFIG && window.SITE_CONFIG.results && window.SITE_CONFIG.results.publicRankingsOpen) || false;
+  const showRanking = ended || publicOpen;
+  const deadlineText = (typeof EVENT_CONFIG !== "undefined" && EVENT_CONFIG.deadline) || "投票截止後";
+
+  // 投票期間：只顯示總票數、不顯示排行
+  if (!showRanking) {
+    app.innerHTML = `
+      <section class="section-head dashboard-head">
+        <div>
+          <p class="eyebrow">Results Dashboard</p>
+          <h1>投票統計</h1>
+          <p>投票期間只公開總票數，不公開排行，避免影響後續投票選擇。排行將在 <strong>${escapeHtml(deadlineText)}</strong> 截止後自動公開。</p>
+        </div>
+      </section>
+      <section class="stats-grid private-results-grid">
+        <article><span>目前已投</span><strong>${total}</strong><small>票</small></article>
+        <article><span>排行公開</span><strong>截止後</strong><small>${escapeHtml(deadlineText)}</small></article>
+        <article><span>展品數</span><strong>${projects.length}</strong><small>件</small></article>
+      </section>
+      <article class="panel">
+        <h2>公平性說明</h2>
+        <p>每個裝置每件作品限 1 票，伺服端記錄裝置指紋以利賽後篩異常。投票截止前不公開排行，避免羊群效應。</p>
+      </article>
+    `;
+    return;
+  }
+
+  // 截止後：完整排行 + 票數柱狀圖
+  const ranked = projects
+    .map((p) => ({ id: p.id, title: p.title, votes: Number(counts[p.id] || 0) }))
+    .sort((a, b) => b.votes - a.votes);
+  const maxVotes = Math.max(...ranked.map((r) => r.votes), 1);
+  const topThree = ranked.slice(0, 3);
+
+  app.innerHTML = `
+    <section class="section-head dashboard-head">
+      <div>
+        <p class="eyebrow">Results Dashboard</p>
+        <h1>人氣票數排行</h1>
+        <p>總投票數 <strong>${total}</strong> 票｜展品 ${projects.length} 件｜每位觀眾每件作品限 1 票。</p>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      ${topThree.map((p, i) => `
+        <article>
+          <span>第 ${i + 1} 名</span>
+          <strong>${escapeHtml(p.id)}</strong>
+          <small>${escapeHtml(p.title)}・${p.votes} 票</small>
+        </article>
+      `).join("")}
+    </section>
+
+    <section class="vote-bar-chart">
+      ${ranked.map((p, i) => `
+        <a class="vote-bar-row" href="#detail/${p.id}">
+          <span class="rank">${i + 1}</span>
+          <span class="id">${escapeHtml(p.id)}</span>
+          <span class="title">${escapeHtml(p.title)}</span>
+          <span class="bar-track"><span class="bar-fill" style="width: ${(p.votes / maxVotes * 100).toFixed(1)}%"></span></span>
+          <span class="votes">${p.votes} 票</span>
+        </a>
+      `).join("")}
+    </section>
+  `;
 }
 
 function renderAbout() {
@@ -1172,3 +1458,18 @@ loadExternalVotes().finally(() => {
   setupExternalVoteRefresh();
   route();
 });
+
+// 載入投票按鈕系統的即時票數 + 每 60 秒刷新
+fetchVoteCounts().then((counts) => {
+  state.apiVoteCounts = counts;
+  state.apiVoteLoaded = true;
+  // 已渲染的頁面更新顯示
+  Object.keys(counts).forEach((id) => refreshVoteCountDisplays(id));
+});
+setInterval(() => {
+  if (!getVoteApiUrl()) return;
+  fetchVoteCounts().then((counts) => {
+    state.apiVoteCounts = counts;
+    Object.keys(counts).forEach((id) => refreshVoteCountDisplays(id));
+  });
+}, 60000);

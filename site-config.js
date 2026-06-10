@@ -2,6 +2,7 @@ window.SITE_CONFIG = {
   clubName: "大業 AI 繪圖社",
   voting: {
     enabled: true,
+    apiUrl: "https://script.google.com/macros/s/AKfycbxgCO77XBbXkPfdkc-boGKkES2MmPfifbcn5Dmo_7ByQKHcp5z9a9I6jeGjhv8VzBnVmQ/exec",
     formUrl: "https://docs.google.com/forms/d/1xn0abYP7l1_DxAGoxYy5XkQJIz76re5bx3HxVsu-CIc/viewform",
     gameParamName: "",
     startDate: "2026-06-15",
