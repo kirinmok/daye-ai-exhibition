@@ -302,7 +302,8 @@ a {
 }
 
 .project-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   height: auto;
   overflow: hidden;
@@ -449,6 +450,16 @@ a {
 
 .card-body {
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.card-body > h2,
+.card-body > p {
+  margin-top: 0;
+}
+.card-body > .card-footer {
+  margin-top: auto;
 }
 
 .card-meta,
