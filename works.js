@@ -142,7 +142,7 @@ const PROJECTS = [
   {
     id: "G21",
     title: "霓虹星際突擊",
-    cover: "",
+    cover: "./assets/games/neon-star-assault/cover-16x9.jpg",
     genre: ["射擊", "動作"],
     tags: ["霓虹", "宇宙", "自動射擊", "BOSS戰"],
     platform: "Web",
