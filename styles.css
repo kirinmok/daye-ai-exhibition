@@ -294,7 +294,7 @@ a {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 18px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .featured-grid {
@@ -303,6 +303,7 @@ a {
 
 .project-card {
   display: block;
+  flex: 1;
   height: auto;
   overflow: hidden;
   border: none;
