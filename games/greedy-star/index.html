@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貪婪之星：手機優化版</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #1e1e24;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .dashboard {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        .dashboard-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .stage {
+            width: 100%;
+            max-width: 500px;
+            height: 280px;
+            background-color: #2a2a35;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #3d3d5c;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        .item-display { font-size: 4.5rem; margin-bottom: 10px; }
+        .item-name { font-size: 1.4rem; font-weight: bold; margin-bottom: 5px; }
+        .current-score-box {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 15px;
+            border-radius: 20px;
+        }
+        .current-score-box span { color: #06d6a0; font-weight: bold; }
+        .controls {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .btn {
+            flex: 1;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+        }
+        .btn-yes { background-color: #06d6a0; color: #111; }
+        .btn-no { background-color: #ef476f; }
+        .history {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            opacity: 0.6;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="dashboard-row">
+            <div style="color: #ffd166;"> 銀行總分: <span id="total-score">0</span></div>
+            <div style="color: #06d6a0;"> 最高紀錄: <span id="best-score">0</span></div>
+        </div>
+        <div class="dashboard-row">
+            <div id="lives-display">  </div>
+            <div id="shield-display" style="color: #70e000;"> 護盾: 無</div>
+        </div>
+    </div>
+
+    <div class="stage" id="stage">
+        <div class="item-display" id="item-icon"></div>
+        <div class="item-name" id="item-name">歡迎來到貪婪之星</div>
+        <div id="item-effect" style="opacity:0.8;">首抽安全保護已啟動！</div>
+        <div class="current-score-box">本輪暫存: <span id="current-score">0</span> 分</div>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-no" id="btn-no"> 不要 (保留分數)</button>
+        <button class="btn btn-yes" id="btn-yes"> 要 (下一頁)</button>
+    </div>
+
+    <div class="history" id="history-box">本輪軌跡：無</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let totalScore = 0, currentScore = 0, lives = 3, hasShield = false;
+            let isFirstTurn = true, currentHistory = [], gameActive = true;
+            let bestScore = localStorage.getItem('g_stars_b') ? parseInt(localStorage.getItem('g_stars_b')) : 0;
+            document.getElementById('best-score').innerText = bestScore;
+
+            const items = [
+                { name: '灰色方塊', icon: '', color: '#8e9aaf', type: 'plus', value: 1, weight: 3 },
+                { name: '紫色方塊', icon: '', color: '#9d4edd', type: 'multiply', value: 2, weight: 2.5 },
+                { name: '藍色方塊', icon: '', color: '#00b4d8', type: 'multiply', value: 3, weight: 1.5 },
+                { name: '黃金星星', icon: '', color: '#ffb703', type: 'multiply', value: 5, weight: 0.8 },
+                { name: '鑽石道具', icon: '', color: '#a2d2ff', type: 'plus', value: 10, weight: 0.6 },
+                { name: '魔法護盾', icon: '', color: '#70e000', type: 'shield', value: 0, weight: 0.5 },
+                { name: '黑色炸彈', icon: '', color: '#ff4d4d', type: 'bomb', value: 0, weight: 1.8 }
+            ];
+
+            function handleYes() {
+                if (!gameActive) return;
+
+                let validItems = items.filter(i => !(isFirstTurn && i.type === 'bomb'));
+                let totalWeight = validItems.reduce((s, i) => s + i.weight, 0);
+                let random = Math.random() * totalWeight;
+                let item = validItems[0];
+
+                for (const i of validItems) {
+                    if (random < i.weight) { item = i; break; }
+                    random -= i.weight;
+                }
+
+                isFirstTurn = false;
+                document.getElementById('stage').style.borderColor = item.color;
+                document.getElementById('item-icon').innerText = item.icon;
+                document.getElementById('item-name').innerText = item.name;
+                document.getElementById('item-name').style.color = item.color;
+
+                if (item.type === 'plus') {
+                    currentScore += item.value;
+                    currentHistory.push(item.icon);
+                } else if (item.type === 'multiply') {
+                    currentScore = currentScore === 0 ? item.value : currentScore * item.value;
+                    currentHistory.push(item.icon);
+                } else if (item.type === 'shield') {
+                    hasShield = true;
+                    currentHistory.push(item.icon);
+                    document.getElementById('shield-display').innerHTML = ' 護盾: <span style="color:#70e000">持有中</span>';
+                } else if (item.type === 'bomb') {
+                    if (hasShield) {
+                        hasShield = false;
+                        document.getElementById('shield-display').innerText = ' 護盾: 無';
+                        document.getElementById('item-name').innerText = " 護盾抵擋成功！";
+                        currentHistory.push('');
+                    } else {
+                        currentScore = 0;
+                        lives--;
+                        currentHistory = [];
+                        isFirstTurn = true;
+                        document.getElementById('lives-display').innerHTML = ' '.repeat(lives) + ' '.repeat(3 - lives);
+                        document.getElementById('item-name').innerText = " 炸彈爆炸了！";
+                        if (lives <= 0) {
+                            gameActive = false;
+                            alert('遊戲結束！最終得分：' + totalScore);
+                            resetGame();
+                            return;
+                        }
+                    }
+                }
+                document.getElementById('current-score').innerText = currentScore;
+                document.getElementById('history-box').innerText = '本輪軌跡：' + (currentHistory.length ? currentHistory.join('  ') : '無');
+            }
+
+            function handleNo() {
+                if (!gameActive || currentScore === 0) return;
+                totalScore += currentScore;
+                if (totalScore > bestScore) {
+                    bestScore = totalScore;
+                    localStorage.setItem('g_stars_b', bestScore);
+                    document.getElementById('best-score').innerText = bestScore;
+                }
+                currentScore = 0;
+                currentHistory = [];
+                isFirstTurn = true;
+                document.getElementById('total-score').innerText = totalScore;
+                document.getElementById('current-score').innerText = currentScore;
+                document.getElementById('item-icon').innerText = '';
+                document.getElementById('item-name').innerText = '安全入庫！';
+                document.getElementById('item-name').style.color = '#ffffff';
+                document.getElementById('stage').style.borderColor = '#3d3d5c';
+                document.getElementById('history-box').innerText = '本輪軌跡：無';
+            }
+
+            function resetGame() {
+                totalScore = 0; currentScore = 0; lives = 3; hasShield = false;
+                gameActive = true; isFirstTurn = true; currentHistory = [];
+                document.getElementById('total-score').innerText = 0;
+                document.getElementById('current-score').innerText = 0;
+                document.getElementById('lives-display').innerHTML = '  ';
+                document.getElementById('shield-display').innerText = ' 護盾: 無';
+                document.getElementById('item-icon').innerText = '';
+                document.getElementById('item-name').innerText = '歡迎來到貪婪之星';
+                document.getElementById('item-name').style.color = '#ffffff';
+                document.getElementById('stage').style.borderColor = '#3d3d5c';
+                document.getElementById('history-box').innerText = '本輪軌跡：無';
+            }
+
+            document.getElementById('btn-yes').addEventListener('click', handleYes);
+            document.getElementById('btn-no').addEventListener('click', handleNo);
+        });
+    </script>
+</body>
+</html>

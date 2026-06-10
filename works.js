@@ -213,6 +213,20 @@ const PROJECTS = [
     featured: false,
     createdAt: "2026-06-09",
   },
+  {
+    id: "G26",
+    title: "貪婪之星：乘數與炸彈",
+    cover: "./assets/games/greedy-star/cover-16x9.jpg",
+    genre: ["運氣", "策略"],
+    tags: ["push your luck", "炸彈", "乘數", "見好就收"],
+    platform: "Web",
+    shortPitch: "一抽天堂、一抽地獄——你敢賭嗎？",
+    description: "Push your luck 機制：按【要】抽下一顆，可能是 ×2/×3/×5 乘數、+10 鑽石、護盾，也可能是讓你歸零的黑色炸彈。按【不要】把本輪暫存分數存進銀行。三條命、首抽免炸彈，挑戰自己的最高紀錄。",
+    playUrl: "./games/greedy-star/index.html",
+    theme: "magenta",
+    featured: false,
+    createdAt: "2026-06-10",
+  },
 ];
 
 const MOCK_VOTES = PROJECTS.flatMap((project, index) => {
