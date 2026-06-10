@@ -99,7 +99,7 @@ const PROJECTS = [
   {
     id: "G08",
     title: "深淵騎士",
-    cover: "./assets/games/dark-cell/cover-16x9.png",
+    cover: "./assets/games/dark-cell/cover-16x9.jpg",
     boxCover: "./assets/games/dark-cell/cover-2x3.png",
     genre: ["平台跳躍", "動作"],
     tags: ["騎士", "關卡", "技能", "挑戰"],
@@ -114,7 +114,7 @@ const PROJECTS = [
   {
     id: "G09",
     title: "拯救永續島",
-    cover: "./assets/games/sdg/cover-16x9.png",
+    cover: "./assets/games/sdg/cover-16x9.jpg",
     genre: ["建設模擬", "策略"],
     tags: ["SDG", "城市", "永續", "治理", "五分鐘決策"],
     platform: "Web",
@@ -128,7 +128,7 @@ const PROJECTS = [
   {
     id: "G10",
     title: "ECO Defender's Bizarre Adventure",
-    cover: "./assets/games/eco-defenders/cover-16x9.png",
+    cover: "./assets/games/eco-defenders/cover-16x9.jpg",
     genre: ["動作冒險", "環境教育"],
     tags: ["3D", "環保", "探索", "戰鬥"],
     platform: "Web",
