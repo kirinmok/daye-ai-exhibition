@@ -1270,6 +1270,7 @@ body.is-editing {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+.vote-modal { color: #333; }
 .vote-modal h2 {
   margin: 0 0 8px;
   font-size: 1.3rem;
