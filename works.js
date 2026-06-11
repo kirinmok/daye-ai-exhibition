@@ -11,7 +11,7 @@ const PROJECTS = [
   {
     id: "G01",
     title: "歡樂時光屋",
-    cover: "./assets/games/happy-house-3d/cover-16x9.jpg",
+    cover: "./assets/games/happy-house-3d/cover-4x3.png",
     genre: ["3D", "劇情探索"],
     tags: ["3D", "馬戲團", "劇情", "氛圍"],
     platform: "Web",
@@ -84,7 +84,7 @@ const PROJECTS = [
   {
     id: "G07",
     title: "八掌溪環保爭霸戰",
-    cover: "./assets/games/bazhang-eco-battle/cover-16x9.jpg",
+    cover: "./assets/games/bazhang-eco-battle/cover-4x3.png",
     boxCover: "./assets/games/bazhang-eco-battle/cover-2x3.jpg",
     genre: ["環境教育", "策略"],
     tags: ["八掌溪", "永續", "知識", "對戰"],
@@ -142,7 +142,7 @@ const PROJECTS = [
   {
     id: "G21",
     title: "霓虹星際突擊",
-    cover: "./assets/games/neon-star-assault/cover-16x9.jpg",
+    cover: "./assets/games/neon-star-assault/cover-4x3.png",
     genre: ["射擊", "動作"],
     tags: ["霓虹", "宇宙", "自動射擊", "BOSS戰"],
     platform: "Web",
