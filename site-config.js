@@ -4,9 +4,8 @@ window.SITE_CONFIG = {
     enabled: true,
     // 內部投票記票端點（保留，作為總票數計數）
     apiUrl: "https://script.google.com/macros/s/AKfycbxgCO77XBbXkPfdkc-boGKkES2MmPfifbcn5Dmo_7ByQKHcp5z9a9I6jeGjhv8VzBnVmQ/exec",
-    // ⚠️ 觀眾投票表單 URL（KIRIN 跑完 buildAudienceForm 後換成新的）
-    // 目前為內部評鑑 Form，會換成「觀眾簡易版」
-    formUrl: "https://forms.gle/h2qQVxy3JyWyyh4x8",
+    // ✅ 觀眾投票表單（30 秒 4 題簡易版）— 2026-06-11 上線
+    formUrl: "https://forms.gle/B81W1Y1css1tnMkv9",
     gameParamName: "",
     startDate: "2026-06-15",
     endDate: "2026-06-19",
