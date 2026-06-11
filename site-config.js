@@ -3,7 +3,7 @@ window.SITE_CONFIG = {
   voting: {
     enabled: true,
     apiUrl: "https://script.google.com/macros/s/AKfycbxgCO77XBbXkPfdkc-boGKkES2MmPfifbcn5Dmo_7ByQKHcp5z9a9I6jeGjhv8VzBnVmQ/exec",
-    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSdqblGxiiy7UW7IIf3AdZto3Y3hdrxMYe356wz9tdtAHAZEaA/viewform",
+    formUrl: "https://forms.gle/h2qQVxy3JyWyyh4x8",
     gameParamName: "",
     startDate: "2026-06-15",
     endDate: "2026-06-19",
