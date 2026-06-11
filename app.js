@@ -901,20 +901,6 @@ function mostPopularGenre() {
   return { genre, count };
 }
 
-function renderComments(votes) {
-  const comments = votes
-    .filter((vote) => vote.likedMost || vote.suggestion)
-    .slice(-6)
-    .reverse();
-  if (!comments.length) return "<p class='empty'>尚無留言。</p>";
-  return `<ul class="comment-list">${comments.map((vote) => `
-    <li>
-      <strong>${vote.likedMost || "喜歡作品整體表現"}</strong>
-      <span>${vote.suggestion || "沒有留下改進建議"}</span>
-    </li>
-  `).join("")}</ul>`;
-}
-
 function qrImage(url) {
   const target = url === "#" ? window.location.href : new URL(url, window.location.href).href;
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(target)}`;
