@@ -82,7 +82,7 @@ const PROJECTS = [
     createdAt: "2026-05-17",
   },
   {
-    id: "G07",
+    id: "G06",
     title: "八掌溪環保爭霸戰",
     cover: "./assets/games/bazhang-eco-battle/cover-4x3.png",
     boxCover: "./assets/games/bazhang-eco-battle/cover-2x3.jpg",
@@ -97,7 +97,7 @@ const PROJECTS = [
     createdAt: "2026-05-19",
   },
   {
-    id: "G08",
+    id: "G07",
     title: "深淵騎士",
     cover: "./assets/games/dark-cell/cover-16x9.jpg",
     boxCover: "./assets/games/dark-cell/cover-2x3.jpg",
@@ -112,7 +112,7 @@ const PROJECTS = [
     createdAt: "2026-05-20",
   },
   {
-    id: "G09",
+    id: "G08",
     title: "拯救永續島",
     cover: "./assets/games/sdg/cover-16x9.jpg",
     genre: ["建設模擬", "策略"],
@@ -126,7 +126,7 @@ const PROJECTS = [
     createdAt: "2026-05-21",
   },
   {
-    id: "G10",
+    id: "G09",
     title: "ECO Defender's Bizarre Adventure",
     cover: "./assets/games/eco-defenders/cover-16x9.jpg",
     genre: ["動作冒險", "環境教育"],
@@ -140,7 +140,7 @@ const PROJECTS = [
     createdAt: "2026-06-04",
   },
   {
-    id: "G11",
+    id: "G10",
     title: "微型死域",
     cover: "./assets/games/micro-dead-zone/cover-4x3.png",
     genre: ["射擊", "生存"],
@@ -154,7 +154,7 @@ const PROJECTS = [
     createdAt: "2026-06-11",
   },
   {
-    id: "G21",
+    id: "G11",
     title: "霓虹星際突擊",
     cover: "./assets/games/neon-star-assault/cover-4x3.png",
     genre: ["射擊", "動作"],
@@ -183,7 +183,7 @@ const PROJECTS = [
     createdAt: "2026-06-06",
   },
   {
-    id: "G23",
+    id: "G12",
     title: "Chiayi Tycoon：永續大作戰",
     cover: "./assets/games/sdg-fps/cover-16x9.jpg",
     boxCover: "./assets/games/sdg-fps/cover-2x3.jpg",
@@ -198,7 +198,7 @@ const PROJECTS = [
     createdAt: "2026-06-08",
   },
   {
-    id: "G24",
+    id: "G13",
     title: "ZONE X：極限孤島大逃殺",
     cover: "./assets/games/survival-arena/cover-16x9.jpg",
     boxCover: "./assets/games/survival-arena/cover-2x3.jpg",
@@ -213,7 +213,7 @@ const PROJECTS = [
     createdAt: "2026-06-08",
   },
   {
-    id: "G25",
+    id: "G14",
     title: "NEON STAR：REBIRTH 30",
     cover: "./assets/games/neon-star-rebirth-30/cover-16x9.jpg",
     boxCover: "./assets/games/neon-star-rebirth-30/cover-2x3.jpg",
@@ -228,7 +228,7 @@ const PROJECTS = [
     createdAt: "2026-06-09",
   },
   {
-    id: "G26",
+    id: "G15",
     title: "貪婪之星：乘數與炸彈",
     cover: "./assets/games/greedy-star/cover-16x9.jpg",
     genre: ["運氣", "策略"],
