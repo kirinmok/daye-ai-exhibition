@@ -69,8 +69,8 @@ const PROJECTS = [
   },
   {
     id: "G05",
-    title: "槍戰",
-    cover: "./assets/games/gunfight/cover-16x9.jpg",
+    title: "第三次世界大戰",
+    cover: "./assets/games/gunfight/cover-4x3.png",
     genre: ["射擊", "3D"],
     tags: ["FPS", "HUD", "戰場", "WASD"],
     platform: "Web",
