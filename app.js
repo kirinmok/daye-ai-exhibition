@@ -115,12 +115,21 @@ function refreshVoteButtonStates(projectId) {
 async function handleVoteClick(btn) {
   const id = btn.dataset.project;
   if (!id || hasVotedLocal(id)) return;
+  // 1. 本機鎖 + 樂觀 UI
   markVotedLocal(id);
   if (!state.apiVoteCounts) state.apiVoteCounts = {};
   state.apiVoteCounts[id] = (state.apiVoteCounts[id] || 0) + 1;
   refreshVoteCountDisplays(id);
   refreshVoteButtonStates(id);
-  openVoteFeedbackModal(id);
+  // 2. 非同步寫進試算表（記票）
+  submitVoteApi(id);
+  // 3. 直接跳到 Google Form（讓觀眾填深度回饋），不再彈 modal
+  const cfg = (typeof window !== "undefined" && window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
+  if (cfg.formUrl) {
+    const url = new URL(cfg.formUrl, window.location.href);
+    if (cfg.gameParamName) url.searchParams.set(cfg.gameParamName, id);
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
+  }
 }
 
 function openVoteFeedbackModal(projectId) {
@@ -622,11 +631,6 @@ function renderDetail(projectId) {
         ${renderRadar(stats.score, state.compareOverall ? overall : null)}
       </article>
 
-      <article class="panel qr-panel">
-        <h2>手機試玩 QR</h2>
-        <img alt="${project.title} 試玩 QR code" src="${qrImage(project.playUrl)}" />
-        <p>掃描後開啟作品頁。若作品連結尚未設定，會停留在原型連結。</p>
-      </article>
     </section>
 
     <section id="voteSection" class="feedback-layout">
@@ -661,21 +665,18 @@ function renderVotePanel(project, voted) {
   const votingConfig = getVotingConfig();
   const apiEnabled = !!getVoteApiUrl();
 
-  // 新版：按鈕投票（Apps Script API）
+  // 新版：按鈕投票（Apps Script API）—— 極簡版：標題+票數+按鈕，點下去直接跳深度回饋表單
   if (apiEnabled) {
     const isVoted = hasVotedLocal(project.id);
-    const formUrl = getExternalVoteUrl(project);
     return `
       <article class="panel vote-form vote-api-panel">
         <div class="panel-head">
           <h2>支持這款作品</h2>
           <span class="vote-count-large" data-vote-count-for="${project.id}">${apiVoteCountOf(project.id)} 票</span>
         </div>
-        <p class="notice">點下方按鈕就完成投票，不需要填表單。每個裝置每件作品限 1 票。</p>
         <button class="btn primary vote-btn-detail" type="button" data-action="vote" data-project="${project.id}" ${isVoted ? "disabled" : ""}>
-          ${isVoted ? "✓ 已投這件" : "👍 投我一票"}
+          ${isVoted ? "✓ 已投這件" : "👍 投票並填回饋表單"}
         </button>
-        ${formUrl ? `<p class="hint">想給作者更多建議？<a href="${escapeAttr(formUrl)}" target="_blank" rel="noreferrer">填一份深度回饋表單 →</a></p>` : ""}
       </article>
     `;
   }
