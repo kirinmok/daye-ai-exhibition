@@ -108,7 +108,7 @@ function refreshVoteButtonStates(projectId) {
   const voted = hasVotedLocal(projectId);
   document.querySelectorAll(`[data-action="vote"][data-project="${projectId}"]`).forEach((btn) => {
     btn.disabled = voted;
-    btn.textContent = voted ? "✓ 已投" : (btn.classList.contains("vote-btn-detail") ? "👍 投我一票" : "👍 投票");
+    btn.textContent = voted ? "✓ 已投" : "👍 投票";
   });
 }
 
@@ -592,9 +592,14 @@ function renderProjectCard(project) {
 function renderDetail(projectId) {
   const project = findProject(projectId);
   const stats = projectStats(project);
-  const overall = scoreStats(allVotes());
-  const voted = getVotedProjects().has(project.id);
-  const votingConfig = getVotingConfig();
+  const voteUrl = getExternalVoteUrl(project);
+  const apiEnabled = !!getVoteApiUrl();
+  const voted = hasVotedLocal(project.id);
+  const voteAction = apiEnabled
+    ? `<button class="btn ghost" type="button" data-action="vote" data-project="${escapeAttr(project.id)}" ${voted ? "disabled" : ""}>${voted ? "✓ 已投" : "前往投票"}</button>`
+    : voteUrl
+      ? `<a class="btn ghost" href="${voteUrl}" target="_blank" rel="noreferrer">前往投票</a>`
+      : "";
   app.innerHTML = `
     <section class="detail-hero theme-${project.theme}">
       <div class="detail-media">
@@ -613,28 +618,13 @@ function renderDetail(projectId) {
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
         <div class="detail-actions">
           <a class="btn primary" href="${project.playUrl}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
-          <button class="btn ghost" data-action="scroll-vote">${votingConfig.formUrl ? "前往投票" : "投票狀態"}</button>
+          ${voteAction}
           ${state.isAdmin ? `<button class="btn ghost" data-action="edit-project" data-project-id="${escapeAttr(project.id)}">編輯作品</button>` : ""}
         </div>
       </div>
     </section>
 
-    <section class="detail-grid">
-      <article class="panel">
-        <div class="panel-head">
-          <h2>作品評價雷達圖</h2>
-          <label class="toggle-row">
-            <input id="compareToggle" type="checkbox" ${state.compareOverall ? "checked" : ""} />
-            <span>本作品 vs 全體平均</span>
-          </label>
-        </div>
-        ${renderRadar(stats.score, state.compareOverall ? overall : null)}
-      </article>
-
-    </section>
-
-    <section id="voteSection" class="feedback-layout">
-      ${renderVotePanel(project, voted)}
+    <section class="feedback-layout is-simple">
       <article class="panel comments-panel">
         <h2>留言摘錄</h2>
         ${renderComments(stats.votes)}
@@ -643,94 +633,6 @@ function renderDetail(projectId) {
   `;
   bindDetailControls(project);
   bindAdminEditButtons();
-}
-
-function renderRating(key, label) {
-  return `
-    <fieldset class="rating-row">
-      <legend>${label}</legend>
-      <div>
-        ${[1, 2, 3, 4, 5].map((value) => `
-          <label>
-            <input type="radio" name="${key}" value="${value}" ${value === 4 ? "checked" : ""} />
-            <span>${value}</span>
-          </label>
-        `).join("")}
-      </div>
-    </fieldset>
-  `;
-}
-
-function renderVotePanel(project, voted) {
-  const votingConfig = getVotingConfig();
-  const apiEnabled = !!getVoteApiUrl();
-
-  // 新版：按鈕投票（Apps Script API）—— 極簡版：標題+票數+按鈕，點下去直接跳深度回饋表單
-  if (apiEnabled) {
-    const isVoted = hasVotedLocal(project.id);
-    return `
-      <article class="panel vote-form vote-api-panel">
-        <div class="panel-head">
-          <h2>支持這款作品</h2>
-          <span class="vote-count-large" data-vote-count-for="${project.id}">${apiVoteCountOf(project.id)} 票</span>
-        </div>
-        <button class="btn primary vote-btn-detail" type="button" data-action="vote" data-project="${project.id}" ${isVoted ? "disabled" : ""}>
-          ${isVoted ? "✓ 已投這件" : "👍 投票並填回饋表單"}
-        </button>
-      </article>
-    `;
-  }
-
-  const voteUrl = getExternalVoteUrl(project);
-  if (voteUrl) {
-    return `
-      <article class="panel vote-form">
-        <div class="panel-head">
-          <h2>匿名投票與建議</h2>
-          <span>Google Form</span>
-        </div>
-        <p class="notice">正式投票會開啟 Google 表單。此頁不儲存投票，避免把本機資料誤認成真實票數。</p>
-        <p>作品代號：<strong>${escapeHtml(project.id)}</strong></p>
-        <div class="hero-actions">
-          <a class="btn primary" href="${voteUrl}" target="_blank" rel="noreferrer">前往投票表單</a>
-        </div>
-      </article>
-    `;
-  }
-
-  if (!votingConfig.prototypeVotingEnabled) {
-    return `
-      <article class="panel vote-form">
-        <div class="panel-head">
-          <h2>匿名投票與建議</h2>
-          <span>尚未開放</span>
-        </div>
-        <p class="notice">正式投票表單尚未接上。接上 Google Form 後，這裡會改成「前往投票表單」。</p>
-        <p>目前不啟用本機假投票，避免把 localStorage 測試資料誤認成真實票數。</p>
-      </article>
-    `;
-  }
-
-  return `
-    <form class="panel vote-form" id="voteForm">
-      <div class="panel-head">
-        <h2>匿名投票與建議</h2>
-        <span>${voted ? "本裝置已投過" : "本機測試"}</span>
-      </div>
-      <p class="notice">這是本機原型測試，不會同步到公開網站或老師後台。</p>
-      ${SCORE_FIELDS.map(([key, label]) => renderRating(key, label)).join("")}
-      <label class="field">
-        <span>最喜歡的地方</span>
-        <textarea name="likedMost" rows="3" placeholder="例如：操作很直覺、角色美術很有記憶點"></textarea>
-      </label>
-      <label class="field">
-        <span>建議改進</span>
-        <textarea name="suggestion" rows="3" placeholder="例如：新手提示可以更清楚、音效可以再多一點"></textarea>
-      </label>
-      <button class="btn primary" type="submit" ${voted ? "disabled" : ""}>${voted ? "已完成投票" : "送出本機測試投票"}</button>
-      <p id="formMessage" class="form-message"></p>
-    </form>
-  `;
 }
 
 function getExternalVoteUrl(project) {
@@ -745,41 +647,10 @@ function getExternalVoteUrl(project) {
 
 function bindDetailControls(project) {
   document.querySelector("[data-action='edit-project']")?.addEventListener("click", () => openProjectEditor(project.id));
-  document.querySelector("[data-action='scroll-vote']").addEventListener("click", () => {
-    document.querySelector("#voteSection").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-  document.querySelector("#compareToggle").addEventListener("change", (event) => {
-    state.compareOverall = event.target.checked;
-    renderDetail(project.id);
-  });
-  document.querySelector("#voteForm")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const voted = getVotedProjects();
-    if (voted.has(project.id)) return;
-    const form = new FormData(event.currentTarget);
-    const localVotes = getLocalVotes();
-    localVotes.push({
-      id: `vote_${Date.now()}`,
-      projectId: project.id,
-      likedMost: String(form.get("likedMost") || "").trim(),
-      suggestion: String(form.get("suggestion") || "").trim(),
-      creativity: Number(form.get("creativity")),
-      art: Number(form.get("art")),
-      gameplay: Number(form.get("gameplay")),
-      smoothness: Number(form.get("smoothness")),
-      completeness: Number(form.get("completeness")),
-      createdAt: new Date().toISOString(),
-    });
-    setLocalVotes(localVotes);
-    voted.add(project.id);
-    setVotedProjects(voted);
-    document.querySelector("#formMessage").textContent = "已送出，謝謝你的回饋。記得保留抽獎規則需要的資料給主辦單位。";
-    window.setTimeout(() => renderDetail(project.id), 900);
-  });
 }
 
 function renderResults() {
-  // 新版：API 按鈕投票結果（取代舊雷達圖系統）
+  // 新版：API 按鈕投票結果
   if (getVoteApiUrl()) {
     return renderApiResults();
   }
@@ -827,10 +698,6 @@ function renderResults() {
     `;
     return;
   }
-  const genreVotes = state.dashboardGenre === "all"
-    ? votes
-    : votes.filter((vote) => getProjects().find((project) => project.id === vote.projectId)?.genre.includes(state.dashboardGenre));
-  const stats = scoreStats(genreVotes);
   const projects = getProjects();
   const topVotes = [...projects].sort((a, b) => projectStats(b).voteCount - projectStats(a).voteCount).slice(0, 3);
   const topCreativity = bestByScore("creativity");
@@ -844,13 +711,6 @@ function renderResults() {
         <p class="eyebrow">Results Dashboard</p>
         <h1>人氣與評價統計</h1>
       </div>
-      <label class="select-label">
-        類型平均
-        <select id="genreDashboardSelect">
-          <option value="all">全部作品</option>
-          ${uniqueValues((project) => project.genre).map((genre) => `<option value="${genre}"${state.dashboardGenre === genre ? " selected" : ""}>${genre}</option>`).join("")}
-        </select>
-      </label>
     </section>
 
     <section class="stats-grid">
@@ -868,31 +728,8 @@ function renderResults() {
           ${topVotes.map((project) => `<li><a href="#detail/${project.id}"><strong>${project.id}</strong><span>${project.title}</span><em>${projectStats(project).voteCount} 票</em></a></li>`).join("")}
         </ol>
       </article>
-      <article class="panel">
-        <h2>${state.dashboardGenre === "all" ? "全體平均雷達圖" : `${state.dashboardGenre} 平均雷達圖`}</h2>
-        ${renderRadar(stats, null)}
-      </article>
     </section>
-
-    <section class="section-head">
-      <div>
-        <p class="eyebrow">Project Radar</p>
-        <h2>每件作品評價</h2>
-      </div>
-    </section>
-    <div class="mini-radar-grid">
-      ${projects.map((project) => `
-        <a class="mini-radar panel" href="#detail/${project.id}">
-          <h3>${escapeHtml(project.id)} ${escapeHtml(project.title)}</h3>
-          ${renderRadar(projectStats(project).score, stats, true)}
-        </a>
-      `).join("")}
-    </div>
   `;
-  document.querySelector("#genreDashboardSelect").addEventListener("change", (event) => {
-    state.dashboardGenre = event.target.value;
-    renderResults();
-  });
 }
 
 function renderApiResults() {
@@ -1055,55 +892,6 @@ function renderAdmin() {
   `;
   bindAdminPageControls();
   bindAdminEditButtons();
-}
-
-function renderRadar(stats, compareStats = null, compact = false) {
-  const points = radarPoints(stats.scores);
-  const comparePoints = compareStats ? radarPoints(compareStats.scores) : "";
-  const values = SCORE_FIELDS.map(([key, label]) => `<span>${label} ${Number(stats.scores[key] || 0).toFixed(1)}</span>`).join("");
-  return `
-    <div class="radar ${compact ? "is-compact" : ""}">
-      <svg viewBox="0 0 240 240" role="img" aria-label="五項評分雷達圖">
-        ${[1, 2, 3, 4, 5].map((level) => `<polygon class="grid" points="${radarGridPoints(level)}"></polygon>`).join("")}
-        ${SCORE_FIELDS.map((_, index) => `<line class="axis" x1="120" y1="120" x2="${axisPoint(index, 5).x}" y2="${axisPoint(index, 5).y}"></line>`).join("")}
-        ${compareStats ? `<polygon class="compare-shape" points="${comparePoints}"></polygon>` : ""}
-        <polygon class="score-shape" points="${points}"></polygon>
-        ${SCORE_FIELDS.map(([, label], index) => {
-          const point = axisPoint(index, 5.75);
-          return `<text x="${point.x}" y="${point.y}" text-anchor="middle">${label}</text>`;
-        }).join("")}
-      </svg>
-      <div class="radar-meta">
-        <strong>${scoreMean(stats).toFixed(1)} / 5</strong>
-        <span>樣本數 ${stats.sampleCount}</span>
-        ${compareStats ? "<em>淺色為全體平均</em>" : ""}
-      </div>
-      ${compact ? "" : `<div class="radar-values">${values}</div>`}
-    </div>
-  `;
-}
-
-function axisPoint(index, value) {
-  const angle = -Math.PI / 2 + (Math.PI * 2 * index) / SCORE_FIELDS.length;
-  const radius = (value / 5) * 82;
-  return {
-    x: Number((120 + Math.cos(angle) * radius).toFixed(2)),
-    y: Number((120 + Math.sin(angle) * radius).toFixed(2)),
-  };
-}
-
-function radarGridPoints(level) {
-  return SCORE_FIELDS.map((_, index) => {
-    const point = axisPoint(index, level);
-    return `${point.x},${point.y}`;
-  }).join(" ");
-}
-
-function radarPoints(scores) {
-  return SCORE_FIELDS.map(([key], index) => {
-    const point = axisPoint(index, Number(scores[key] || 0));
-    return `${point.x},${point.y}`;
-  }).join(" ");
 }
 
 function bestByScore(key) {
