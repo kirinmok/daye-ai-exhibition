@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>第一人稱：八掌溪夕照跑酷 (中職六隊/淨溪特別版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; touch-action: none; user-select: none; -webkit-user-select: none; }
+        #game-container { position: relative; width: 100vw; height: 100vh; }
+        canvas { display: block; width: 100%; height: 100%; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; }
+        .pointer-events-auto { pointer-events: auto; }
+
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght=700&display=swap');
+        .font-game { font-family: 'Noto Sans TC', sans-serif; font-weight: 700; }
+        .font-pixel { font-family: 'Press Start 2P', monospace; }
+
+        #scoreDisplay { transition: all 0.2s ease-out; display: inline-block; }
+        .score-bonus { transform: scale(1.4); color: #4ade80 !important; }
+
+        /* 鍵盤按鍵圖示 */
+        .key-badge {
+            background: #eab308;
+            color: #1c1917;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+            box-shadow: 0 2px 0 #ca8a04;
+            display: inline-block;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #eab308; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui" class="ui-layer font-game text-white p-4 z-10">
+        <!-- 頂部資訊 -->
+        <div class="flex justify-between items-start w-full max-w-[1000px] mx-auto relative mt-4">
+            <div class="text-3xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">分數: <span id="scoreDisplay" class="text-yellow-400">0</span></div>
+            <div class="text-sm bg-green-950/80 px-4 py-2 rounded-full text-green-300 border border-green-700 shadow-lg">
+                 八掌溪環境守護計畫 (鍵盤操作版)
+            </div>
+        </div>
+
+        <!-- 排行榜 Modal -->
+        <div id="leaderboardModal" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 pointer-events-auto hidden backdrop-blur-md z-50">
+            <div class="bg-gray-800 p-6 rounded-2xl border border-yellow-500 w-[90%] max-w-md shadow-[0_0_30px_rgba(234,179,8,0.3)] relative flex flex-col max-h-[80vh]">
+                <button id="closeLeaderboardBtn" class="absolute top-2 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+                <h2 class="text-3xl text-yellow-400 mb-4 text-center border-b border-gray-600 pb-3 mt-2 tracking-widest">  淨溪英雄榜  </h2>
+                <div class="text-center text-sm text-gray-400 mb-4">按 <span class="key-badge text-xs">Esc</span> 或 <span class="key-badge text-xs">Y</span> 關閉排行榜</div>
+                <div id="leaderboardList" class="flex flex-col gap-2 overflow-y-auto pr-2 flex-grow"></div>
+            </div>
+        </div>
+
+        <!-- 開始畫面 -->
+        <div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/70 pointer-events-auto backdrop-blur-sm overflow-y-auto py-8">
+            <h1 class="text-5xl md:text-7xl text-orange-400 mb-2 drop-shadow-[0_0_15px_rgba(251,146,60,0.8)] tracking-wider mt-10 font-bold">八掌溪跑酷</h1>
+            <p class="text-xl text-green-300 mb-6 tracking-widest drop-shadow-md border border-green-400/50 px-4 py-1 rounded-full bg-green-900/30"> 淨溪環保特別版 </p>
+
+            <!-- 角色選單 (中職六隊樣式) -->
+            <div class="bg-gray-800/90 p-5 rounded-2xl border border-gray-600 mb-4 text-center max-w-lg shadow-2xl w-full mx-4 relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-yellow-950 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                    按鍵盤 <span class="font-mono">←</span> <span class="font-mono">→</span> 方向鍵切換職棒隊
+                </div>
+                <div class="flex flex-wrap justify-center gap-3 sm:gap-4 mt-2" id="charBtnContainer">
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="0" data-color="0xfde047" data-name="中信兄弟象"><div class="w-10 h-10 bg-[#fde047] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="1" data-color="0xea580c" data-name="統一獅子軍"><div class="w-10 h-10 bg-[#ea580c] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="2" data-color="0x831843" data-name="樂天桃猿軍"><div class="w-10 h-10 bg-[#831843] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="3" data-color="0x1d4ed8" data-name="富邦悍將兵"><div class="w-10 h-10 bg-[#1d4ed8] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="4" data-color="0xdc2626" data-name="味全狂龍隊"><div class="w-10 h-10 bg-[#dc2626] rounded-lg shadow-inner"></div></button>
+                    <button class="char-btn border-4 rounded-xl p-1 transition-transform transform" data-index="5" data-color="0x0f766e" data-name="台鋼雄鷹隊"><div class="w-10 h-10 bg-[#0f766e] rounded-lg shadow-inner"></div></button>
+                </div>
+                <p id="charNameDisplay" class="text-white mt-3 text-lg font-bold tracking-widest">中信兄弟象</p>
+            </div>
+
+            <!-- 核心玩法說明區塊 -->
+            <div class="bg-gray-900/80 p-5 rounded-2xl border border-blue-500/30 mb-6 text-left max-w-lg shadow-2xl mx-4 w-full">
+                <h2 class="text-lg text-blue-400 mb-3 border-b border-gray-700 pb-2 flex items-center gap-2">
+                    <span></span> 鍵盤控制指南
+                </h2>
+                <div class="grid grid-cols-1 gap-3 text-sm sm:text-base">
+                    <div class="flex items-start gap-3">
+                        <div class="bg-blue-500/20 p-2 rounded text-xl font-mono"></div>
+                        <div>
+                            <p class="text-blue-200 font-bold">撿起巨型寶特瓶 (+50分)</p>
+                            <p class="text-gray-400 text-xs">發光寶特瓶體積龐大，直接撞擊即可回收！</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="bg-yellow-500/20 p-2 rounded text-xl"></div>
+                        <div>
+                            <p class="text-yellow-200 font-bold">奔跑操作快捷鍵</p>
+                            <div class="mt-2 space-y-1.5 text-xs text-gray-300">
+                                <p>• <span class="key-badge">↑</span> 或 <span class="key-badge">Space</span> ：<b>跳躍</b>越過岩石</p>
+                                <p>• <span class="key-badge">↓</span> ：<b>下蹲滑行</b>避開低飛白鷺鷥</p>
+                                <p>• <span class="key-badge">←</span> / <span class="key-badge">→</span> ：<b>切換跑道</b>（左、中、右）</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 mb-10 w-full px-4 max-w-lg text-center">
+                <button id="startBtn" class="px-6 py-4 bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-500 hover:to-yellow-400 text-white rounded-xl text-xl font-bold transition-transform transform shadow-[0_0_20px_rgba(245,158,11,0.5)] flex-1 flex flex-col items-center">
+                    <span class="text-xs text-yellow-200 mb-1">鍵盤 <span class="key-badge text-stone-900 shadow-none py-0.5 px-1.5 text-[10px]">Enter</span> 鍵</span>
+                    <span>開始淨溪</span>
+                </button>
+                <button id="startLdbBtn" class="px-6 py-4 bg-gray-700 hover:bg-gray-600 text-yellow-400 border border-yellow-500 rounded-xl text-xl font-bold transition-transform transform shadow-lg flex-1 flex flex-col items-center">
+                    <span class="text-xs text-gray-300 mb-1">鍵盤 <span class="key-badge text-stone-900 shadow-none py-0.5 px-1.5 text-[10px]">Y</span> 鍵</span>
+                    <span> 英雄榜</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 遊戲結束畫面 -->
+        <div id="gameOverScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-red-950/80 pointer-events-auto hidden backdrop-blur-md py-8 overflow-y-auto">
+            <h1 class="text-5xl sm:text-7xl text-white mb-2 drop-shadow-[0_0_10px_rgba(255,0,0,0.8)] font-black">撞擊！</h1>
+            <p class="text-2xl sm:text-3xl text-yellow-300 mb-6 text-center">最終環保分數:<br><span id="finalScore" class="font-pixel text-5xl sm:text-6xl inline-block mt-2">0</span></p>
+
+            <div id="submitSection" class="bg-gray-900/90 p-5 rounded-2xl border border-blue-500/50 flex flex-col items-center gap-2 mb-6 w-[90%] max-w-sm shadow-2xl relative">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">免打字一鍵上傳</div>
+                <p class="text-gray-300 text-sm mt-3 text-center">將以 <strong id="autoNamePreview" class="text-yellow-400"></strong> 的名義登榜</p>
+                <button id="submitScoreBtn" class="w-full py-4 bg-blue-600 text-white rounded-xl text-xl font-bold transition-all shadow-lg mt-3 disabled:bg-gray-600 disabled:text-gray-400 flex flex-col items-center">
+                    <span class="text-xs text-blue-200 mb-1">鍵盤 <span class="key-badge text-stone-900 shadow-none py-0.5 px-1.5 text-[10px]">X</span> 鍵</span>
+                    <span id="submitBtnText">上傳至排行榜</span>
+                </button>
+            </div>
+
+            <!-- 按鈕容器 -->
+            <div class="flex flex-col gap-3 w-full px-4 max-w-sm">
+                <div class="flex flex-row gap-3">
+                    <button id="restartBtn" class="px-4 py-3 bg-white text-green-700 hover:bg-green-100 rounded-xl text-lg font-bold transition-transform transform shadow-xl flex-1 text-center flex flex-col items-center">
+                        <span class="text-[10px] text-gray-500 mb-0.5">鍵盤 <span class="key-badge text-stone-950 bg-gray-200 py-0 px-1 text-[9px] shadow-none">Enter</span></span>
+                        <span>再次挑戰</span>
+                    </button>
+                    <button id="endLdbBtn" class="px-4 py-3 bg-yellow-500 text-yellow-950 hover:bg-yellow-400 rounded-xl text-lg font-bold transition-transform transform shadow-xl flex-1 text-center flex flex-col items-center">
+                        <span class="text-[10px] text-yellow-900 mb-0.5">鍵盤 <span class="key-badge text-yellow-950 bg-yellow-400 py-0 px-1 text-[9px] shadow-none">Y</span></span>
+                        <span>英雄榜</span>
+                    </button>
+                </div>
+                <!-- 返回首頁按鈕 -->
+                <button id="backToHomeBtn" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 rounded-xl text-lg font-bold transition-all shadow-lg text-center flex flex-col items-center">
+                    <span class="text-[10px] text-gray-400 mb-0.5">鍵盤 <span class="key-badge text-gray-400 bg-gray-800 py-0 px-1 text-[9px] shadow-none">H</span> 或 <span class="key-badge text-gray-400 bg-gray-800 py-0 px-1 text-[9px] shadow-none">Esc</span></span>
+                    <span>返回首頁</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    let db, auth, currentUser, leaderboardData = [], scoreSubmitted = false, autoGeneratedName = "";
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bazhang-run-default';
+
+    const leaderboardModal = document.getElementById('leaderboardModal');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const submitScoreBtn = document.getElementById('submitScoreBtn');
+    const submitBtnText = document.getElementById('submitBtnText');
+    const autoNamePreview = document.getElementById('autoNamePreview');
+    const charNameDisplay = document.getElementById('charNameDisplay');
+
+    try {
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { projectId: "demo-project" };
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app); db = getFirestore(app);
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+            else await signInAnonymously(auth);
+        };
+        initAuth();
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user && db) {
+                const lbRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                onSnapshot(lbRef, (snapshot) => {
+                    const data = [];
+                    snapshot.forEach(doc => data.push({id: doc.id, ...doc.data()}));
+                    data.sort((a, b) => b.score - a.score);
+                    leaderboardData = data.slice(0, 10); renderLeaderboard();
+                });
+            }
+        });
+    } catch(e) { console.error(e); }
+
+    function renderLeaderboard() {
+        if (leaderboardData.length === 0) {
+            leaderboardList.innerHTML = `<div class="text-center text-gray-400 py-8">目前無紀錄</div>`;
+            return;
+        }
+        leaderboardList.innerHTML = '';
+        leaderboardData.forEach((player, index) => {
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span class="text-gray-400 w-6 inline-block">${index+1}</span>`;
+            const row = document.createElement('div');
+            row.className = 'flex justify-between items-center p-3 rounded-xl bg-gray-700/50';
+            row.innerHTML = `<div class="flex items-center gap-3"><div>${medal}</div><div class="font-bold text-gray-200">${player.name}</div></div><div class="font-pixel text-yellow-400">${player.score}</div>`;
+            leaderboardList.appendChild(row);
+        });
+    }
+
+    const openLeaderboard = () => leaderboardModal.classList.remove('hidden');
+    const closeLeaderboard = () => leaderboardModal.classList.add('hidden');
+    document.getElementById('startLdbBtn').addEventListener('click', openLeaderboard);
+    document.getElementById('endLdbBtn').addEventListener('click', openLeaderboard);
+    document.getElementById('closeLeaderboardBtn').addEventListener('click', closeLeaderboard);
+
+    // 遊戲邏輯與 Three.js
+    let gameState = 'start', score = 0, gameSpeed = 1.0, framesSinceLastSpawn = 0, framesSinceLastTrash = 0;
+    const GRAVITY = -0.015, JUMP_FORCE = 0.35, LANE_WIDTH = 3.5, NORMAL_Y = 0, runners = [];
+    const canvas = document.getElementById('gameCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf97316); scene.fog = new THREE.FogExp2(0xf97316, 0.008);
+    const camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 500);
+    camera.position.set(0, 4, 7); camera.lookAt(0, 1, -10);
+    scene.add(new THREE.AmbientLight(0xffedd5, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffaa00, 1.2); dirLight.position.set(-50, 100, -200); scene.add(dirLight);
+
+    const groundTex = createTex('#3f6212', '#4d7c0f'), roadTex = createRoadTex();
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 1000), new THREE.MeshLambertMaterial({ map: groundTex }));
+    ground.rotation.x = -Math.PI / 2; ground.position.set(-10, 0, -300); scene.add(ground);
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(LANE_WIDTH * 3, 1000), new THREE.MeshLambertMaterial({ map: roadTex }));
+    road.rotation.x = -Math.PI / 2; road.position.set(0, 0.05, -300); scene.add(road);
+
+    function createTex(bc, dc) {
+        const ctx = document.createElement('canvas').getContext('2d'); ctx.canvas.width = 512; ctx.canvas.height = 512; ctx.fillStyle = bc; ctx.fillRect(0,0,512,512);
+        ctx.fillStyle = dc; for(let i=0; i<100; i++) ctx.fillRect(Math.random()*512, Math.random()*512, 10, 10);
+        const t = new THREE.CanvasTexture(ctx.canvas); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(20, 100); return t;
+    }
+    function createRoadTex() {
+        const ctx = document.createElement('canvas').getContext('2d'); ctx.canvas.width = 512; ctx.canvas.height = 512; ctx.fillStyle = '#44403c'; ctx.fillRect(0,0,512,512);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(170,0,4,512); ctx.fillRect(341,0,4,512);
+        const t = new THREE.CanvasTexture(ctx.canvas); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 40); return t;
+    }
+
+    // 建立 3D 方塊人角色
+    function createRunner() {
+        const g = new THREE.Group(); const m = new THREE.MeshLambertMaterial({color: 0xfde047});
+        const blackMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1, 0.5), m); b.position.y = 1; g.add(b);
+        const h = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), m); h.position.y = 1.9; g.add(h);
+        const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.2, 0.2), blackMat); glasses.position.set(0, 2.0, -0.35); g.add(glasses);
+        const l = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.3), m); l.position.set(-0.2, 0.3, 0); g.add(l);
+        const r = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.3), m); r.position.set(0.2, 0.3, 0); g.add(r);
+        scene.add(g); return { group: g, legL: l, legR: r, mat: m, isJumping: false, isSliding: false, slideTimer: 0, yVel: 0, lane: 0 };
+    }
+    runners.push(createRunner());
+
+    // 建立遠景與大自然裝飾
+    const riverGeo = new THREE.PlaneGeometry(200, 1000);
+    const riverTex = createTex('#0284c7', '#0369a1');
+    const river = new THREE.Mesh(riverGeo, new THREE.MeshLambertMaterial({ map: riverTex, transparent: true, opacity: 0.9 }));
+    river.rotation.x = -Math.PI / 2; river.position.set(60, -0.5, -300); scene.add(river);
+
+    const sun = new THREE.Mesh(new THREE.SphereGeometry(30, 32, 32), new THREE.MeshBasicMaterial({ color: 0xfffbeb }));
+    sun.position.set(-20, 40, -400); scene.add(sun);
+
+    // 障礙物與淨溪垃圾 (發光藍色寶特瓶)
+    const obstacles = [], trashes = [];
+    const rockGeo = new THREE.BoxGeometry(2, 2, 2), rockMat = new THREE.MeshLambertMaterial({ color: 0x57534e });
+    const birdGeo = new THREE.ConeGeometry(0.8, 3, 4); birdGeo.rotateX(Math.PI / 2); const birdMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    const trashGeo = new THREE.CylinderGeometry(0.5, 0.5, 2.4, 16);
+    const trashMat = new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.8 });
+
+    function spawnObstacle() {
+        framesSinceLastSpawn++;
+        if (framesSinceLastSpawn < 50) return;
+        if (Math.random() < 0.02) {
+            framesSinceLastSpawn = 0;
+            const isAir = Math.random() > 0.5;
+            const targetX = (Math.floor(Math.random() * 3) - 1) * LANE_WIDTH;
+            let m;
+            if (isAir) {
+                m = new THREE.Mesh(birdGeo, birdMat);
+                m.position.set(targetX, 3.0, -300);
+            } else {
+                m = new THREE.Mesh(rockGeo, rockMat);
+                m.position.set(targetX, 1, -300);
+                m.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+            }
+            scene.add(m);
+            obstacles.push({ mesh: m, isAir, passed: false });
+        }
+    }
+
+    function spawnTrash() {
+        framesSinceLastTrash++;
+        if (framesSinceLastTrash < 80) return;
+        if (Math.random() < 0.03) {
+            framesSinceLastTrash = 0;
+            const targetX = (Math.floor(Math.random() * 3) - 1) * LANE_WIDTH;
+            const m = new THREE.Mesh(trashGeo, trashMat);
+            m.rotation.z = Math.PI / 2;
+            m.position.set(targetX, 0.5, -300);
+            scene.add(m);
+            trashes.push({ mesh: m });
+        }
+    }
+
+    // ==========================================
+    // 全鍵盤流程控制系統
+    // ==========================================
+    let selectedCharIndex = 0;
+
+    function handleAction(act) {
+        const isLdbOpen = !leaderboardModal.classList.contains('hidden');
+
+        // 如果排行榜是開著的
+        if (isLdbOpen) {
+            if (act === 'CLOSE_LDB') {
+                closeLeaderboard();
+            }
+            return;
+        }
+
+        if (gameState === 'start') {
+            if (act === 'LEFT') { selectedCharIndex = (selectedCharIndex - 1 + 6) % 6; updateCharSelect(); }
+            if (act === 'RIGHT') { selectedCharIndex = (selectedCharIndex + 1) % 6; updateCharSelect(); }
+            if (act === 'A') startGame();
+            if (act === 'Y') openLeaderboard();
+        } else if (gameState === 'playing') {
+            const r = runners[0];
+            if (act === 'JUMP' && !r.isJumping && !r.isSliding) { r.isJumping = true; r.yVel = JUMP_FORCE; }
+            if (act === 'SLIDE' && !r.isJumping) { r.isSliding = true; r.slideTimer = 45; }
+            if (act === 'STOP_SLIDE') { r.isSliding = false; r.slideTimer = 0; }
+            if (act === 'LEFT' && r.lane > -1) r.lane--;
+            if (act === 'RIGHT' && r.lane < 1) r.lane++;
+        } else if (gameState === 'gameover') {
+            if (act === 'X') submitScore();
+            if (act === 'A') startGame();
+            if (act === 'Y') openLeaderboard();
+            if (act === 'HOME') backToHome();
+        }
+    }
+
+    function updateCharSelect() {
+        document.querySelectorAll('.char-btn').forEach((b, i) => {
+            b.classList.toggle('border-yellow-400', i === selectedCharIndex);
+            b.classList.toggle('scale-110', i === selectedCharIndex);
+            if (i === selectedCharIndex) { charNameDisplay.innerText = b.dataset.name; runners[0].mat.color.setHex(parseInt(b.dataset.color, 16)); }
+        });
+    }
+
+    function startGame() {
+        gameState = 'playing'; score = 0; gameSpeed = 1.0; scoreSubmitted = false;
+        document.getElementById('startScreen').classList.add('hidden'); document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('scoreDisplay').innerText = 0;
+
+        submitScoreBtn.disabled = false; submitBtnText.innerText = '上傳至排行榜'; submitScoreBtn.classList.replace('bg-green-600', 'bg-blue-600');
+        obstacles.forEach(o => scene.remove(o.mesh)); obstacles.length = 0;
+        trashes.forEach(t => scene.remove(t.mesh)); trashes.length = 0;
+    }
+
+    function backToHome() {
+        gameState = 'start';
+        document.getElementById('gameOverScreen').classList.add('hidden');
+        document.getElementById('startScreen').classList.remove('hidden');
+        closeLeaderboard();
+
+        obstacles.forEach(o => scene.remove(o.mesh)); obstacles.length = 0;
+        trashes.forEach(t => scene.remove(t.mesh)); trashes.length = 0;
+
+        const r = runners[0];
+        r.isJumping = false;
+        r.isSliding = false;
+        r.lane = 0;
+        r.group.position.set(0, NORMAL_Y, -1);
+        r.group.scale.y = 1.0;
+        r.yVel = 0;
+    }
+
+    function gameOver() {
+        gameState = 'gameover'; document.getElementById('gameOverScreen').classList.remove('hidden');
+        document.getElementById('finalScore').innerText = score;
+        autoGeneratedName = `${charNameDisplay.innerText}#${Math.floor(1000+Math.random()*9000)}`;
+        autoNamePreview.innerText = autoGeneratedName;
+    }
+
+    async function submitScore() {
+        if (scoreSubmitted) return;
+
+        // 0分判定反饋，不要靜默直接結束
+        if (score === 0) {
+            submitBtnText.innerText = ' 得分為 0 分無法上傳！';
+            return;
+        }
+
+        // 資料庫或匿名驗證尚未就緒時的回饋
+        if (!currentUser || !db) {
+            submitBtnText.innerText = ' 伺服器連線中，請稍候重試...';
+            try {
+                if (auth && !auth.currentUser) {
+                    await signInAnonymously(auth);
+                }
+            } catch(err) {
+                console.error("嘗試重新登入失敗", err);
+            }
+            return;
+        }
+
+        scoreSubmitted = true; submitScoreBtn.disabled = true; submitBtnText.innerText = '上傳中...';
+        try {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard'), { name: autoGeneratedName, score, timestamp: Date.now() });
+            submitBtnText.innerText = ' 上傳成功'; submitScoreBtn.classList.replace('bg-blue-600', 'bg-green-600');
+            setTimeout(openLeaderboard, 800);
+        } catch(e) { scoreSubmitted = false; submitScoreBtn.disabled = false; submitBtnText.innerText = '失敗請重試'; }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (gameState === 'playing') {
+            groundTex.offset.y -= gameSpeed * 0.005; roadTex.offset.y -= gameSpeed * 0.01; riverTex.offset.y -= gameSpeed * 0.003;
+            river.position.y = -0.5 + Math.sin(Date.now() * 0.002) * 0.2;
+
+            const r = runners[0]; const time = Date.now();
+            r.group.position.x = THREE.MathUtils.lerp(r.group.position.x, r.lane * LANE_WIDTH, 0.2);
+
+            // 物理運動與肢體跑步擺動動畫
+            if (r.isJumping) {
+                r.yVel += GRAVITY; r.group.position.y += r.yVel;
+                r.legL.rotation.x = 0.5; r.legR.rotation.x = -0.5;
+                if (r.group.position.y <= 0) { r.group.position.y = 0; r.isJumping = false; }
+            }
+            else if (r.isSliding) {
+                r.group.scale.y = 0.4;
+                r.legL.rotation.x = 0; r.legR.rotation.x = 0;
+                r.slideTimer--;
+                if (r.slideTimer <= 0) {
+                    r.isSliding = false;
+                }
+            } else {
+                r.group.scale.y = 1;
+                r.group.position.y = Math.abs(Math.sin(time*0.015))*0.15;
+                r.legL.rotation.x = Math.sin(time * 0.015) * 0.6;
+                r.legR.rotation.x = -Math.sin(time * 0.015) * 0.6;
+            }
+
+            spawnObstacle(); spawnTrash();
+
+            // 玩家外框與縮減判定
+            const pBox = new THREE.Box3().setFromObject(r.group).expandByScalar(-0.3);
+
+            // 障礙物碰撞與加分
+            for(let i=obstacles.length-1; i>=0; i--) {
+                obstacles[i].mesh.position.z += gameSpeed;
+
+                // 動態白鷺鷥振翅效果
+                if (obstacles[i].isAir) {
+                    obstacles[i].mesh.rotation.z = Math.sin(Date.now() * 0.015) * 0.3;
+                }
+
+                if (pBox.intersectsBox(new THREE.Box3().setFromObject(obstacles[i].mesh).expandByScalar(-0.2))) {
+                    gameOver();
+                }
+
+                if (!obstacles[i].passed && obstacles[i].mesh.position.z > r.group.position.z) {
+                    obstacles[i].passed = true;
+                    score += 10;
+                    document.getElementById('scoreDisplay').innerText = score;
+                    if (score % 100 === 0) gameSpeed += 0.05;
+                }
+                if (obstacles[i].mesh.position.z > 10) { scene.remove(obstacles[i].mesh); obstacles.splice(i, 1); }
+            }
+
+            // 垃圾拾取回收加分
+            for(let i=trashes.length-1; i>=0; i--) {
+                trashes[i].mesh.position.z += gameSpeed;
+                trashes[i].mesh.rotation.y += 0.05; // 瓶子旋轉，提高辨識度
+
+                if (pBox.intersectsBox(new THREE.Box3().setFromObject(trashes[i].mesh).expandByScalar(0.5))) {
+                    score += 50;
+                    document.getElementById('scoreDisplay').innerText = score;
+
+                    // 彈跳閃爍加分綠特效
+                    const sd = document.getElementById('scoreDisplay');
+                    sd.classList.add('score-bonus');
+                    setTimeout(() => sd.classList.remove('score-bonus'), 300);
+
+                    scene.remove(trashes[i].mesh);
+                    trashes.splice(i, 1);
+                } else if (trashes[i].mesh.position.z > 10) {
+                    scene.remove(trashes[i].mesh);
+                    trashes.splice(i, 1);
+                }
+            }
+        }
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+    // ==========================================
+    // 全鍵盤事件監聽器
+    // ==========================================
+    window.addEventListener('keydown', e => {
+        const isLdbOpen = !leaderboardModal.classList.contains('hidden');
+
+        // 排行榜 Modal 打開時的鍵盤操作
+        if (isLdbOpen) {
+            if (e.code === 'Escape' || e.code === 'KeyY' || e.key === 'y' || e.key === 'Y' || e.key === 'Escape') {
+                e.preventDefault();
+                handleAction('CLOSE_LDB');
+            }
+            return;
+        }
+
+        // 正常遊戲狀態鍵盤監聽
+        if (e.code === 'ArrowUp' || e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            handleAction('JUMP');
+        }
+        if (e.code === 'ArrowDown' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            handleAction('SLIDE');
+        }
+        if (e.code === 'ArrowLeft' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            handleAction('LEFT');
+        }
+        if (e.code === 'ArrowRight' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            handleAction('RIGHT');
+        }
+        if (e.code === 'Enter' || e.key === 'Enter') {
+            e.preventDefault();
+            handleAction('A'); // 觸發開始、重新開始
+        }
+        // 同時支援大/小寫 Y 鍵
+        if (e.code === 'KeyY' || e.key === 'y' || e.key === 'Y') {
+            e.preventDefault();
+            handleAction('Y'); // 觸發開啟排行榜
+        }
+        // 同時支援大/小寫 X 鍵
+        if (e.code === 'KeyX' || e.key === 'x' || e.key === 'X') {
+            e.preventDefault();
+            handleAction('X'); // 觸發一鍵登榜
+        }
+        // 同時支援大/小寫 H 鍵或 Esc
+        if (e.code === 'KeyH' || e.key === 'h' || e.key === 'H' || e.code === 'Escape' || e.key === 'Escape') {
+            e.preventDefault();
+            if (gameState === 'gameover') {
+                handleAction('HOME'); // 返回首頁
+            }
+        }
+    });
+
+    window.addEventListener('keyup', e => {
+        if (e.code === 'ArrowDown' || e.key === 'ArrowDown') {
+            handleAction('STOP_SLIDE');
+        }
+    });
+
+    // 備用滑鼠點擊做為輔助
+    document.getElementById('startBtn').onclick = () => handleAction('A');
+    document.getElementById('restartBtn').onclick = () => handleAction('A');
+    document.getElementById('submitScoreBtn').onclick = () => handleAction('X');
+    document.getElementById('backToHomeBtn').onclick = () => handleAction('HOME');
+
+    document.querySelectorAll('.char-btn').forEach(b => b.onclick = (e) => { selectedCharIndex = parseInt(e.currentTarget.dataset.index); updateCharSelect(); });
+    updateCharSelect();
+    animate();
+</script>
+</body>
+</html>
