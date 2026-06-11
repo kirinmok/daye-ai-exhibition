@@ -363,6 +363,8 @@ function route() {
   else if (page === "detail") renderDetail(id || PROJECTS[0].id);
   else if (page === "results") renderResults();
   else if (page === "about") renderAbout();
+  else if (page === "rules") renderRules();
+  else if (page === "awards") renderAwards();
   else if (page === "admin") renderAdmin();
   else renderHome();
   app.focus({ preventScroll: true });
@@ -558,13 +560,16 @@ function bindBrowseControls() {
 function renderProjectCard(project) {
   const voted = hasVotedLocal(project.id);
   const apiEnabled = !!getVoteApiUrl();
+  const nonVotableIds = (window.SITE_CONFIG && window.SITE_CONFIG.voting && window.SITE_CONFIG.voting.nonVotableIds) || [];
+  const isDemo = nonVotableIds.includes(project.id);
   return `
-    <article class="project-card-wrap">
+    <article class="project-card-wrap ${isDemo ? "is-demo" : ""}">
       ${renderAdminEditButton(project.id)}
       <a class="project-card theme-${project.theme} ${project.cover ? "has-cover-image" : ""}" href="#detail/${project.id}">
         <div class="cover-art">
           ${coverImage(project)}
           <span>${escapeHtml(project.id)}</span>
+          ${isDemo ? `<span class="demo-badge" title="教師示範作品，不參賽">🎓 教師示範</span>` : ""}
           ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
         </div>
         <div class="card-body">
@@ -575,15 +580,19 @@ function renderProjectCard(project) {
           <h2>${escapeHtml(project.title)}</h2>
           <p>${escapeHtml(project.shortPitch)}</p>
           <div class="card-footer">
-            <span data-vote-count-for="${project.id}">${apiVoteCountOf(project.id)} 票</span>
+            <span data-vote-count-for="${project.id}">${isDemo ? "🎓 不參賽" : apiVoteCountOf(project.id) + " 票"}</span>
           </div>
         </div>
       </a>
-      ${apiEnabled ? `
+      ${apiEnabled && !isDemo ? `
       <div class="card-vote-row">
         <button class="btn ghost vote-btn-card" type="button" data-action="vote" data-project="${project.id}" ${voted ? "disabled" : ""}>
           ${voted ? "✓ 已投" : "👍 投票"}
         </button>
+      </div>` : ""}
+      ${isDemo ? `
+      <div class="card-vote-row">
+        <span class="demo-note">教師示範作品，僅供試玩學習</span>
       </div>` : ""}
     </article>
   `;
@@ -595,11 +604,15 @@ function renderDetail(projectId) {
   const voteUrl = getExternalVoteUrl(project);
   const apiEnabled = !!getVoteApiUrl();
   const voted = hasVotedLocal(project.id);
-  const voteAction = apiEnabled
-    ? `<button class="btn ghost" type="button" data-action="vote" data-project="${escapeAttr(project.id)}" ${voted ? "disabled" : ""}>${voted ? "✓ 已投" : "前往投票"}</button>`
-    : voteUrl
-      ? `<a class="btn ghost" href="${voteUrl}" target="_blank" rel="noreferrer">前往投票</a>`
-      : "";
+  const nonVotableIds = (window.SITE_CONFIG && window.SITE_CONFIG.voting && window.SITE_CONFIG.voting.nonVotableIds) || [];
+  const isDemo = nonVotableIds.includes(project.id);
+  const voteAction = isDemo
+    ? `<span class="btn ghost is-disabled" aria-disabled="true">🎓 教師示範作品 · 不參賽</span>`
+    : apiEnabled
+      ? `<button class="btn ghost" type="button" data-action="vote" data-project="${escapeAttr(project.id)}" ${voted ? "disabled" : ""}>${voted ? "✓ 已投" : "投這件當人氣王"}</button>`
+      : voteUrl
+        ? `<a class="btn ghost" href="${voteUrl}" target="_blank" rel="noreferrer">投這件當人氣王</a>`
+        : "";
   app.innerHTML = `
     <section class="detail-hero theme-${project.theme}">
       <div class="detail-media">
@@ -794,6 +807,132 @@ function renderApiResults() {
         </a>
       `).join("")}
     </section>
+  `;
+}
+
+function renderRules() {
+  const rules = (window.SITE_CONFIG && window.SITE_CONFIG.rules) || {};
+  const voting = (window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
+  app.innerHTML = `
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Voting Rules</p>
+        <h1>📜 投票規則</h1>
+        <p>${escapeHtml(rules.purpose || "")}</p>
+      </div>
+    </section>
+
+    <section class="rules-grid">
+      <article class="panel">
+        <h2>📅 時間</h2>
+        <p><strong>投票期：</strong>${escapeHtml(rules.period || "")}</p>
+        <p><strong>結果公布：</strong>${escapeHtml(rules.publishAt || "")}</p>
+      </article>
+
+      <article class="panel">
+        <h2>📝 怎麼投</h2>
+        <ol>
+          ${(rules.howToVote || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+        </ol>
+        <p class="notice">${escapeHtml(rules.duringPeriod || "")}</p>
+      </article>
+
+      <article class="panel">
+        <h2>🛡️ 隱私保護</h2>
+        <ul>
+          ${(rules.privacy || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+        </ul>
+      </article>
+
+      <article class="panel">
+        <h2>${escapeHtml(rules.antiFraud && rules.antiFraud.title || "防灌票")}</h2>
+        <p class="muted">灌票無用 — 14 個獎位中只有 3 個由觀眾票決定，其他 11 個獎由內部評鑑與評審決定，灌爆也搶不到主獎。</p>
+        <ol>
+          ${(rules.antiFraud && rules.antiFraud.layers || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+        </ol>
+      </article>
+
+      <article class="panel">
+        <h2>🎓 教師示範作品</h2>
+        <p>K01 瘋狂大賽車為指導老師示範作品，<strong>不參賽、不可投票</strong>，僅供觀眾試玩學習。</p>
+      </article>
+    </section>
+
+    <div class="detail-actions">
+      <a class="btn primary" href="#browse">看作品去 →</a>
+      <a class="btn ghost" href="#awards">看 14 個獎項 →</a>
+    </div>
+  `;
+}
+
+function renderAwards() {
+  const awards = (window.SITE_CONFIG && window.SITE_CONFIG.awards) || {};
+  const list = awards.list || [];
+  const projects = getProjects();
+  const findById = (id) => projects.find(p => p.id === id);
+
+  const now = Date.now();
+  const publishAt = awards.publishAt ? new Date(awards.publishAt).getTime() : null;
+  const published = publishAt && now >= publishAt;
+
+  const groups = [
+    { code: "A", title: "🎟️ 觀眾票決定", subtitle: "灌票只能影響這三個獎" },
+    { code: "B", title: "📊 內部評鑑決定", subtitle: "社員 + 老師打分，灌票無效" },
+    { code: "C", title: "💛 評審特別獎", subtitle: "KIRIN 私心保留，兜底機制" },
+  ];
+
+  app.innerHTML = `
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Awards Lineup</p>
+        <h1>🏆 14 個獎位 · 通通有獎</h1>
+        <p>${escapeHtml(awards.purpose || "")}</p>
+        <p class="${published ? "success" : "notice"}">
+          ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
+        </p>
+      </div>
+    </section>
+
+    ${groups.map(g => {
+      const items = list.filter(a => a.group === g.code);
+      if (!items.length) return "";
+      return `
+        <section class="awards-group">
+          <h2>${escapeHtml(g.title)}</h2>
+          <p class="muted">${escapeHtml(g.subtitle)}</p>
+          <div class="awards-grid">
+            ${items.map(a => {
+              const winner = a.winner ? findById(a.winner) : null;
+              return `
+                <article class="panel award-card ${a.winner ? "has-winner" : ""}">
+                  <div class="award-head">
+                    <span class="award-icon">${a.icon}</span>
+                    <h3>${escapeHtml(a.name)}</h3>
+                  </div>
+                  <p class="award-desc">${escapeHtml(a.desc)}</p>
+                  ${published && winner ? `
+                    <a class="award-winner" href="#detail/${winner.id}">
+                      <strong>🏆 ${escapeHtml(winner.id)}</strong>
+                      <span>${escapeHtml(winner.title)}</span>
+                      ${a.winnerNote ? `<em>${escapeHtml(a.winnerNote)}</em>` : ""}
+                    </a>
+                  ` : published ? `
+                    <p class="muted award-pending">本獎項從缺</p>
+                  ` : `
+                    <p class="muted award-pending">⏳ 等待 6/20 公布</p>
+                  `}
+                </article>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }).join("")}
+
+    <div class="detail-actions">
+      <a class="btn primary" href="#browse">看作品去 →</a>
+      <a class="btn ghost" href="#rules">看投票規則 →</a>
+    </div>
   `;
 }
 

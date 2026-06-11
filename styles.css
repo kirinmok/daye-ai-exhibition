@@ -1304,3 +1304,111 @@ body.is-editing {
     margin-top: 4px;
   }
 }
+
+/* ========================================
+   🎓 K01 教師示範作品徽章
+   ======================================== */
+.project-card-wrap.is-demo {
+  position: relative;
+  border: 2px dashed #b39ddb;
+  border-radius: 14px;
+}
+.demo-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #7e57c2, #4527a0);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.demo-note {
+  color: #7e57c2;
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  padding: 6px 0;
+}
+.btn.ghost.is-disabled {
+  background: rgba(126, 87, 194, 0.15);
+  color: #7e57c2;
+  border-color: #b39ddb;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   🏆 獎項頁
+   ======================================== */
+.awards-group { margin: 32px 0; }
+.awards-group h2 { font-size: 22px; margin-bottom: 4px; }
+.awards-group .muted { color: #888; font-size: 14px; margin-bottom: 16px; }
+.awards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.award-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s;
+}
+.award-card.has-winner {
+  border-color: #ffd966;
+  background: linear-gradient(135deg, rgba(255, 217, 102, 0.08), rgba(255, 217, 102, 0.02));
+  box-shadow: 0 4px 16px rgba(255, 217, 102, 0.15);
+}
+.award-card:hover { transform: translateY(-2px); }
+.award-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.award-icon { font-size: 32px; line-height: 1; }
+.award-card h3 { font-size: 17px; margin: 0; }
+.award-desc { color: #b0b0b0; font-size: 14px; line-height: 1.6; margin-bottom: 14px; flex: 1; }
+.award-winner {
+  display: block;
+  padding: 12px;
+  background: rgba(255, 217, 102, 0.12);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(255, 217, 102, 0.3);
+}
+.award-winner:hover { background: rgba(255, 217, 102, 0.2); }
+.award-winner strong { display: block; color: #ffd966; font-size: 18px; margin-bottom: 4px; }
+.award-winner span { display: block; color: #fff; font-size: 14px; }
+.award-winner em { display: block; color: #999; font-size: 12px; margin-top: 6px; font-style: italic; }
+.award-pending { color: #666; font-style: italic; text-align: center; padding: 12px 0; }
+
+/* ========================================
+   📜 投票規則頁
+   ======================================== */
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.rules-grid .panel h2 { font-size: 18px; margin-bottom: 12px; }
+.rules-grid .panel ol, .rules-grid .panel ul { padding-left: 22px; line-height: 1.8; }
+.rules-grid .panel .notice {
+  color: #ffd966;
+  font-size: 13px;
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(255, 217, 102, 0.1);
+  border-radius: 6px;
+}
+.rules-grid .panel .muted {
+  color: #999;
+  font-size: 13px;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+.success { color: #66bb6a; font-weight: 600; }
