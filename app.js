@@ -624,12 +624,6 @@ function renderDetail(projectId) {
       </div>
     </section>
 
-    <section class="feedback-layout is-simple">
-      <article class="panel comments-panel">
-        <h2>留言摘錄</h2>
-        ${renderComments(stats.votes)}
-      </article>
-    </section>
   `;
   bindDetailControls(project);
   bindAdminEditButtons();
@@ -692,7 +686,7 @@ function renderResults() {
       </section>
       <article class="panel">
         <h2>公平性規則</h2>
-        <p>正式結果將在投票截止與資料檢查後公布。若偵測到灌票、洗票或不當留言，主辦單位可保留刪除與調整統計的權利。</p>
+        <p>正式結果將在投票截止與資料檢查後公布。若偵測到灌票、洗票，主辦單位可保留刪除與調整統計的權利。學生填寫的優化建議僅內部供作者學習使用，不對外公開。</p>
         <p class="form-message">${state.resultsSyncMessage || "尚未同步表單結果。"}</p>
       </article>
     `;
@@ -717,7 +711,6 @@ function renderResults() {
       <article><span>總投票數</span><strong>${votes.length}</strong></article>
       <article><span>平均 AI 結合創意分最高</span><strong>${topCreativity.id}</strong><small>${topCreativity.title}</small></article>
       <article><span>平均遊戲趣味性分最高</span><strong>${topGameplay.id}</strong><small>${topGameplay.title}</small></article>
-      <article><span>留言數最多</span><strong>${topComments.id}</strong><small>${topComments.title}</small></article>
       <article><span>最受歡迎類型</span><strong>${popularGenre.genre}</strong><small>${popularGenre.count} 票</small></article>
     </section>
 
