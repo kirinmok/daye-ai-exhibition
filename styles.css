@@ -1236,6 +1236,14 @@ body.is-editing {
 .vote-api-panel {
   background: linear-gradient(135deg, #fff5f5 0%, #ffe8ec 100%);
   border: 2px solid #ffd0d4;
+  color: #333;
+}
+.vote-api-panel h2,
+.vote-api-panel .panel-head h2 {
+  color: #2c2c2c;
+}
+.vote-api-panel .notice {
+  color: #555;
 }
 .vote-count-large {
   font-size: 1.8rem;
