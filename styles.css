@@ -1341,7 +1341,8 @@ body.is-editing {
   color: white;
   font-weight: 600;
 }
-.vote-modal textarea {
+.vote-modal textarea,
+.vote-modal input[type="text"] {
   width: 100%;
   padding: 10px 12px;
   border: 1.5px solid #e0e0e0;
@@ -1350,6 +1351,11 @@ body.is-editing {
   font-size: 0.95rem;
   resize: vertical;
   box-sizing: border-box;
+  color: #222;
+  background: #fff;
+}
+.vote-modal textarea::placeholder {
+  color: #999;
 }
 .vote-modal textarea:focus {
   border-color: #ff5a5f;
