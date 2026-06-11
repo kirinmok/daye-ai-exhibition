@@ -11,7 +11,7 @@ const PROJECTS = [
   {
     id: "G01",
     title: "歡樂時光屋",
-    cover: "./assets/games/happy-house-3d/cover-4x3.png",
+    cover: "./assets/games/happy-house-3d/cover-4x3.jpg",
     genre: ["3D", "劇情探索"],
     tags: ["3D", "馬戲團", "劇情", "氛圍"],
     platform: "Web",
@@ -70,7 +70,7 @@ const PROJECTS = [
   {
     id: "G05",
     title: "第三次世界大戰",
-    cover: "./assets/games/gunfight/cover-4x3.png",
+    cover: "./assets/games/gunfight/cover-4x3.jpg",
     genre: ["射擊", "3D"],
     tags: ["FPS", "HUD", "戰場", "WASD"],
     platform: "Web",
@@ -84,7 +84,7 @@ const PROJECTS = [
   {
     id: "G06",
     title: "八掌溪環保爭霸戰",
-    cover: "./assets/games/bazhang-eco-battle/cover-4x3.png",
+    cover: "./assets/games/bazhang-eco-battle/cover-4x3.jpg",
     boxCover: "./assets/games/bazhang-eco-battle/cover-2x3.jpg",
     genre: ["環境教育", "策略"],
     tags: ["八掌溪", "永續", "知識", "對戰"],
@@ -142,7 +142,7 @@ const PROJECTS = [
   {
     id: "G10",
     title: "微型死域",
-    cover: "./assets/games/micro-dead-zone/cover-4x3.png",
+    cover: "./assets/games/micro-dead-zone/cover-4x3.jpg",
     genre: ["射擊", "生存"],
     tags: ["工廠", "獵場", "越肩視角", "Three.js", "滑鼠鎖定"],
     platform: "Web",
@@ -156,7 +156,7 @@ const PROJECTS = [
   {
     id: "G11",
     title: "霓虹星際突擊",
-    cover: "./assets/games/neon-star-assault/cover-4x3.png",
+    cover: "./assets/games/neon-star-assault/cover-4x3.jpg",
     genre: ["射擊", "動作"],
     tags: ["霓虹", "宇宙", "自動射擊", "BOSS戰"],
     platform: "Web",
@@ -166,21 +166,6 @@ const PROJECTS = [
     theme: "magenta",
     featured: false,
     createdAt: "2026-06-05",
-  },
-  {
-    id: "K01",
-    title: "瘋狂大賽車",
-    cover: "./assets/games/kirin-racing/cover-16x9.jpg",
-    boxCover: "./assets/games/kirin-racing/cover-2x3.jpg",
-    genre: ["3D 賽車", "體感控制"],
-    tags: ["橢圓賽道", "Pico W", "手把", "Three.js", "pico-car"],
-    platform: "Web",
-    shortPitch: "油門踩下去，彎道才是真正的考驗。",
-    description: "駕駛你的方塊賽車，在橢圓賽道、障礙路線與自由探索場景中衝刺、甩尾、收集金幣，挑戰最速圈與排行榜。你能成為賽道上的第一名嗎？",
-    playUrl: "./games/kirin-racing/index.html",
-    theme: "ember",
-    featured: true,
-    createdAt: "2026-06-06",
   },
   {
     id: "G12",
@@ -240,6 +225,21 @@ const PROJECTS = [
     theme: "magenta",
     featured: false,
     createdAt: "2026-06-10",
+  },
+  {
+    id: "K01",
+    title: "瘋狂大賽車",
+    cover: "./assets/games/kirin-racing/cover-16x9.jpg",
+    boxCover: "./assets/games/kirin-racing/cover-2x3.jpg",
+    genre: ["3D 賽車", "體感控制"],
+    tags: ["橢圓賽道", "Pico W", "手把", "Three.js", "pico-car"],
+    platform: "Web",
+    shortPitch: "油門踩下去，彎道才是真正的考驗。",
+    description: "駕駛你的方塊賽車，在橢圓賽道、障礙路線與自由探索場景中衝刺、甩尾、收集金幣，挑戰最速圈與排行榜。你能成為賽道上的第一名嗎？",
+    playUrl: "./games/kirin-racing/index.html",
+    theme: "ember",
+    featured: true,
+    createdAt: "2026-06-06",
   },
 ];
 

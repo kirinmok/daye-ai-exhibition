@@ -2,8 +2,8 @@ const app = document.querySelector("#app");
 const VOTE_STORE_KEY = "daye-ai-exhibition-votes";
 const VOTED_STORE_KEY = "daye-ai-exhibition-voted-projects";
 const ADMIN_OVERRIDE_KEY = "daye-ai-exhibition-project-overrides";
-const ADMIN_SESSION_KEY = "daye-ai-exhibition-admin-session";
-const ADMIN_PASSCODE = "daye2026";
+const ADMIN_SESSION_KEY = "daye-ai-exhibition-admin-session-v2";
+const ADMIN_PASSCODE_HASH = "0361f4d39a4c3021d8110a9ab8441be4f0f2028b51089cd626970bed260a06f0";
 const SCORE_FIELDS = [
   ["creativity", "AI 結合創意"],
   ["art", "畫面精緻度"],
@@ -16,6 +16,17 @@ const SCORE_FIELDS = [
 const VOTE_LOCK_KEY = "daye-vote-lock-v1";
 const VOTE_TAG_PRESET = ["畫面好看", "玩法有趣", "創意特別", "想推薦朋友", "期待後續更新"];
 let voteModalProject = null;
+
+async function sha256Hex(value) {
+  const bytes = new TextEncoder().encode(String(value || ""));
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function isValidAdminPasscode(passcode) {
+  if (!globalThis.crypto?.subtle) return false;
+  return (await sha256Hex(passcode)) === ADMIN_PASSCODE_HASH;
+}
 
 function getVoteApiUrl() {
   const cfg = (typeof window !== "undefined" && window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
@@ -972,16 +983,25 @@ function renderAdmin() {
         </form>
       </section>
     `;
-    document.querySelector("#adminLoginForm").addEventListener("submit", (event) => {
+    document.querySelector("#adminLoginForm").addEventListener("submit", async (event) => {
       event.preventDefault();
+      const form = event.currentTarget;
+      const message = document.querySelector("#adminLoginMessage");
+      const submitButton = form.querySelector("button[type='submit']");
       const passcode = new FormData(event.currentTarget).get("passcode");
-      if (passcode !== ADMIN_PASSCODE) {
-        document.querySelector("#adminLoginMessage").textContent = "管理碼不正確。";
-        return;
+      submitButton.disabled = true;
+      message.textContent = "";
+      try {
+        if (!(await isValidAdminPasscode(passcode))) {
+          message.textContent = "管理碼不正確。";
+          return;
+        }
+        state.isAdmin = true;
+        sessionStorage.setItem(ADMIN_SESSION_KEY, "active");
+        renderAdmin();
+      } finally {
+        submitButton.disabled = false;
       }
-      state.isAdmin = true;
-      sessionStorage.setItem(ADMIN_SESSION_KEY, "active");
-      renderAdmin();
     });
     return;
   }
