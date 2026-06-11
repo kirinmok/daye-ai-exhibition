@@ -409,16 +409,12 @@ a {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent 28%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 36px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 32%);
   content: "";
 }
 
 .has-cover-image::before {
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.56)),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 44px);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.45));
 }
 
 .cover-art span,
