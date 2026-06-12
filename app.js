@@ -439,6 +439,7 @@ function setActiveNav(page) {
 function renderHome() {
   const projects = getProjects();
   const featured = homeFeaturedProjects(projects);
+  const start = dateParts(EVENT_CONFIG.startDate || "6/15（一）");
   const deadline = dateParts(EVENT_CONFIG.deadline);
   const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
   app.innerHTML = `
@@ -453,14 +454,17 @@ function renderHome() {
         </div>
       </div>
       <div class="hero-console" aria-label="成果展摘要">
-        <div><strong>${projects.length}</strong><span>展示作品</span></div>
         <div>
-          <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
-          <span>結果公布${publish.suffix ? `・${escapeHtml(publish.suffix)}` : ""}</span>
+          <strong class="hero-date">${escapeHtml(start.date)} <small>(${escapeHtml(start.weekday)})</small></strong>
+          <span>投票開始</span>
         </div>
         <div class="deadline-card">
           <strong class="hero-date">${escapeHtml(deadline.date)} <small>(${escapeHtml(deadline.weekday)})</small></strong>
-          <span>投票截止</span>
+          <span>投票截止${deadline.suffix ? `・${escapeHtml(deadline.suffix)}` : ""}</span>
+        </div>
+        <div>
+          <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
+          <span>結果公布${publish.suffix ? `・${escapeHtml(publish.suffix)}` : ""}</span>
         </div>
       </div>
     </section>
