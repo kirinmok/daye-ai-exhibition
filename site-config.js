@@ -36,7 +36,7 @@ window.SITE_CONFIG = {
     },
   },
   // ========================================
-  // 🏆 獎項設計（精選 6 個，約 1/3 作品有獎；截止後公布）
+  // 🏆 獎項設計（5 個獎位；截止後公布）
   // ========================================
   awards: {
     publishAt: "2026-06-20T09:00:00+08:00",
@@ -46,7 +46,7 @@ window.SITE_CONFIG = {
       // A 組：觀眾票決定（1 個）
       { id: "popular_gold", group: "A", source: "audience", icon: "🥇", name: "人氣金獎",
         desc: "觀眾用腳投出來的「最想再玩一次」", winner: null, winnerNote: "" },
-      // B 組：內部評鑑決定（5 個）
+      // B 組：內部評鑑決定（4 個）
       { id: "best_visual", group: "B", source: "internal", icon: "🎨", name: "最佳畫面設計獎",
         desc: "一打開「哇」一聲，美的記憶點最深", winner: null, winnerNote: "" },
       { id: "best_gameplay", group: "B", source: "internal", icon: "🕹️", name: "最佳玩法獎",
