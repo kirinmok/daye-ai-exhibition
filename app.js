@@ -448,8 +448,8 @@ function renderHome() {
         <h1 class="event-title"><span>大業 AI 繪圖社</span><span>期末成果展</span></h1>
         <p>${escapeHtml(EVENT_CONFIG.purpose)}</p>
         <div class="hero-actions">
-          <a class="btn primary" href="#browse">開始試玩與投票</a>
-          <a class="btn ghost" href="#rules">了解投票規則</a>
+          <a class="btn primary" href="#browse">立刻試玩投票</a>
+          <a class="btn ghost" href="#rules">先看投票玩法</a>
         </div>
       </div>
       <div class="hero-console" aria-label="成果展摘要">
@@ -467,15 +467,15 @@ function renderHome() {
 
     <section class="info-strip">
       <article>
-        <h2>為什麼舉辦？</h2>
-        <p>讓學生作品不只停在課堂作業，而是被真實觀眾打開、試玩、比較與回饋，累積一次完整的公開展示經驗。</p>
+        <h2>你的一票，決定人氣王</h2>
+        <p>這場成果展不是把作品放上來而已，而是把舞台交給觀眾。誰的畫面最吸睛？誰的玩法最想再玩一次？票選結果會說話。</p>
       </article>
       <article>
-        <h2>你可以怎麼參加？</h2>
+        <h2>先玩過，再出手</h2>
         <p>${EVENT_CONFIG.votingRule}</p>
       </article>
       <article>
-        <h2>參與有什麼好處？</h2>
+        <h2>你的回饋，作者看得到</h2>
         <p>${EVENT_CONFIG.participationValue} ${EVENT_CONFIG.notice}</p>
       </article>
     </section>
