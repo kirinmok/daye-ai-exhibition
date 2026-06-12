@@ -446,10 +446,10 @@ function renderHome() {
       <div class="hero-copy">
         <p class="eyebrow">${EVENT_CONFIG.subtitle}</p>
         <h1 class="event-title"><span>大業 AI 繪圖社</span><span>期末成果展</span></h1>
-        <p>這是一個校內遊戲成果展。觀眾可以瀏覽作品、試玩、票選支持，並留下能幫助創作者改進的具體建議。</p>
+        <p>${escapeHtml(EVENT_CONFIG.purpose)}</p>
         <div class="hero-actions">
-          <a class="btn primary" href="#browse">進入作品瀏覽</a>
-          <a class="btn ghost" href="#results">查看投票狀態</a>
+          <a class="btn primary" href="#browse">開始試玩與投票</a>
+          <a class="btn ghost" href="#rules">了解投票規則</a>
         </div>
       </div>
       <div class="hero-console" aria-label="成果展摘要">
@@ -467,16 +467,16 @@ function renderHome() {
 
     <section class="info-strip">
       <article>
-        <h2>投票辦法</h2>
+        <h2>為什麼舉辦？</h2>
+        <p>讓學生作品不只停在課堂作業，而是被真實觀眾打開、試玩、比較與回饋，累積一次完整的公開展示經驗。</p>
+      </article>
+      <article>
+        <h2>你可以怎麼參加？</h2>
         <p>${EVENT_CONFIG.votingRule}</p>
       </article>
       <article>
-        <h2>抽獎辦法</h2>
-        <p>${EVENT_CONFIG.rewardRule}</p>
-      </article>
-      <article>
-        <h2>隱私提醒</h2>
-        <p>${EVENT_CONFIG.notice}公開頁只顯示作品代號、作品內容與整理後的統計結果。</p>
+        <h2>參與有什麼好處？</h2>
+        <p>${EVENT_CONFIG.participationValue} ${EVENT_CONFIG.notice}</p>
       </article>
     </section>
 
