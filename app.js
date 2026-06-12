@@ -918,7 +918,7 @@ function renderRules() {
 
     <div class="detail-actions">
       <a class="btn primary" href="#browse">看作品去</a>
-      <a class="btn ghost" href="#awards">看 6 個獎項</a>
+      <a class="btn ghost" href="#awards">看 5 個獎項</a>
       <a class="btn ghost" href="#scoring">看評分標準</a>
     </div>
   `;
@@ -944,7 +944,7 @@ function renderAwards() {
     <section class="section-head">
       <div>
         <p class="eyebrow">Awards Lineup</p>
-        <h1>🏆 6 個獎位 · 精選 1/3</h1>
+        <h1>🏆 獎項</h1>
         <p>${escapeHtml(awards.purpose || "")}</p>
         <p class="${published ? "success" : "notice"}">
           ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
@@ -1034,7 +1034,7 @@ function renderScoring() {
     </section>
 
     <div class="detail-actions">
-      <a class="btn primary" href="#awards">看 6 個獎項 →</a>
+      <a class="btn primary" href="#awards">看 5 個獎項 →</a>
       <a class="btn ghost" href="#rules">看投票規則 →</a>
       <a class="btn ghost" href="#browse">看作品去 →</a>
     </div>

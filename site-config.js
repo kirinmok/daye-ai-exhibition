@@ -12,7 +12,7 @@ window.SITE_CONFIG = {
     deadline: "6/19（五）23:59",
     publishDate: "2026-06-20T09:00:00+08:00",
     publishLabel: "6/20（六）早上 9:00",
-    prizeSummary: "精選 6 個獎位（1 觀眾票 + 5 內部評鑑）",
+    prizeSummary: "5 個獎位（1 觀眾票 + 4 內部評鑑）",
     prototypeVotingEnabled: false,
     // K01 是教師示範作品，不可投票
     nonVotableIds: ["K01"],
@@ -41,7 +41,7 @@ window.SITE_CONFIG = {
   awards: {
     publishAt: "2026-06-20T09:00:00+08:00",
     publishLabel: "6/20（六）早上 9:00",
-    purpose: "精選 6 個獎位 — 一人可獨得多項、品質不足從缺、寧缺勿濫",
+    purpose: "一人可獨得多項、品質不足從缺、寧缺勿濫",
     list: [
       // A 組：觀眾票決定（1 個）
       { id: "popular_gold", group: "A", source: "audience", icon: "🥇", name: "人氣金獎",
@@ -55,15 +55,13 @@ window.SITE_CONFIG = {
         desc: "別人沒做過、有梗、讓人想截圖傳朋友", winner: null, winnerNote: "" },
       { id: "most_potential", group: "B", source: "internal", icon: "🚀", name: "最具潛力獎",
         desc: "創新、契合 SDGs、有教育意義 — 不抄襲、不雷同市面遊戲，真心想做點什麼", winner: null, winnerNote: "" },
-      { id: "best_teamwork", group: "B", source: "internal", icon: "🤝", name: "最佳團隊合作獎",
-        desc: "分工最漂亮、作品看得到兩人以上的腦", winner: null, winnerNote: "" },
     ],
   },
   // ========================================
   // 📐 評分標準（獨立頁 #scoring）
   // ========================================
   scoring: {
-    intro: "從 16 件作品中精選 6 個獎位（約 1/3），寧缺勿濫，每個獎都有重量。",
+    intro: "5 個獎位由觀眾票與內部評鑑共同決定，寧缺勿濫，每個獎都有重量。",
     sources: [
       {
         icon: "🎟️",
@@ -77,15 +75,14 @@ window.SITE_CONFIG = {
       },
       {
         icon: "📊",
-        name: "內部評鑑決定（5 個獎）",
-        count: 5,
+        name: "內部評鑑決定（4 個獎）",
+        count: 4,
         desc: "社員 + 指導老師對每件作品進行深度評鑑。",
         criteria: [
           "🎨 美術視覺 — 畫面設計感、美學一致性",
           "🕹️ 玩法機制 — 遊戲性、流暢度、上手難度",
           "💡 創意概念 — 原創性、有梗、想截圖傳朋友",
           "🚀 潛力 + SDGs — 不抄襲、契合議題、有教育意義",
-          "🤝 團隊合作 — 分工漂亮、看得到兩人以上的腦",
         ],
       },
     ],
@@ -94,7 +91,7 @@ window.SITE_CONFIG = {
       "❌ 品質不足時獎項可從缺 — 寧缺勿濫，不硬擠出獎項",
       "投票期間不公開即時排行，避免從眾效應",
       "觀眾留言僅供作者內部學習，不對外公開（保護學生）",
-      "灌票無用設計：6 個獎只有 1 個由觀眾票決定",
+      "灌票無用設計：5 個獎只有 1 個由觀眾票決定",
       "教師示範作品（K01）不參賽、不可投票",
     ],
   },
@@ -168,7 +165,7 @@ window.SITE_CONFIG = {
         "Google 表單限制每個帳號只能填答一次",
         "投票期間不公開排行，降低跟風投票與拉票壓力",
         "截止後主辦會檢查異常回覆，必要時保留排除異常票的權利",
-        "觀眾票只決定 1 個獎位（人氣金獎），其餘 5 個獎由內部評鑑決定",
+        "觀眾票只決定 1 個獎位（人氣金獎），其餘 4 個獎由內部評鑑決定",
       ],
     },
   },
