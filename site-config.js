@@ -2,11 +2,11 @@ window.SITE_CONFIG = {
   clubName: "大業 AI 繪圖社",
   voting: {
     enabled: true,
-    // 內部投票記票端點（保留，作為總票數計數）
-    apiUrl: "https://script.google.com/macros/s/AKfycbxgCO77XBbXkPfdkc-boGKkES2MmPfifbcn5Dmo_7ByQKHcp5z9a9I6jeGjhv8VzBnVmQ/exec",
+    // 正式公開版只導向 Google Form，不在網站按鈕先記票，避免未完成表單也被計入。
+    apiUrl: "",
     // ✅ 觀眾投票表單（30 秒 4 題簡易版）— 2026-06-11 上線
-    formUrl: "https://forms.gle/B81W1Y1css1tnMkv9",
-    gameParamName: "",
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSdqblGxiiy7UW7IIf3AdZto3Y3hdrxMYe356wz9tdtAHAZEaA/viewform",
+    gameParamName: "entry.611798134",
     startDate: "2026-06-15",
     endDate: "2026-06-19",
     deadline: "6/19（五）23:59",
@@ -18,7 +18,8 @@ window.SITE_CONFIG = {
     nonVotableIds: ["K01"],
   },
   results: {
-    csvUrl: "https://docs.google.com/spreadsheets/d/1r61IuxeCxEE8VNvw_ArUzbsmusc2Vhf4_evi6NGZs_E/gviz/tq?tqx=out:csv&gid=731019646",
+    // 投票期間不讀公開 CSV，避免誤公開個資。截止後請接上已清理欄位的 CSV。
+    csvUrl: "",
     refreshSeconds: 60,
     publicRankingsOpen: false,
     useMockVotes: false,
@@ -79,28 +80,27 @@ window.SITE_CONFIG = {
   // 📜 投票規則（顯示在規則頁）
   // ========================================
   rules: {
-    purpose: "讓親師生用 30 秒選出心目中最棒的作品，幫每位作者收到一份「被看見」的禮物。",
+    purpose: "讓親師生選出心目中最想支持的作品，並給創作者一份可以繼續改進的回饋。",
     period: "2026/6/15（一）~ 6/19（五）23:59",
     publishAt: "2026/6/20（六）早上 9:00",
     howToVote: [
       "在每件作品的詳情頁點「投這件當人氣王」",
-      "跳到 30 秒簡易表單 → 選最愛 + 一句話",
-      "一個 Gmail 帳號只能投一次（防灌票）",
+      "進入 Google 表單後，選擇最想支持的作品並留下回饋",
+      "需登入 Google 帳號，每個帳號限填一次",
     ],
-    duringPeriod: "投票期間只顯示已收到票數，不公開排行 — 避免從眾、避免拉票影響結果",
+    duringPeriod: "投票期間不公開即時排行與票數，避免從眾與拉票影響結果",
     privacy: [
-      "學生填寫的優化建議僅內部供作者學習使用，不對外公開",
-      "觀眾的「一句話」會經主辦審核才上「精選好評牆」",
-      "任何負面評論不公開",
+      "投票回覆與建議由主辦整理後供作者學習使用",
+      "公開頁只呈現作品代號、作品內容與整理後的統計結果",
+      "請勿在回饋文字中填寫姓名、班級、座號、學號或聯絡方式",
     ],
     antiFraud: {
-      title: "🛡️ 五層防灌票",
+      title: "🛡️ 公平性規則",
       layers: [
-        "Layer 1：localStorage + 裝置指紋 + Gmail 帳號鎖（三重）",
-        "Layer 2：Form 強制 Google 登入，投完不顯示票數變化（灌完沒爽感）",
-        "Layer 3：後端 logging（IP + UA + 時間戳）偵測異常",
-        "Layer 4：截止後審計 — 主辦保留刪除異常票權利",
-        "Layer 5：設計層 — 14 獎只有 3 個是觀眾票決定，灌爆也只能搶人氣獎",
+        "Google 表單限制每個帳號只能填答一次",
+        "投票期間不公開排行，降低跟風投票與拉票壓力",
+        "截止後主辦會檢查異常回覆，必要時保留排除異常票的權利",
+        "觀眾票只決定人氣類獎項，其他獎項由內部評鑑與評審決定",
       ],
     },
   },

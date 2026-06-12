@@ -244,6 +244,16 @@ function getVotingConfig() {
   return (window.SITE_CONFIG || {}).voting || {};
 }
 
+function shouldShowPublicVoteCounts() {
+  const resultsConfig = getResultsConfig();
+  return Boolean(
+    getVoteApiUrl()
+    || (resultsConfig.csvUrl && (resultsConfig.publicRankingsOpen || isVotingEnded()))
+    || resultsConfig.useMockVotes
+    || getVotingConfig().prototypeVotingEnabled
+  );
+}
+
 function getLocalVotes() {
   try {
     return JSON.parse(localStorage.getItem(VOTE_STORE_KEY) || "[]");
@@ -418,21 +428,20 @@ function setActiveNav(page) {
 function renderHome() {
   const projects = getProjects();
   const featured = homeFeaturedProjects(projects);
-  const totalVotes = allVotes().length;
   app.innerHTML = `
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">${EVENT_CONFIG.subtitle}</p>
         <h1 class="event-title"><span>大業 AI 繪圖社</span><span>期末成果展</span></h1>
-        <p>這是一個校內遊戲成果展。觀眾可以瀏覽作品、試玩、匿名投票，並留下能幫助創作者改進的具體建議。</p>
+        <p>這是一個校內遊戲成果展。觀眾可以瀏覽作品、試玩、票選支持，並留下能幫助創作者改進的具體建議。</p>
         <div class="hero-actions">
           <a class="btn primary" href="#browse">進入作品瀏覽</a>
-          <a class="btn ghost" href="#results">查看即時統計</a>
+          <a class="btn ghost" href="#results">查看投票狀態</a>
         </div>
       </div>
       <div class="hero-console" aria-label="成果展摘要">
         <div><strong>${projects.length}</strong><span>展示作品</span></div>
-        <div><strong>${totalVotes}</strong><span>目前票數</span></div>
+        <div><strong>截止後</strong><span>公布結果</span></div>
         <div class="deadline-card"><strong>${EVENT_CONFIG.deadline}</strong><span>投票截止</span></div>
       </div>
     </section>
@@ -448,7 +457,7 @@ function renderHome() {
       </article>
       <article>
         <h2>隱私提醒</h2>
-        <p>${EVENT_CONFIG.notice}前台只顯示作品代號、作品內容與匿名統計。</p>
+        <p>${EVENT_CONFIG.notice}公開頁只顯示作品代號、作品內容與整理後的統計結果。</p>
       </article>
     </section>
 
@@ -573,6 +582,11 @@ function renderProjectCard(project) {
   const apiEnabled = !!getVoteApiUrl();
   const nonVotableIds = (window.SITE_CONFIG && window.SITE_CONFIG.voting && window.SITE_CONFIG.voting.nonVotableIds) || [];
   const isDemo = nonVotableIds.includes(project.id);
+  const voteLabel = isDemo
+    ? "🎓 不參賽"
+    : shouldShowPublicVoteCounts()
+      ? `${apiEnabled ? apiVoteCountOf(project.id) : projectStats(project).voteCount} 票`
+      : "投票中";
   return `
     <article class="project-card-wrap ${isDemo ? "is-demo" : ""}">
       ${renderAdminEditButton(project.id)}
@@ -591,7 +605,7 @@ function renderProjectCard(project) {
           <h2>${escapeHtml(project.title)}</h2>
           <p>${escapeHtml(project.shortPitch)}</p>
           <div class="card-footer">
-            <span data-vote-count-for="${project.id}">${isDemo ? "🎓 不參賽" : apiVoteCountOf(project.id) + " 票"}</span>
+            <span data-vote-count-for="${project.id}">${voteLabel}</span>
           </div>
         </div>
       </a>
@@ -681,16 +695,17 @@ function renderResults() {
         <div>
           <p class="eyebrow">Results Dashboard</p>
           <h1>投票統計</h1>
-          <p>正式 Google Form / Sheet 尚未接上，因此目前不顯示假排行或假評分。</p>
+          <p>投票期間不公開即時票數與排行，避免影響後續投票選擇。截止後由主辦檢查資料並公布整理後結果。</p>
         </div>
       </section>
       <section class="stats-grid private-results-grid">
-        <article><span>目前已投</span><strong>0</strong><small>票</small></article>
-        <article><span>資料來源</span><strong>未連接</strong><small>等待 Sheet CSV</small></article>
+        <article><span>投票狀態</span><strong>開放中</strong><small>${EVENT_CONFIG.deadline} 截止</small></article>
+        <article><span>排行公開</span><strong>截止後</strong><small>完成資料檢查後公布</small></article>
+        <article><span>資料來源</span><strong>Google Form</strong><small>不公開原始回覆</small></article>
       </section>
       <article class="panel">
-        <h2>下一步</h2>
-        <p>建立 Google 投票表單，將回應試算表發布為 CSV，並把 CSV URL 填入 <code>site-config.js</code> 的 <code>results.csvUrl</code>。</p>
+        <h2>公平性說明</h2>
+        <p>投票需登入 Google 帳號且每個帳號限填一次。公開頁不顯示原始回覆資料；主辦會在截止後整理票數與回饋，再公布結果。</p>
       </article>
     `;
     return;
@@ -710,7 +725,7 @@ function renderResults() {
       </section>
       <article class="panel">
         <h2>公平性規則</h2>
-        <p>正式結果將在投票截止與資料檢查後公布。若偵測到灌票、洗票，主辦單位可保留刪除與調整統計的權利。學生填寫的優化建議僅內部供作者學習使用，不對外公開。</p>
+        <p>正式結果將在投票截止與資料檢查後公布。若偵測到異常回覆，主辦單位可保留排除異常資料與調整統計的權利。學生填寫的優化建議僅內部供作者學習使用，不對外公開。</p>
         <p class="form-message">${state.resultsSyncMessage || "尚未同步表單結果。"}</p>
       </article>
     `;
@@ -751,8 +766,10 @@ function renderResults() {
 
 function renderApiResults() {
   const projects = getProjects();
+  const nonVotableIds = (window.SITE_CONFIG && window.SITE_CONFIG.voting && window.SITE_CONFIG.voting.nonVotableIds) || [];
+  const votableProjects = projects.filter((project) => !nonVotableIds.includes(project.id));
   const counts = state.apiVoteCounts || {};
-  const total = Object.values(counts).reduce((a, b) => a + Number(b || 0), 0);
+  const total = votableProjects.reduce((sum, project) => sum + Number(counts[project.id] || 0), 0);
   const ended = isVotingEnded();
   const publicOpen = (window.SITE_CONFIG && window.SITE_CONFIG.results && window.SITE_CONFIG.results.publicRankingsOpen) || false;
   const showRanking = ended || publicOpen;
@@ -775,14 +792,14 @@ function renderApiResults() {
       </section>
       <article class="panel">
         <h2>公平性說明</h2>
-        <p>每個裝置每件作品限 1 票，伺服端記錄裝置指紋以利賽後篩異常。投票截止前不公開排行，避免羊群效應。</p>
+        <p>投票期間不公開各作品排行。截止後主辦會檢查資料，排除不參賽作品與異常資料後，再公布整理後結果。</p>
       </article>
     `;
     return;
   }
 
   // 截止後：完整排行 + 票數柱狀圖
-  const ranked = projects
+  const ranked = votableProjects
     .map((p) => ({ id: p.id, title: p.title, votes: Number(counts[p.id] || 0) }))
     .sort((a, b) => b.votes - a.votes);
   const maxVotes = Math.max(...ranked.map((r) => r.votes), 1);
@@ -793,7 +810,7 @@ function renderApiResults() {
       <div>
         <p class="eyebrow">Results Dashboard</p>
         <h1>人氣票數排行</h1>
-        <p>總投票數 <strong>${total}</strong> 票｜展品 ${projects.length} 件｜每位觀眾每件作品限 1 票。</p>
+        <p>總投票數 <strong>${total}</strong> 票｜參賽作品 ${votableProjects.length} 件｜每位觀眾限填 1 次。</p>
       </div>
     </section>
 
@@ -856,8 +873,8 @@ function renderRules() {
       </article>
 
       <article class="panel">
-        <h2>${escapeHtml(rules.antiFraud && rules.antiFraud.title || "防灌票")}</h2>
-        <p class="muted">灌票無用 — 14 個獎位中只有 3 個由觀眾票決定，其他 11 個獎由內部評鑑與評審決定，灌爆也搶不到主獎。</p>
+        <h2>${escapeHtml(rules.antiFraud && rules.antiFraud.title || "公平性規則")}</h2>
+        <p class="muted">觀眾票主要影響人氣類獎項；其他獎項由內部評鑑與評審決定，讓作品能從不同面向被看見。</p>
         <ol>
           ${(rules.antiFraud && rules.antiFraud.layers || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
         </ol>
@@ -887,9 +904,9 @@ function renderAwards() {
   const published = publishAt && now >= publishAt;
 
   const groups = [
-    { code: "A", title: "🎟️ 觀眾票決定", subtitle: "灌票只能影響這三個獎" },
-    { code: "B", title: "📊 內部評鑑決定", subtitle: "社員 + 老師打分，灌票無效" },
-    { code: "C", title: "💛 評審特別獎", subtitle: "KIRIN 私心保留，兜底機制" },
+    { code: "A", title: "🎟️ 觀眾票決定", subtitle: "由觀眾支持度決定的人氣類獎項" },
+    { code: "B", title: "📊 內部評鑑決定", subtitle: "由社員與老師依作品表現綜合評定" },
+    { code: "C", title: "💛 評審特別獎", subtitle: "補足作品亮點與努力歷程的特別獎項" },
   ];
 
   app.innerHTML = `
@@ -953,10 +970,10 @@ function renderAbout() {
       <div>
         <p class="eyebrow">About Event</p>
         <h1>社團介紹與評分標準</h1>
-        <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。本次成果展開放校內試玩、匿名投票與建議，作品創作者以代號展示。</p>
+        <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。本次成果展開放校內試玩、觀眾票選與建議回饋，作品創作者以代號展示。</p>
       </div>
       <div class="info-strip about-strip">
-        <article><h2>展期與時程</h2><p>6/15（一）開展、6/19（五）投票截止。期間每人可投 1 件最想支持的作品，截止後排行自動公開。</p></article>
+        <article><h2>展期與時程</h2><p>6/15（一）開展、6/19（五）投票截止。期間每個 Google 帳號可填答 1 次，截止後由主辦整理並公布結果。</p></article>
         <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示，本次共展出 ${getProjects().length} 件作品。</p></article>
         <article><h2>五項評分標準</h2><p>AI 結合創意、畫面精緻度、遊戲趣味性、操作流暢度、整體體驗滿意度，每項 1～5 分，請依實際試玩體驗給分。</p></article>
       </div>
