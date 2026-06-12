@@ -22,7 +22,7 @@ const PROJECTS = [
   { code: 'G02', title: '風味抉擇：漢堡帝國' },
   { code: 'G03', title: '八掌溪跑酷' },
   { code: 'G04', title: '嘉義美食大亨' },
-  { code: 'G05', title: '槍戰' },
+  { code: 'G05', title: '第三次世界大戰' },
   { code: 'G06', title: '八掌溪環保爭霸戰' },
   { code: 'G07', title: '深淵騎士' },
   { code: 'G08', title: '拯救永續島' },
