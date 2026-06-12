@@ -163,6 +163,18 @@ a {
   border-radius: 16px;
   padding: 18px;
 }
+.hero-date {
+  display: inline-block;
+  line-height: 1.1;
+}
+.hero-date small {
+  display: block;
+  font-size: 0.45em;
+  font-weight: 600;
+  color: #ffd966;
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
 
 .eyebrow {
   margin: 0 0 12px;
