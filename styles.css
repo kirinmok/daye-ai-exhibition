@@ -206,6 +206,58 @@ a {
   line-height: 1.75;
 }
 
+/* ========================================
+   📖 About 頁 hero 背景 (社團介紹與評分標準)
+   ======================================== */
+.about-page {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  padding: clamp(36px, 7vw, 88px) clamp(28px, 5vw, 64px);
+  background-image:
+    linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.30) 50%, rgba(0, 0, 0, 0.65) 100%),
+    url('./assets/hero/about-2026.jpg');
+  background-size: cover;
+  background-position: center top;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+.about-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at left bottom, rgba(0, 0, 0, 0.65) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+.about-page > * {
+  position: relative;
+  z-index: 1;
+}
+.about-page h1 {
+  color: #ffffff;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.85);
+}
+.about-page .eyebrow {
+  color: #ffd966 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
+}
+.about-page p {
+  color: #f5f5f5 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+.about-page h2,
+.about-page h3 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+}
+.about-page .panel,
+.about-page article {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
 .hero-actions,
 .detail-actions {
   display: flex;
