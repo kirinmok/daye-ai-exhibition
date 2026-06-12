@@ -224,6 +224,18 @@ a {
   white-space: nowrap;
 }
 
+.hero-console .hero-date {
+  font-size: clamp(28px, 3.4vw, 46px);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.hero-console .hero-date small {
+  font-size: 0.48em;
+  color: var(--muted);
+  vertical-align: 0.12em;
+}
+
 .hero-console span,
 .stats-grid span,
 .stats-grid small {

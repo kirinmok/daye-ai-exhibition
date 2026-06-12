@@ -244,6 +244,17 @@ function getVotingConfig() {
   return (window.SITE_CONFIG || {}).voting || {};
 }
 
+function dateParts(label) {
+  const text = String(label || "").trim();
+  const match = text.match(/^([^（(]+)[（(]([^）)]+)[）)]\s*(.*)$/);
+  if (!match) return { date: text, weekday: "", suffix: "" };
+  return { date: match[1].trim(), weekday: match[2].trim(), suffix: match[3].trim() };
+}
+
+function dateDetail(parts, fallback = "") {
+  return [parts.weekday ? `(${parts.weekday})` : "", parts.suffix].filter(Boolean).join(" ") || fallback;
+}
+
 function shouldShowPublicVoteCounts() {
   const resultsConfig = getResultsConfig();
   return Boolean(
@@ -428,6 +439,8 @@ function setActiveNav(page) {
 function renderHome() {
   const projects = getProjects();
   const featured = homeFeaturedProjects(projects);
+  const deadline = dateParts(EVENT_CONFIG.deadline);
+  const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
   app.innerHTML = `
     <section class="hero">
       <div class="hero-copy">
@@ -441,8 +454,14 @@ function renderHome() {
       </div>
       <div class="hero-console" aria-label="成果展摘要">
         <div><strong>${projects.length}</strong><span>展示作品</span></div>
-        <div><strong>截止後</strong><span>公布結果</span></div>
-        <div class="deadline-card"><strong>${EVENT_CONFIG.deadline}</strong><span>投票截止</span></div>
+        <div>
+          <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
+          <span>結果公布${publish.suffix ? `・${escapeHtml(publish.suffix)}` : ""}</span>
+        </div>
+        <div class="deadline-card">
+          <strong class="hero-date">${escapeHtml(deadline.date)} <small>(${escapeHtml(deadline.weekday)})</small></strong>
+          <span>投票截止</span>
+        </div>
       </div>
     </section>
 
@@ -689,6 +708,8 @@ function renderResults() {
   const votes = allVotes();
   const resultsConfig = getResultsConfig();
   const usingExternalResults = Boolean(resultsConfig.csvUrl);
+  const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
+  const publishDetail = dateDetail(publish, "完成資料檢查後");
   if (!usingExternalResults && !resultsConfig.useMockVotes && votes.length === 0) {
     app.innerHTML = `
       <section class="section-head dashboard-head">
@@ -700,7 +721,7 @@ function renderResults() {
       </section>
       <section class="stats-grid private-results-grid">
         <article><span>投票狀態</span><strong>開放中</strong><small>${EVENT_CONFIG.deadline} 截止</small></article>
-        <article><span>排行公開</span><strong>截止後</strong><small>完成資料檢查後公布</small></article>
+        <article><span>結果公布</span><strong>${escapeHtml(publish.date)}</strong><small>${escapeHtml(publishDetail)}</small></article>
         <article><span>資料來源</span><strong>Google Form</strong><small>不公開原始回覆</small></article>
       </section>
       <article class="panel">
@@ -721,7 +742,7 @@ function renderResults() {
       </section>
       <section class="stats-grid private-results-grid">
         <article><span>目前已投</span><strong>${votes.length}</strong><small>票</small></article>
-        <article><span>排行公開</span><strong>截止後</strong><small>${EVENT_CONFIG.deadline}</small></article>
+        <article><span>結果公布</span><strong>${escapeHtml(publish.date)}</strong><small>${escapeHtml(publishDetail)}</small></article>
       </section>
       <article class="panel">
         <h2>公平性規則</h2>
@@ -773,7 +794,8 @@ function renderApiResults() {
   const ended = isVotingEnded();
   const publicOpen = (window.SITE_CONFIG && window.SITE_CONFIG.results && window.SITE_CONFIG.results.publicRankingsOpen) || false;
   const showRanking = ended || publicOpen;
-  const deadlineText = (typeof EVENT_CONFIG !== "undefined" && EVENT_CONFIG.deadline) || "投票截止後";
+  const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
+  const publishDetail = dateDetail(publish, "完成資料檢查後");
 
   // 投票期間：只顯示總票數、不顯示排行
   if (!showRanking) {
@@ -782,12 +804,12 @@ function renderApiResults() {
         <div>
           <p class="eyebrow">Results Dashboard</p>
           <h1>投票統計</h1>
-          <p>投票期間只公開總票數，不公開排行，避免影響後續投票選擇。排行將在 <strong>${escapeHtml(deadlineText)}</strong> 截止後自動公開。</p>
+          <p>投票期間只公開總票數，不公開排行，避免影響後續投票選擇。整理後結果預計於 <strong>${escapeHtml(publish.date)} ${escapeHtml(publishDetail)}</strong> 公布。</p>
         </div>
       </section>
       <section class="stats-grid private-results-grid">
         <article><span>目前已投</span><strong>${total}</strong><small>票</small></article>
-        <article><span>排行公開</span><strong>截止後</strong><small>${escapeHtml(deadlineText)}</small></article>
+        <article><span>結果公布</span><strong>${escapeHtml(publish.date)}</strong><small>${escapeHtml(publishDetail)}</small></article>
         <article><span>展品數</span><strong>${projects.length}</strong><small>件</small></article>
       </section>
       <article class="panel">
