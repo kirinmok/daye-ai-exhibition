@@ -450,7 +450,7 @@ function renderHome() {
         <p>${escapeHtml(EVENT_CONFIG.purpose)}</p>
         <div class="hero-actions">
           <a class="btn primary" href="#browse">立刻試玩投票</a>
-          <a class="btn ghost" href="#rules">先看投票玩法</a>
+          <a class="btn ghost" href="#rules">先看投票 Q&A</a>
         </div>
       </div>
       <div class="hero-console" aria-label="成果展摘要">
@@ -866,25 +866,32 @@ function renderApiResults() {
 
 function renderRules() {
   const rules = (window.SITE_CONFIG && window.SITE_CONFIG.rules) || {};
-  const voting = (window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
+  const faqs = rules.faq || [];
   app.innerHTML = `
     <section class="section-head">
       <div>
-        <p class="eyebrow">Voting Rules</p>
-        <h1>📜 投票規則</h1>
+        <p class="eyebrow">Voting Q&A</p>
+        <h1>投票 Q&A</h1>
         <p>${escapeHtml(rules.purpose || "")}</p>
       </div>
     </section>
 
     <section class="rules-grid">
       <article class="panel">
-        <h2>📅 時間</h2>
+        <h2>活動時程</h2>
         <p><strong>投票期：</strong>${escapeHtml(rules.period || "")}</p>
         <p><strong>結果公布：</strong>${escapeHtml(rules.publishAt || "")}</p>
       </article>
 
+      ${faqs.map((item) => `
+        <article class="panel faq-panel">
+          <h2>${escapeHtml(item.question || "")}</h2>
+          <p>${escapeHtml(item.answer || "")}</p>
+        </article>
+      `).join("")}
+
       <article class="panel">
-        <h2>📝 怎麼投</h2>
+        <h2>投票步驟</h2>
         <ol>
           ${(rules.howToVote || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
         </ol>
@@ -892,7 +899,7 @@ function renderRules() {
       </article>
 
       <article class="panel">
-        <h2>🛡️ 隱私保護</h2>
+        <h2>隱私保護</h2>
         <ul>
           ${(rules.privacy || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
         </ul>
@@ -907,14 +914,14 @@ function renderRules() {
       </article>
 
       <article class="panel">
-        <h2>🎓 教師示範作品</h2>
+        <h2>教師示範作品</h2>
         <p>K01 瘋狂大賽車為指導老師示範作品，<strong>不參賽、不可投票</strong>，僅供觀眾試玩學習。</p>
       </article>
     </section>
 
     <div class="detail-actions">
-      <a class="btn primary" href="#browse">看作品去 →</a>
-      <a class="btn ghost" href="#awards">看 14 個獎項 →</a>
+      <a class="btn primary" href="#browse">看作品去</a>
+      <a class="btn ghost" href="#awards">看 14 個獎項</a>
     </div>
   `;
 }
@@ -985,7 +992,7 @@ function renderAwards() {
 
     <div class="detail-actions">
       <a class="btn primary" href="#browse">看作品去 →</a>
-      <a class="btn ghost" href="#rules">看投票規則 →</a>
+      <a class="btn ghost" href="#rules">看投票 Q&A</a>
     </div>
   `;
 }

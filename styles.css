@@ -1405,6 +1405,13 @@ body.is-editing {
 }
 .rules-grid .panel h2 { font-size: 18px; margin-bottom: 12px; }
 .rules-grid .panel ol, .rules-grid .panel ul { padding-left: 22px; line-height: 1.8; }
+.rules-grid .faq-panel h2 {
+  color: var(--accent);
+}
+.rules-grid .faq-panel p {
+  color: var(--muted);
+  line-height: 1.75;
+}
 .rules-grid .panel .notice {
   color: #ffd966;
   font-size: 13px;
