@@ -913,10 +913,6 @@ function renderRules() {
         </ol>
       </article>
 
-      <article class="panel">
-        <h2>教師示範作品</h2>
-        <p>K01 瘋狂大賽車為指導老師示範作品，<strong>不參賽、不可投票</strong>，僅供觀眾試玩學習。</p>
-      </article>
     </section>
 
     <div class="detail-actions">
