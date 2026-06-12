@@ -397,6 +397,7 @@ function route() {
   else if (page === "about") renderAbout();
   else if (page === "rules") renderRules();
   else if (page === "awards") renderAwards();
+  else if (page === "scoring") renderScoring();
   else if (page === "admin") renderAdmin();
   else renderHome();
   app.focus({ preventScroll: true });
@@ -917,7 +918,8 @@ function renderRules() {
 
     <div class="detail-actions">
       <a class="btn primary" href="#browse">看作品去</a>
-      <a class="btn ghost" href="#awards">看 14 個獎項</a>
+      <a class="btn ghost" href="#awards">看 6 個獎項</a>
+      <a class="btn ghost" href="#scoring">看評分標準</a>
     </div>
   `;
 }
@@ -942,7 +944,7 @@ function renderAwards() {
     <section class="section-head">
       <div>
         <p class="eyebrow">Awards Lineup</p>
-        <h1>🏆 14 個獎位 · 通通有獎</h1>
+        <h1>🏆 6 個獎位 · 精選 1/3</h1>
         <p>${escapeHtml(awards.purpose || "")}</p>
         <p class="${published ? "success" : "notice"}">
           ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
@@ -989,6 +991,52 @@ function renderAwards() {
     <div class="detail-actions">
       <a class="btn primary" href="#browse">看作品去 →</a>
       <a class="btn ghost" href="#rules">看投票 Q&A</a>
+    </div>
+  `;
+}
+
+function renderScoring() {
+  const scoring = (window.SITE_CONFIG && window.SITE_CONFIG.scoring) || {};
+  const sources = scoring.sources || [];
+  const fairness = scoring.fairness || [];
+
+  app.innerHTML = `
+    <section class="section-head">
+      <div>
+        <p class="eyebrow">Scoring & Criteria</p>
+        <h1>📐 評分標準</h1>
+        <p>${escapeHtml(scoring.intro || "")}</p>
+      </div>
+    </section>
+
+    <section class="scoring-grid">
+      ${sources.map(s => `
+        <article class="panel scoring-card">
+          <div class="scoring-head">
+            <span class="scoring-icon">${s.icon || ""}</span>
+            <div>
+              <h2>${escapeHtml(s.name || "")}</h2>
+              <p class="scoring-desc">${escapeHtml(s.desc || "")}</p>
+            </div>
+          </div>
+          <ul class="scoring-criteria">
+            ${(s.criteria || []).map(c => `<li>${escapeHtml(c)}</li>`).join("")}
+          </ul>
+        </article>
+      `).join("")}
+    </section>
+
+    <section class="panel fairness-panel">
+      <h2>🛡️ 公平性保證</h2>
+      <ul>
+        ${fairness.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
+      </ul>
+    </section>
+
+    <div class="detail-actions">
+      <a class="btn primary" href="#awards">看 6 個獎項 →</a>
+      <a class="btn ghost" href="#rules">看投票規則 →</a>
+      <a class="btn ghost" href="#browse">看作品去 →</a>
     </div>
   `;
 }
