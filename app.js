@@ -472,15 +472,15 @@ function renderHome() {
 
     <section class="info-strip">
       <article>
-        <h2>你的一票，決定人氣王</h2>
+        <h2>${projects.length} 款作品，等你試玩評選</h2>
         <p>這場成果展不是把作品放上來而已，而是把舞台交給觀眾。誰的畫面最吸睛？誰的玩法最想再玩一次？票選結果會說話。</p>
       </article>
       <article>
-        <h2>先玩過，再出手</h2>
+        <h2>先玩過，再投票</h2>
         <p>${EVENT_CONFIG.votingRule}</p>
       </article>
       <article>
-        <h2>你的回饋，作者看得到</h2>
+        <h2>投票之外，也留下回饋</h2>
         <p>${EVENT_CONFIG.participationValue} ${EVENT_CONFIG.notice}</p>
       </article>
     </section>
@@ -908,7 +908,7 @@ function renderRules() {
 
       <article class="panel">
         <h2>${escapeHtml(rules.antiFraud && rules.antiFraud.title || "公平性規則")}</h2>
-        <p class="muted">觀眾票主要影響人氣類獎項；其他獎項由內部評鑑與評審決定，讓作品能從不同面向被看見。</p>
+        <p class="muted">觀眾票主要影響人氣金獎；其他獎項由專業評選決定，讓作品能從不同面向被看見。</p>
         <ol>
           ${(rules.antiFraud && rules.antiFraud.layers || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
         </ol>
@@ -918,8 +918,8 @@ function renderRules() {
 
     <div class="detail-actions">
       <a class="btn primary" href="#browse">看作品去</a>
-      <a class="btn ghost" href="#awards">看 5 個獎項</a>
-      <a class="btn ghost" href="#scoring">看評分標準</a>
+      <a class="btn ghost" href="#awards">看獎項說明</a>
+      <a class="btn ghost" href="#scoring">看評選標準</a>
     </div>
   `;
 }
@@ -935,16 +935,16 @@ function renderAwards() {
   const published = publishAt && now >= publishAt;
 
   const groups = [
-    { code: "A", title: "🎟️ 觀眾票決定", subtitle: "由觀眾支持度決定的人氣類獎項" },
-    { code: "B", title: "📊 內部評鑑決定", subtitle: "由社員與老師依作品表現綜合評定" },
-    { code: "C", title: "💛 評審特別獎", subtitle: "補足作品亮點與努力歷程的特別獎項" },
+    { code: "A", title: "人氣票選", subtitle: "由觀眾票選出最想支持、最想推薦的作品" },
+    { code: "B", title: "專業評選", subtitle: "由社團與指導老師依作品表現綜合評定" },
+    { code: "C", title: "評審特別獎", subtitle: "補足作品亮點與努力歷程的特別獎項" },
   ];
 
   app.innerHTML = `
     <section class="section-head">
       <div>
-        <p class="eyebrow">Awards Lineup</p>
-        <h1>🏆 獎項</h1>
+        <p class="eyebrow">Awards</p>
+        <h1>獎項說明</h1>
         <p>${escapeHtml(awards.purpose || "")}</p>
         <p class="${published ? "success" : "notice"}">
           ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
@@ -989,7 +989,8 @@ function renderAwards() {
     }).join("")}
 
     <div class="detail-actions">
-      <a class="btn primary" href="#browse">看作品去 →</a>
+      <a class="btn primary" href="#browse">看作品去</a>
+      <a class="btn ghost" href="#scoring">看評選標準</a>
       <a class="btn ghost" href="#rules">看投票 Q&A</a>
     </div>
   `;
@@ -1003,8 +1004,8 @@ function renderScoring() {
   app.innerHTML = `
     <section class="section-head">
       <div>
-        <p class="eyebrow">Scoring & Criteria</p>
-        <h1>📐 評分標準</h1>
+        <p class="eyebrow">Evaluation Criteria</p>
+        <h1>評選標準</h1>
         <p>${escapeHtml(scoring.intro || "")}</p>
       </div>
     </section>
@@ -1027,16 +1028,16 @@ function renderScoring() {
     </section>
 
     <section class="panel fairness-panel">
-      <h2>🛡️ 公平性保證</h2>
+      <h2>公平性原則</h2>
       <ul>
         ${fairness.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
       </ul>
     </section>
 
     <div class="detail-actions">
-      <a class="btn primary" href="#awards">看 5 個獎項 →</a>
-      <a class="btn ghost" href="#rules">看投票規則 →</a>
-      <a class="btn ghost" href="#browse">看作品去 →</a>
+      <a class="btn primary" href="#awards">看獎項說明</a>
+      <a class="btn ghost" href="#rules">看投票 Q&A</a>
+      <a class="btn ghost" href="#browse">看作品去</a>
     </div>
   `;
 }
@@ -1046,13 +1047,13 @@ function renderAbout() {
     <section class="about-page">
       <div>
         <p class="eyebrow">About Event</p>
-        <h1>社團介紹與評分標準</h1>
+        <h1>社團介紹與活動說明</h1>
         <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。本次成果展開放校內試玩、觀眾票選與建議回饋，作品創作者以代號展示。</p>
       </div>
       <div class="info-strip about-strip">
         <article><h2>展期與時程</h2><p>6/15（一）開展、6/19（五）投票截止。期間每個 Google 帳號可填答 1 次，截止後由主辦整理並公布結果。</p></article>
         <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示，本次共展出 ${getProjects().length} 件作品。</p></article>
-        <article><h2>五項評分標準</h2><p>AI 結合創意、畫面精緻度、遊戲趣味性、操作流暢度、整體體驗滿意度，每項 1～5 分，請依實際試玩體驗給分。</p></article>
+        <article><h2>觀眾回饋面向</h2><p>表單會蒐集 AI 結合創意、畫面精緻度、遊戲趣味性、操作流暢度與整體體驗等回饋，提供作者作為後續修改參考。</p></article>
       </div>
     </section>
   `;

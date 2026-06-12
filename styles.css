@@ -207,7 +207,7 @@ a {
 }
 
 /* ========================================
-   📖 About 頁 hero 背景 (社團介紹與評分標準)
+   📖 About 頁 hero 背景 (社團介紹與活動說明)
    ======================================== */
 .about-page {
   position: relative;
@@ -1505,7 +1505,7 @@ body.is-editing {
 .award-pending { color: #666; font-style: italic; text-align: center; padding: 12px 0; }
 
 /* ========================================
-   📜 投票規則頁
+   📜 投票 Q&A 頁
    ======================================== */
 .rules-grid {
   display: grid;
@@ -1539,7 +1539,7 @@ body.is-editing {
 .success { color: #66bb6a; font-weight: 600; }
 
 /* ========================================
-   📐 評分標準頁
+   📐 評選標準頁
    ======================================== */
 .scoring-grid {
   display: grid;
