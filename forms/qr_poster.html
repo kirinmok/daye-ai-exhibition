@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>大業 AI 繪圖社 成果展 · QR 海報</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+    width: 210mm;
+    min-height: 297mm;
+    background: linear-gradient(135deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22mm 20mm;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 25%, rgba(255, 217, 102, 0.16), transparent 50%),
+      radial-gradient(circle at 80% 75%, rgba(168, 85, 247, 0.18), transparent 50%);
+    pointer-events: none;
+  }
+  .layer { position: relative; z-index: 1; }
+  .header { text-align: center; }
+  .eyebrow {
+    color: #ffd966;
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: 6px;
+    margin: 0 0 8mm 0;
+  }
+  h1 {
+    font-size: 38pt;
+    margin: 0;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff, #ffd966);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 3px;
+  }
+  .subtitle {
+    font-size: 14pt;
+    margin: 5mm 0 0;
+    color: rgba(255, 255, 255, 0.88);
+    letter-spacing: 1px;
+  }
+  .qr-wrap {
+    background: #fff;
+    padding: 6mm;
+    border-radius: 6mm;
+    box-shadow: 0 6mm 20mm rgba(255, 217, 102, 0.45);
+  }
+  .qr-wrap img {
+    display: block;
+    width: 80mm;
+    height: 80mm;
+  }
+  .url {
+    text-align: center;
+    font-family: 'Menlo', 'Courier New', monospace;
+    font-size: 10pt;
+    color: rgba(255, 255, 255, 0.78);
+    margin: 5mm 0 0;
+    letter-spacing: 1px;
+  }
+  .dates {
+    display: flex;
+    gap: 6mm;
+  }
+  .date-card {
+    background: rgba(0, 0, 0, 0.45);
+    border: 1.5pt solid rgba(255, 217, 102, 0.35);
+    border-radius: 5mm;
+    padding: 5mm 7mm;
+    text-align: center;
+    min-width: 36mm;
+  }
+  .date-card .date {
+    font-size: 26pt;
+    font-weight: 900;
+    color: #ffd966;
+    line-height: 1;
+  }
+  .date-card .weekday {
+    font-size: 10pt;
+    color: #ffd966;
+    margin: 2mm 0 3mm;
+  }
+  .date-card .label {
+    font-size: 11pt;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .bullets {
+    display: flex;
+    gap: 5mm;
+    width: 100%;
+  }
+  .bullet {
+    flex: 1;
+    font-size: 10.5pt;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 217, 102, 0.10);
+    border: 1pt solid rgba(255, 217, 102, 0.2);
+    border-radius: 3mm;
+    padding: 4mm 4mm;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .bullet .icon {
+    font-size: 20pt;
+    display: block;
+    margin-bottom: 2mm;
+  }
+  .footer {
+    font-size: 9pt;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 4px;
+    margin: 0;
+  }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+  <div class="header layer">
+    <p class="eyebrow">DAYE AI ART CLUB · FINAL GAME EXHIBITION</p>
+    <h1>大業 AI 繪圖社<br>期末成果展</h1>
+    <p class="subtitle">15 件學生作品 · 你的一票就是評審</p>
+  </div>
+
+  <div class="layer" style="text-align:center;">
+    <div class="qr-wrap">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?data=https%3A%2F%2Fkirinmok.github.io%2Fdaye-ai-exhibition%2F&size=600x600&margin=4&ecc=H"
+           alt="QR Code 連到大業 AI 繪圖社成果展">
+    </div>
+    <p class="url">kirinmok.github.io/daye-ai-exhibition</p>
+  </div>
+
+  <div class="dates layer">
+    <div class="date-card">
+      <div class="date">6/15</div>
+      <div class="weekday">(一)</div>
+      <div class="label">投票開始</div>
+    </div>
+    <div class="date-card">
+      <div class="date">6/19</div>
+      <div class="weekday">(五) 23:59</div>
+      <div class="label">投票截止</div>
+    </div>
+    <div class="date-card">
+      <div class="date">6/20</div>
+      <div class="weekday">(六) 9:00</div>
+      <div class="label">結果公布</div>
+    </div>
+  </div>
+
+  <div class="bullets layer">
+    <div class="bullet">
+      <span class="icon">⏱</span>
+      30 秒投票<br>每帳號限投一次
+    </div>
+    <div class="bullet">
+      <span class="icon">🏆</span>
+      5 個獎位<br>寧缺勿濫
+    </div>
+    <div class="bullet">
+      <span class="icon">🎁</span>
+      猜對人氣金獎<br>抽小禮品
+    </div>
+  </div>
+
+  <p class="footer layer">SCAN · PLAY · VOTE</p>
+</body>
+</html>
