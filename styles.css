@@ -1615,7 +1615,9 @@ body.is-editing {
         導致 h2 跟 p 都 21px 沒主從感
    ======================================== */
 .about-page .info-strip {
-  margin-top: 32px;
+  margin-top: clamp(48px, 8vw, 96px);
+  margin-bottom: clamp(24px, 4vw, 48px);
+  gap: 20px;
 }
 .about-page .info-strip article {
   padding: 26px 24px;
