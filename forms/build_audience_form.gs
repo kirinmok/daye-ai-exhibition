@@ -1,7 +1,7 @@
 /**
- * 大業 AI 繪圖社｜🎮 觀眾投票表單建構（30 秒簡易版）
+ * 大業 AI 繪圖社｜🎮 觀眾投票表單建構（6 題 1 分鐘版）
  *
- * 設計：給校外觀眾、家長、其他班學生填，30 秒搞定
+ * 設計：3 票決定 3 個獎位（人氣金獎 + 觀眾畫面獎 + 觀眾玩法獎）
  * 公平性：Google 帳號限制 + 登入必填
  *
  * 安裝步驟：
@@ -12,8 +12,11 @@
  */
 
 const FORM_TITLE = '🎮 大業 AI 繪圖社｜2026 學期末成果展｜觀眾投票';
-const FORM_DESC = '⏱ 預估填寫時間：30 秒\n\n' +
-  '🎯 用一票讓你最愛的作品被看見！\n\n' +
+const FORM_DESC = '⏱ 預估填寫時間：1 分鐘\n\n' +
+  '🎯 你的 3 票會決定 3 個獎位 —\n' +
+  '   🥇 人氣金獎\n' +
+  '   🎨 觀眾畫面獎\n' +
+  '   🕹️ 觀眾玩法獎\n\n' +
   '📅 投票期：6/15（一）~ 6/19（五）23:59\n' +
   '📊 結果公布：6/20（六）早上 9:00\n\n' +
   '⚠️ 規則：\n' +
@@ -48,33 +51,47 @@ function buildAudienceForm() {
   form.setLimitOneResponsePerUser(true);
   form.setShowLinkToRespondAgain(false);
   form.setConfirmationMessage(
-    '🎉 感謝你的一票！\n\n' +
+    '🎉 感謝你的 3 票！\n\n' +
     '✨ 6/20（六）早上 9:00 公布結果\n' +
     '預測對的話我們會用 IG 限動感謝你 ❤️\n\n' +
     '⚠ 投票期間我們不公開即時排行，但相信你的眼光！'
   );
 
-  // ===== 第 1 題：你最愛的作品（必填）=====
+  // ===== 第 1 題：人氣金獎（必填）=====
   form.addListItem()
-    .setTitle('🏆 你最愛的作品是？')
-    .setHelpText('一票投給最打動你的作品。每人限投一次！')
+    .setTitle('🥇 你最愛的作品是？（人氣金獎）')
+    .setHelpText('最打動你、最想推薦給朋友玩的那一件。')
     .setChoiceValues(PROJECTS)
     .setRequired(true);
 
-  // ===== 第 2 題：一句話為什麼（選填）=====
+  // ===== 第 2 題：觀眾畫面獎（必填）=====
+  form.addListItem()
+    .setTitle('🎨 畫面最讚的作品是？（觀眾畫面獎）')
+    .setHelpText('視覺風格、美術設計、畫面表現最吸引你的那一件。\n可以跟第 1 題不同，也可以一樣。')
+    .setChoiceValues(PROJECTS)
+    .setRequired(true);
+
+  // ===== 第 3 題：觀眾玩法獎（必填）=====
+  form.addListItem()
+    .setTitle('🕹️ 玩法最有趣的作品是？（觀眾玩法獎）')
+    .setHelpText('操作最順手、機制最有趣、最想再玩一次的那一件。\n可以跟前兩題不同，也可以一樣。')
+    .setChoiceValues(PROJECTS)
+    .setRequired(true);
+
+  // ===== 第 4 題：一句話為什麼（選填）=====
   form.addParagraphTextItem()
-    .setTitle('💬 一句話告訴我們為什麼選它（選填）')
-    .setHelpText('例：好玩、畫面好看、有梗、想再玩一次。\n你的好評有機會被選上「精選好評牆」！\n（負面評論不公開，會送內部給作者改進用）')
+    .setTitle('💬 一句話告訴我們，為什麼這幾件作品打動你？（選填）')
+    .setHelpText('例：「G02 的漢堡帝國畫面超有梗」「G08 拯救永續島玩起來最爽」。\n你的好評有機會被選上「精選好評牆」！\n（負面評論不公開，會送內部給作者改進用）')
     .setRequired(false);
 
-  // ===== 第 3 題：預測人氣金獎（選填，A 版互動）=====
+  // ===== 第 5 題：預測人氣金獎（選填，抽獎用）=====
   form.addListItem()
-    .setTitle('🔮 你猜誰會得「人氣金獎」？（選填）')
-    .setHelpText('猜對的話 6/20 公布時你會被看見哦 ✨')
+    .setTitle('🔮 你猜誰會得「人氣金獎」？（選填，抽獎用）')
+    .setHelpText('猜對的話 6/20 公布時你自動進入抽獎池 ✨')
     .setChoiceValues(PROJECTS)
     .setRequired(false);
 
-  // ===== 第 4 題：你是？（選填）=====
+  // ===== 第 6 題：你是？（選填）=====
   form.addMultipleChoiceItem()
     .setTitle('🙋 你是？（選填）')
     .setHelpText('讓我們知道是誰來看了我們的作品')
@@ -88,7 +105,8 @@ function buildAudienceForm() {
   form.setDestination(FormApp.DestinationType.SPREADSHEET, sheet.getId());
 
   Logger.log('========================================');
-  Logger.log('✅ 觀眾投票 Form 建好了！4 題 30 秒版');
+  Logger.log('✅ 觀眾投票 Form 建好了！6 題 1 分鐘版');
+  Logger.log('✨ 3 票決定 3 個獎位：人氣金 + 觀眾畫面 + 觀眾玩法');
   Logger.log('');
   Logger.log('📝 觀眾填這個（要貼進 site-config.js）:');
   Logger.log(form.getPublishedUrl());
