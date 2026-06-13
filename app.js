@@ -902,7 +902,11 @@ function renderRules() {
       <article class="panel">
         <h2>隱私保護</h2>
         <ul>
-          ${(rules.privacy || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
+          ${(rules.privacy || []).map(s => {
+            const isWarn = typeof s === "string" && s.startsWith("[!]");
+            const text = isWarn ? s.slice(3) : s;
+            return `<li${isWarn ? ' class="warn-text"' : ''}>${escapeHtml(text)}</li>`;
+          }).join("")}
         </ul>
       </article>
 

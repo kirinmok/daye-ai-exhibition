@@ -1602,3 +1602,9 @@ body.is-editing {
 .fairness-panel li {
   font-size: 14px;
 }
+
+/* 黃色警示文字（用於 privacy 警告等） */
+.warn-text {
+  color: #ffd966 !important;
+  font-weight: 600;
+}
