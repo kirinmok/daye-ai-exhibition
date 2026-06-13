@@ -1094,7 +1094,7 @@ function renderAbout() {
       <div class="curator-block">
         <p class="curator-label">策展人 ｜ Curator</p>
         <p class="curator-title">大業實驗中學　AI 繪圖社指導老師</p>
-        <p class="curator-name">KIRIN</p>
+        <div class="curator-signature" role="img" aria-label="策展人簽名 KIRIN"></div>
         <blockquote class="curator-statement">
           「這裡的每件作品，背後都有一個少年人<br>
           跟 AI 反覆對話、爭論、妥協的痕跡。<br><br>

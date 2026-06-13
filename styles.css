@@ -2149,16 +2149,16 @@ body.is-editing {
   color: rgba(255, 255, 255, 0.6);
   margin: 0 0 8px;
 }
-.curator-name {
-  font-size: clamp(48px, 7vw, 72px);
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: #ffd966;
-  margin: 0 0 28px;
-  font-family: "Caveat", "Homemade Apple", "Kaushan Script", cursive;
-  font-style: normal;
-  line-height: 1.1;
-  text-shadow: 0 2px 8px rgba(255, 217, 102, 0.2);
+.curator-signature {
+  width: clamp(220px, 32vw, 380px);
+  height: clamp(80px, 11vw, 130px);
+  margin: 0 auto 28px;
+  background: linear-gradient(135deg, #ffd966 0%, #ffa726 50%, #ffd966 100%);
+  -webkit-mask: url('./assets/curator-signature.jpg') center / contain no-repeat;
+  mask: url('./assets/curator-signature.jpg') center / contain no-repeat;
+  -webkit-mask-mode: luminance;
+  mask-mode: luminance;
+  filter: drop-shadow(0 3px 12px rgba(255, 217, 102, 0.35));
 }
 .curator-statement {
   max-width: 560px;
@@ -2191,8 +2191,9 @@ body.is-editing {
   .curator-block {
     padding: 36px 20px;
   }
-  .curator-name {
-    font-size: 32px;
+  .curator-signature {
+    width: 220px;
+    height: 80px;
     margin-bottom: 22px;
   }
   .curator-statement {
