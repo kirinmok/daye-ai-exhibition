@@ -126,7 +126,7 @@ a {
   overflow: hidden;
   background-image:
     linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.30) 50%, rgba(0, 0, 0, 0.65) 100%),
-    url('./assets/hero/hero-2026.jpg');
+    url('./assets/hero/hero-2026.jpg?v=20260613-image-opt');
   background-size: cover;
   background-position: center;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
@@ -216,7 +216,7 @@ a {
   padding: clamp(36px, 7vw, 88px) clamp(28px, 5vw, 64px);
   background-image:
     linear-gradient(135deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.30) 50%, rgba(0, 0, 0, 0.65) 100%),
-    url('./assets/hero/about-2026.jpg');
+    url('./assets/hero/about-2026.jpg?v=20260613-image-opt');
   background-size: cover;
   background-position: center top;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
@@ -1607,4 +1607,31 @@ body.is-editing {
 .warn-text {
   color: #ffd966 !important;
   font-weight: 600;
+}
+
+/* ========================================
+   📖 活動說明頁 info-strip 字級階層
+   修正：原本 .about-page p 的 clamp 蓋住 info-strip p
+        導致 h2 跟 p 都 21px 沒主從感
+   ======================================== */
+.about-page .info-strip {
+  margin-top: 32px;
+}
+.about-page .info-strip article {
+  padding: 26px 24px;
+}
+.about-page .info-strip h2 {
+  font-size: 26px !important;
+  font-weight: 800;
+  margin: 0 0 16px;
+  color: #ffffff !important;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.about-page .info-strip p {
+  font-size: 15px !important;
+  line-height: 1.85;
+  color: #d8d8d8 !important;
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
