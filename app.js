@@ -1099,9 +1099,7 @@ function renderAbout() {
           「這裡的每件作品，背後都有一個少年人<br>
           跟 AI 反覆對話、爭論、妥協的痕跡。<br><br>
           我的工作不是替他們挑出最完美的，<br>
-          是讓他們的努力 ——<br>
-          <strong>包括我自己沒做好的那件示範作品</strong> ——<br>
-          都能被看見。」
+          是讓他們的努力被看見。」
         </blockquote>
         <p class="curator-footer">2026 學期末成果展　·　大業實驗中學</p>
       </div>
