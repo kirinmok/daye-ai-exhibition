@@ -1090,6 +1090,21 @@ function renderAbout() {
           當你試玩一款遊戲時，也試著問問自己：<strong>「這個題目，AI 自己想得出來嗎？」</strong>
         </p>
       </div>
+
+      <div class="curator-block">
+        <p class="curator-label">策展人 ｜ Curator</p>
+        <p class="curator-title">大業實驗中學　AI 繪圖社指導老師</p>
+        <p class="curator-name">KIRIN</p>
+        <blockquote class="curator-statement">
+          「這裡的每件作品，背後都有一個少年人<br>
+          跟 AI 反覆對話、爭論、妥協的痕跡。<br><br>
+          我的工作不是替他們挑出最完美的，<br>
+          是讓他們的努力 ——<br>
+          <strong>包括我自己沒做好的那件示範作品</strong> ——<br>
+          都能被看見。」
+        </blockquote>
+        <p class="curator-footer">2026 學期末成果展　·　大業實驗中學</p>
+      </div>
     </section>
   `;
 }
