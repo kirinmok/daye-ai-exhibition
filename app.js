@@ -1059,6 +1059,37 @@ function renderAbout() {
         <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示，本次共展出 ${getProjects().length} 件作品。</p></article>
         <article><h2>觀眾回饋面向</h2><p>表單會蒐集 AI 結合創意、畫面精緻度、遊戲趣味性、操作流暢度與整體體驗等回饋，提供作者作為後續修改參考。</p></article>
       </div>
+
+      <div class="philosophy-block">
+        <p class="eyebrow">教育設計策略</p>
+        <h2>用題目當鎖鏈 — 逼 AI 跟學生「一起想」</h2>
+        <p class="philosophy-intro">
+          如果只是叫 AI 生個遊戲，AI 會交出它本來就有的版本 — 那是搬運，不是學習。<br>
+          我們刻意開出 <strong>八掌溪、SDGs 永續、SEL 情緒覺察、嘉義在地議題</strong>，
+          是為了讓 AI 也<strong>沒有現成答案</strong> — 學生必須帶著自己的觀點，才能跟 AI 共創出原本不存在的作品。
+        </p>
+        <div class="philosophy-cards">
+          <article>
+            <span class="phi-icon">🔗</span>
+            <h3>題目即鎖鏈</h3>
+            <p>本地化、永續、社會議題 — AI 沒有現成模板，學生必須自己構思故事與機制，才能進入創作。</p>
+          </article>
+          <article>
+            <span class="phi-icon">🤝</span>
+            <h3>共創而非代工</h3>
+            <p>學生帶觀點來，AI 幫忙實作。觀點是人的，技術是 AI 的，作品才是真正的共創。</p>
+          </article>
+          <article>
+            <span class="phi-icon">🌱</span>
+            <h3>意涵不能假</h3>
+            <p>每件作品背後都有一個「為什麼是這個題」的選擇 — 能說出原因，才算真的學到。</p>
+          </article>
+        </div>
+        <p class="philosophy-footer">
+          這些設計反映在每件作品的選題上：八掌溪生態、嘉義美食、永續城市、霸凌與和平、情緒探索⋯⋯<br>
+          當你試玩一款遊戲時，也試著問問自己：<strong>「這個題目，AI 自己想得出來嗎？」</strong>
+        </p>
+      </div>
     </section>
   `;
 }
