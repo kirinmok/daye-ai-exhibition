@@ -2114,6 +2114,117 @@ body.is-editing {
 }
 
 /* ============================================
+   🏆 獎項頁底圖（紅幕+金光頒獎台）
+   ============================================ */
+.awards-page {
+  position: relative;
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 80px) clamp(24px, 4vw, 64px);
+  border-radius: 28px;
+  overflow: hidden;
+  background-image:
+    linear-gradient(180deg,
+      rgba(8, 10, 22, 0.55) 0%,
+      rgba(8, 10, 22, 0.45) 35%,
+      rgba(8, 10, 22, 0.7) 80%,
+      rgba(8, 10, 22, 0.85) 100%),
+    url('./assets/hero/awards-2026.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 217, 102, 0.2);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+}
+.awards-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center top, transparent 0%, rgba(8, 10, 22, 0.4) 80%);
+  pointer-events: none;
+}
+.awards-page > * { position: relative; z-index: 1; }
+
+.awards-hero {
+  text-align: center;
+  margin-bottom: clamp(40px, 6vw, 72px);
+  padding: clamp(20px, 4vw, 56px) 0;
+}
+.awards-hero .eyebrow {
+  color: #ffd966;
+  letter-spacing: 0.32em;
+}
+.awards-hero h1 {
+  color: #fff;
+  font-size: clamp(36px, 6vw, 64px);
+  margin: 16px 0 24px;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6), 0 0 32px rgba(255, 217, 102, 0.15);
+  font-weight: 800;
+}
+.awards-purpose {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: clamp(15px, 1.8vw, 17px);
+  line-height: 1.85;
+  max-width: 760px;
+  margin: 0 auto 22px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+.awards-status {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: rgba(255, 217, 102, 0.12);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  color: #ffd966 !important;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.awards-page .awards-group {
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+.awards-page .awards-group h2 {
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  font-size: clamp(22px, 3vw, 30px);
+}
+.awards-page .awards-group .muted {
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.awards-page .award-card {
+  background: rgba(20, 23, 43, 0.7) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 217, 102, 0.18) !important;
+}
+.awards-page .award-card h3 {
+  color: #ffd966;
+}
+.awards-page .award-card .award-desc {
+  color: rgba(255, 255, 255, 0.82);
+}
+.awards-page .award-pending {
+  color: rgba(255, 217, 102, 0.7) !important;
+}
+
+.awards-actions {
+  justify-content: center;
+  margin-top: clamp(32px, 5vw, 48px);
+}
+
+/* 手機 (≤768px) */
+@media (max-width: 768px) {
+  .awards-page {
+    padding: 32px 18px;
+    border-radius: 18px;
+    background-position: center;
+  }
+  .awards-hero { padding: 12px 0; margin-bottom: 32px; }
+  .awards-hero h1 { font-size: 32px; line-height: 1.2; }
+  .awards-purpose { font-size: 15px; line-height: 1.8; }
+}
+
+/* ============================================
    🖋 策展人簽名區（About 頁底部）
    ============================================ */
 .curator-block {

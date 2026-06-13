@@ -945,16 +945,15 @@ function renderAwards() {
   ];
 
   app.innerHTML = `
-    <section class="section-head">
-      <div>
+    <section class="awards-page">
+      <div class="awards-hero">
         <p class="eyebrow">Awards</p>
         <h1>獎項說明</h1>
-        <p>${escapeHtml(awards.purpose || "")}</p>
-        <p class="${published ? "success" : "notice"}">
+        <p class="awards-purpose">${escapeHtml(awards.purpose || "")}</p>
+        <p class="awards-status ${published ? "success" : "notice"}">
           ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
         </p>
       </div>
-    </section>
 
     ${groups.map(g => {
       const items = list.filter(a => a.group === g.code);
@@ -992,11 +991,12 @@ function renderAwards() {
       `;
     }).join("")}
 
-    <div class="detail-actions">
-      <a class="btn primary" href="#browse">看作品去</a>
-      <a class="btn ghost" href="#scoring">看評選標準</a>
-      <a class="btn ghost" href="#rules">看投票 Q&A</a>
-    </div>
+      <div class="detail-actions awards-actions">
+        <a class="btn primary" href="#browse">看作品去</a>
+        <a class="btn ghost" href="#scoring">看評選標準</a>
+        <a class="btn ghost" href="#rules">看投票 Q&A</a>
+      </div>
+    </section>
   `;
 }
 
