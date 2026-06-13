@@ -29,11 +29,10 @@ echo "🎨 [1/3] 渲染 PNG（截圖用）..."
 echo "🗜  [2/3] PNG → JPG（q88，網頁/社群用）..."
 sips -s format jpeg -s formatOptions 88 "$PNG_TMP" --out "$JPG_OUT" >/dev/null 2>&1
 
-echo "📄 [3/3] 渲染 PDF（列印實體用）..."
-"$CHROME" --headless=new --disable-gpu --no-pdf-header-footer \
-  --print-to-pdf="$PDF_OUT" \
-  --virtual-time-budget=15000 \
-  "file://$HTML_PATH" 2>/dev/null
+echo "📄 [3/3] JPG → PDF（列印實體用）..."
+# 注意：不用 Chrome --print-to-pdf，因為它會把 box-shadow 跟 text-shadow
+# 渲染成實心黑/金色塊。改用 sips 把 JPG 直接嵌進 PDF，保證視覺一致。
+sips -s format pdf "$JPG_OUT" --out "$PDF_OUT" >/dev/null 2>&1
 
 echo ""
 echo "✅ 完成！"
