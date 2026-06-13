@@ -939,8 +939,8 @@ function renderAwards() {
   const published = publishAt && now >= publishAt;
 
   const groups = [
-    { code: "A", title: "人氣票選", subtitle: "由觀眾票選出最想支持、最想推薦的作品" },
-    { code: "B", title: "專業評選", subtitle: "由社員學期末互評，指導老師依互評結果與作品實際表現綜合裁定" },
+    { code: "A", title: "觀眾票選（3 個獎位）", subtitle: "由觀眾票選決定 — 哪件最受歡迎、畫面最讚、玩法最棒" },
+    { code: "B", title: "專業評選（2 個獎位）", subtitle: "由社員與指導老師依作品創意與潛力深度評定" },
     { code: "C", title: "評審特別獎", subtitle: "補足作品亮點與努力歷程的特別獎項" },
   ];
 
