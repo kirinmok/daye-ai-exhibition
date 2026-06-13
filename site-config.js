@@ -41,7 +41,7 @@ window.SITE_CONFIG = {
   awards: {
     publishAt: "2026-06-20T09:00:00+08:00",
     publishLabel: "6/20（六）早上 9:00",
-    purpose: "5 個獎項，獻給最被看見的作品。人氣金獎由觀眾票選，其餘獎項由社團與指導老師依作品表現綜合評定。",
+    purpose: "5 個獎項，獻給最被看見的作品。人氣金獎由觀眾票選，其餘獎項由社員與指導老師依作品表現綜合評定。",
     list: [
       // A 組：觀眾票決定（1 個）
       { id: "popular_gold", group: "A", source: "audience", icon: "🥇", name: "人氣金獎",

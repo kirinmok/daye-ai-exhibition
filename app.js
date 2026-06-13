@@ -940,7 +940,7 @@ function renderAwards() {
 
   const groups = [
     { code: "A", title: "人氣票選", subtitle: "由觀眾票選出最想支持、最想推薦的作品" },
-    { code: "B", title: "專業評選", subtitle: "由社團與指導老師依作品表現綜合評定" },
+    { code: "B", title: "專業評選", subtitle: "由社員與指導老師依作品表現綜合評定" },
     { code: "C", title: "評審特別獎", subtitle: "補足作品亮點與努力歷程的特別獎項" },
   ];
 
@@ -1458,7 +1458,7 @@ function isStorageQuotaError(error) {
 
 function coverImage(project) {
   if (!project.cover) return "";
-  return `<img class="cover-image" src="${escapeAttr(project.cover)}" alt="${escapeAttr(project.title)} 封面" loading="lazy" />`;
+  return `<img class="cover-image" src="${escapeAttr(project.cover)}" alt="${escapeAttr(project.title)} 封面" loading="lazy" decoding="async" />`;
 }
 
 function boxCoverStyle(project) {
