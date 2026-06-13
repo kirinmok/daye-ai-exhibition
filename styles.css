@@ -2170,6 +2170,9 @@ body.is-editing {
   max-width: 760px;
   margin: 0 auto 22px;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 .awards-status {
   display: inline-block;
