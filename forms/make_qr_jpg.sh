@@ -16,7 +16,7 @@ fi
 
 echo "🎨 渲染 HTML 海報..."
 "$CHROME" --headless=new --disable-gpu --hide-scrollbars \
-  --force-device-scale-factor=2 --window-size=1200,1700 \
+  --force-device-scale-factor=3 --window-size=794,1123 \
   --virtual-time-budget=15000 --screenshot="$PNG_OUT" \
   "file://$HTML_PATH" 2>/dev/null
 
