@@ -1874,3 +1874,123 @@ body.is-editing {
   .main-nav { gap: 2px 10px; }
   .main-nav a { font-size: 14px; padding: 8px 6px; }
 }
+
+/* ============================================
+   📱 手機試玩警告 Modal
+   ============================================ */
+.game-warn-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 22, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: gameWarnFade 0.25s ease-out;
+}
+@keyframes gameWarnFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.game-warn-modal {
+  background: linear-gradient(160deg, #1a1f3a 0%, #14172b 100%);
+  border: 1px solid rgba(255, 217, 102, 0.3);
+  border-radius: 20px;
+  padding: 32px 24px 24px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #fff;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  animation: gameWarnPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes gameWarnPop {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.game-warn-icon {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+.game-warn-modal h2 {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0 0 12px;
+  color: #ffd966;
+}
+.game-warn-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: #fff;
+}
+.game-warn-title small {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+.game-warn-desc {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 16px;
+  text-align: left;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border-left: 3px solid rgba(255, 217, 102, 0.5);
+}
+.game-warn-tip {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #ffd966;
+  margin: 0 0 22px;
+  font-weight: 600;
+}
+.game-warn-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.game-warn-actions .btn {
+  width: 100%;
+  min-height: 52px;
+  font-size: 16px !important;
+  padding: 14px 20px !important;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+.game-warn-actions .btn.primary {
+  background: linear-gradient(135deg, #ffd966 0%, #ffa726 100%);
+  color: #1a1f3a;
+  border: none;
+}
+.game-warn-actions .btn.ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.game-warn-actions .btn:active {
+  transform: scale(0.97);
+}
+.game-warn-vote {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

@@ -679,7 +679,7 @@ function renderDetail(projectId) {
         <p>${escapeHtml(project.description)}</p>
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
         <div class="detail-actions">
-          <a class="btn primary" href="${project.playUrl}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
+          <a class="btn primary play-game-btn" href="${project.playUrl}" data-title="${escapeAttr(project.title)}" data-id="${escapeAttr(project.id)}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
           ${voteAction}
           ${state.isAdmin ? `<button class="btn ghost" data-action="edit-project" data-project-id="${escapeAttr(project.id)}">編輯作品</button>` : ""}
         </div>
@@ -1499,3 +1499,55 @@ setInterval(() => {
     Object.keys(counts).forEach((id) => refreshVoteCountDisplays(id));
   });
 }, 60000);
+
+// ============================================
+// 📱 手機試玩友善提示（學生作品為電腦遊戲設計）
+// ============================================
+(function setupMobileGameWarning() {
+  function isMobile() {
+    return window.matchMedia("(max-width: 768px)").matches;
+  }
+
+  function showGameWarning(url, title, gameId) {
+    const overlay = document.createElement("div");
+    overlay.className = "game-warn-overlay";
+    overlay.innerHTML = `
+      <div class="game-warn-modal" role="dialog" aria-modal="true">
+        <div class="game-warn-icon">💻</div>
+        <h2>這款作品建議用電腦遊玩</h2>
+        <p class="game-warn-title">${title}${gameId ? ` <small>(${gameId})</small>` : ""}</p>
+        <p class="game-warn-desc">
+          學生以鍵盤、滑鼠為主設計，手機可能會：<br>
+          • 按鈕難按到 / 畫面被切<br>
+          • 部分鍵盤操作無法觸發<br>
+          • 載入較慢
+        </p>
+        <p class="game-warn-tip">💡 小撇步：把手機<strong>橫向</strong>放、或晚點換電腦試玩</p>
+        <div class="game-warn-actions">
+          <a class="btn primary" href="${url}" target="_blank" rel="noopener" data-close="1">仍要試玩（橫向手持）</a>
+          <button class="btn ghost" data-close="1">改用電腦再來</button>
+        </div>
+        <p class="game-warn-vote">📮 別忘了：投票表單在手機體驗很好！可以直接投票支持這件作品。</p>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.style.overflow = "hidden";
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay || e.target.dataset.close === "1" || e.target.closest("[data-close='1']")) {
+        overlay.remove();
+        document.body.style.overflow = "";
+      }
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".play-game-btn");
+    if (!btn) return;
+    if (!isMobile()) return;
+    const url = btn.getAttribute("href");
+    if (!url || url === "#") return;
+    e.preventDefault();
+    showGameWarning(url, btn.dataset.title || "作品", btn.dataset.id || "");
+  });
+})();
