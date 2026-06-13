@@ -17,8 +17,8 @@ const FORM_DESC = '⏱ 預估填寫時間：1 分鐘\n\n' +
   '   🥇 人氣金獎\n' +
   '   🎨 觀眾畫面獎\n' +
   '   🕹️ 觀眾玩法獎\n\n' +
-  '📅 投票期：6/15（一）~ 6/19（五）23:59\n' +
-  '📊 結果公布：6/20（六）早上 9:00\n\n' +
+  '📅 投票期：6/15（一）~ 6/26（五）23:59\n' +
+  '📊 結果公布：6/29（一）早上 8:00\n\n' +
   '⚠️ 規則：\n' +
   '  • 一個 Google 帳號只能投一次\n' +
   '  • 投票期間不公開排行，避免從眾\n' +
@@ -52,7 +52,7 @@ function buildAudienceForm() {
   form.setShowLinkToRespondAgain(false);
   form.setConfirmationMessage(
     '🎉 感謝你的 3 票！\n\n' +
-    '✨ 6/20（六）早上 9:00 公布結果\n' +
+    '✨ 6/29（一）早上 8:00 公布結果\n' +
     '預測對的話我們會用 IG 限動感謝你 ❤️\n\n' +
     '⚠ 投票期間我們不公開即時排行，但相信你的眼光！'
   );
@@ -87,7 +87,7 @@ function buildAudienceForm() {
   // ===== 第 5 題：預測人氣金獎（選填，抽獎用）=====
   form.addListItem()
     .setTitle('🔮 你猜誰會得「人氣金獎」？（選填，抽獎用）')
-    .setHelpText('猜對的話 6/20 公布時你自動進入抽獎池 ✨')
+    .setHelpText('猜對的話 6/29 公布時你自動進入抽獎池 ✨')
     .setChoiceValues(PROJECTS)
     .setRequired(false);
 
