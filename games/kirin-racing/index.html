@@ -756,6 +756,47 @@ canvas { display: block; }
 }
 .opt-card:hover .opt-name { color: #ddd; }
 .opt-card.selected .opt-name { color: #fff; }
+/* 📋 任務檢核卡（填滿奇數軸的空缺） */
+.task-eval-card {
+  border-top: 2px solid #59c7ff !important;
+  background: linear-gradient(180deg, rgba(89,199,255,.06) 0%, rgba(0,0,0,.3) 100%) !important;
+}
+.task-eval-card h3 {
+  color: #59c7ff !important;
+}
+.task-eval-list {
+  display: flex; flex-direction: column;
+  gap: 7px;
+  margin-top: 8px;
+}
+.task-eval-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 10px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(160,196,255,.1);
+  border-radius: 5px;
+  font-size: 12px; color: #9db0cb;
+}
+.task-eval-row .ev-status {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.task-eval-row.pass .ev-status { color: #4ade80; }
+.task-eval-row.fail .ev-status { color: #ff6b6b; }
+.task-eval-row.warn .ev-status { color: #ffbb5c; }
+.task-eval-verdict {
+  margin-top: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #ffd866;
+  text-align: center;
+  background: rgba(255,216,102,.06);
+  border-left: 3px solid #ffd866;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
 /* 選項視覺圖解（如驅動方式 SVG） */
 .opt-figure {
   margin: 6px 0 4px;
@@ -2531,6 +2572,23 @@ function renderGarage(){
                      '<div class="axis-hint">💡 ' + axis.hint + '</div>' +
                      '<div class="axis-options" id="opts-' + axis.key + '"></div>';
     container.appendChild(card);
+    // 軸數量是奇數時，最後一個軸後加一張任務檢核卡填滿格子
+    if(GARAGE_AXES.length % 2 === 1 &&
+       container.children.length === GARAGE_AXES.length){
+      const evalCard = document.createElement('div');
+      evalCard.className = 'axis-card task-eval-card';
+      evalCard.innerHTML =
+        '<h3>📋 任務檢核</h3>' +
+        '<div class="axis-hint">💡 看看你的車能不能撐過這趟任務</div>' +
+        '<div class="task-eval-list" id="taskEvalList">' +
+          '<div class="task-eval-row"><span>🌊 撐過 45cm 積水</span><span id="evTaskWater" class="ev-status">⏳</span></div>' +
+          '<div class="task-eval-row"><span>⏱ 限時 2 圈跑完</span><span id="evTaskTime" class="ev-status">⏳</span></div>' +
+          '<div class="task-eval-row"><span>💊 載運醫療物資</span><span id="evTaskCargo" class="ev-status">⏳</span></div>' +
+          '<div class="task-eval-row"><span>🔋 撐到終點不沒電</span><span id="evTaskBattery" class="ev-status">⏳</span></div>' +
+        '</div>' +
+        '<div class="task-eval-verdict" id="taskEvalVerdict">⚙️ 選擇你的配置看評估</div>';
+      container.appendChild(evalCard);
+    }
     const optsDiv = card.querySelector('#opts-' + axis.key);
     axis.options.forEach((opt, idx) => {
       const o = document.createElement('div');
