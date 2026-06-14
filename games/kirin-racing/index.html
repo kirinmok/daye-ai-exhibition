@@ -233,6 +233,22 @@ canvas { display: block; }
   font-size: 12px; color: #5a8; letter-spacing: 3px;
   border: 1px solid #5a8; padding: 4px 10px; border-radius: 12px;
 }
+.splash-ps2-tag {
+  position: absolute; top: 24px; right: 24px;
+  font-size: 12px; letter-spacing: 2px;
+  border: 1px solid #ff9933; color: #ff9933;
+  padding: 4px 10px; border-radius: 12px;
+  display: flex; gap: 6px; align-items: center;
+}
+.splash-ps2-tag .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #555; transition: background 0.3s;
+}
+.splash-ps2-tag.connected .dot { background: #4ade80; box-shadow: 0 0 8px #4ade80; }
+.splash-credit {
+  position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; color: #555; letter-spacing: 2px;
+}
 
 /* ═══ 對齊卡情境事件（卡內基領導 + 跨域取捨） ═══ */
 #alignCard {
@@ -317,6 +333,10 @@ canvas { display: block; }
 <!-- ═══ 開場結局預告 splash（PBL 以終為始機制化） ═══ -->
 <div id="openingSplash">
   <div class="splash-pbl-tag">PBL · 以終為始</div>
+  <div class="splash-ps2-tag" id="splashPs2Tag">
+    <span class="dot"></span>
+    <span>🎮 PS2 手把・Pico W 連線</span>
+  </div>
   <div id="splashStage">
     <div class="splash-scene" data-scene="1">
       <div class="small">2026 年 8 月 26 日</div>
@@ -354,6 +374,7 @@ canvas { display: block; }
     </div>
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
+  <div class="splash-credit">🛠 KIRIN・大業實驗中學 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
 </div>
 
 <!-- ═══ 對齊卡情境事件（卡內基領導） ═══ -->
@@ -797,11 +818,15 @@ function connectPico(){
     pico.connected = true;
     document.getElementById('picoStatus').className = 'pico-on';
     document.getElementById('picoStatus').textContent = 'Pico W: 已連線';
+    const tag = document.getElementById('splashPs2Tag');
+    if(tag) tag.classList.add('connected');
   };
   ws.onclose = () => {
     pico.connected = false;
     document.getElementById('picoStatus').className = 'pico-off';
     document.getElementById('picoStatus').textContent = 'Pico W: 未連線';
+    const tag = document.getElementById('splashPs2Tag');
+    if(tag) tag.classList.remove('connected');
     setTimeout(connectPico, 2000);
   };
   ws.onerror = () => ws.close();
@@ -813,7 +838,9 @@ function connectPico(){
       pico.a = d.a || 0;
       const newB = d.b || 0;
       if(newB && !pico.prevB){
-        if(resultShown) { hideResults(); resetRace(); }
+        if(typeof splashFinished !== 'undefined' && !splashFinished) closeOpeningSplash();
+        else if(alignActive) {} // 對齊卡顯示時忽略 Pico W 按鈕（避免誤觸）
+        else if(resultShown) { hideResults(); resetRace(); }
         else cycleView();
       }
       pico.prevB = newB;
