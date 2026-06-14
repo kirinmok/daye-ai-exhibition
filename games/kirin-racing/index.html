@@ -462,8 +462,8 @@ canvas { display: block; }
 /* ⚙️ 齒輪特寫小窗（預覽圖右下角浮動） */
 .gear-zoom {
   position: absolute; bottom: 12px; right: 12px;
-  width: 200px;
-  background: rgba(0,0,0,0.82);
+  width: 240px;
+  background: rgba(0,0,0,0.85);
   border: 2px solid #ffd866;
   border-radius: 10px;
   padding: 8px 10px;
@@ -477,7 +477,45 @@ canvas { display: block; }
 }
 .gear-zoom-svg {
   display: flex; align-items: center; justify-content: center;
-  gap: 2px; height: 70px;
+  gap: 1px; height: 90px;
+  padding: 0 4px;
+}
+/* 黃色 TT 馬達（讓學生秒懂哪個是馬達端） */
+.motor-block, .wheel-block {
+  display: flex; flex-direction: column; align-items: center;
+  flex-shrink: 0;
+}
+.motor-body {
+  width: 26px; height: 20px;
+  background: linear-gradient(180deg, #ffe34a 0%, #d4a800 100%);
+  border: 1.5px solid #8a6a00;
+  border-radius: 3px;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.3), 0 1px 3px rgba(0,0,0,0.4);
+}
+.motor-body::before {
+  content: ''; position: absolute;
+  top: 2px; left: 3px; right: 3px; height: 4px;
+  background: rgba(0,0,0,0.15); border-radius: 2px;
+}
+.motor-body::after {
+  content: ''; position: absolute;
+  right: -6px; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 3px;
+  background: #888; border-radius: 1px;
+}
+.motor-label, .wheel-label {
+  font-size: 8px; color: #ffd866; margin-top: 3px;
+  letter-spacing: 1px; font-weight: 700;
+}
+.wheel-icon {
+  font-size: 22px; line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+.gear-arrow {
+  color: #666; font-size: 10px;
+  margin: 0 1px;
+  flex-shrink: 0;
 }
 .emoji-gear {
   display: inline-block;
@@ -486,6 +524,7 @@ canvas { display: block; }
   line-height: 1;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
   transition: font-size 0.3s ease;
+  flex-shrink: 0;
 }
 .emoji-gear.small { animation-direction: reverse; }
 @keyframes gearSpin {
@@ -849,8 +888,16 @@ canvas { display: block; }
         <div class="gear-zoom" id="gearZoom">
           <div class="gear-zoom-title">⚙️ 齒輪嚙合特寫</div>
           <div class="gear-zoom-svg">
+            <div class="motor-block">
+              <div class="motor-body"></div>
+              <div class="motor-label">TT 馬達</div>
+            </div>
             <span class="emoji-gear big" id="bigGear">⚙️</span>
             <span class="emoji-gear small" id="smallGear">⚙️</span>
+            <div class="wheel-block">
+              <div class="wheel-icon">🛞</div>
+              <div class="wheel-label">輪子</div>
+            </div>
           </div>
           <div class="gear-zoom-label" id="gearZoomLabel">中齒比 1:1 · 街頭標配</div>
           <div class="gear-zoom-sub" id="gearZoomSub">馬達端 ⇄ 輪子端</div>
@@ -1239,7 +1286,7 @@ function createCar(color, name){
     ctx.strokeRect(4, 4, 504, 120);
     return new THREE.CanvasTexture(cv);
   }
-  const signTex = makeSignTexture('🥞 KIRIN 早餐 🥢', '#ffd866', '#8b0000');
+  const signTex = makeSignTexture('🥞 嘉義水城・早餐 🥢', '#ffd866', '#8b0000');
   const signMat = new THREE.MeshBasicMaterial({ map: signTex });
   const signGeo = new THREE.BoxGeometry(4.6, 1.1, 0.3);
   const signFront = new THREE.Mesh(signGeo, signMat);
