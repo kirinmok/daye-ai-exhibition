@@ -2584,6 +2584,102 @@ function buildPreviewCar(){
   addAxle(wheelZ, dc.front);
   addAxle(-wheelZ, dc.rear);
 
+  // ─── 🔧 驅動方式外觀視覺化（KIRIN 反饋：車子外觀要看得出來） ───
+  const driveIdx = garageChoice.drive;
+  const halfL = dim.l / 2;
+  const bodyTopY = 1.6 + offY + dim.h * 0.5;
+
+  if(driveIdx === 0){
+    // FF 前驅 → 車頭突出引擎蓋（hood）
+    const hood = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w * 0.7, 0.55, 1.6),
+      new THREE.MeshLambertMaterial({ color: 0x4ade80 })
+    );
+    hood.position.set(0, bodyTopY + 0.3, halfL - 0.9);
+    group.add(hood);
+    // 散熱柵格三條
+    for(let i = 0; i < 3; i++){
+      const grill = new THREE.Mesh(
+        new THREE.BoxGeometry(dim.w * 0.55, 0.06, 0.08),
+        new THREE.MeshLambertMaterial({ color: 0x222222 })
+      );
+      grill.position.set(0, bodyTopY + 0.4 - i*0.14, halfL - 0.15);
+      group.add(grill);
+    }
+  } else if(driveIdx === 1){
+    // FR 後驅 → 車尾突出馬達盒
+    const motorBox = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w * 0.65, 0.7, 1.5),
+      new THREE.MeshLambertMaterial({ color: 0x4ade80 })
+    );
+    motorBox.position.set(0, bodyTopY + 0.4, -halfL + 0.85);
+    group.add(motorBox);
+    // 馬達散熱孔
+    for(let i = 0; i < 3; i++){
+      const vent = new THREE.Mesh(
+        new THREE.BoxGeometry(dim.w * 0.5, 0.06, 0.08),
+        new THREE.MeshLambertMaterial({ color: 0x222222 })
+      );
+      vent.position.set(0, bodyTopY + 0.55 - i*0.14, -halfL + 0.15);
+      group.add(vent);
+    }
+    // 雙排氣管（從車尾突出）
+    [-0.5, 0.5].forEach(x => {
+      const pipe = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 0.7, 8),
+        new THREE.MeshLambertMaterial({ color: 0x666666 })
+      );
+      pipe.rotation.x = Math.PI / 2;
+      pipe.position.set(x, 0.85, -halfL - 0.25);
+      group.add(pipe);
+    });
+  } else {
+    // AWD 四驅 → 車身中央 drivetrain hump（凸脊）
+    const hump = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w * 0.45, 0.4, dim.l * 0.7),
+      new THREE.MeshLambertMaterial({ color: 0x4ade80 })
+    );
+    hump.position.set(0, bodyTopY + 0.2, 0);
+    group.add(hump);
+    // 四角小馬達指示燈
+    [[-dim.w*0.3, halfL-0.4], [dim.w*0.3, halfL-0.4],
+     [-dim.w*0.3, -halfL+0.4], [dim.w*0.3, -halfL+0.4]].forEach(([x, z]) => {
+      const led = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 6, 4),
+        new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+      );
+      led.position.set(x, bodyTopY + 0.35, z);
+      group.add(led);
+    });
+  }
+
+  // ─── 🦋 尾翼（spoiler）— 後驅最大，賽車感 ───
+  const spoilerScale = driveIdx === 1 ? 1.35 : (driveIdx === 2 ? 1.15 : 1.0);
+  [-dim.w * 0.35, dim.w * 0.35].forEach(x => {
+    const stand = new THREE.Mesh(
+      new THREE.BoxGeometry(0.16, 0.7 * spoilerScale, 0.2),
+      new THREE.MeshLambertMaterial({ color: 0x222222 })
+    );
+    stand.position.set(x, bodyTopY + 0.45 * spoilerScale, -halfL + 0.3);
+    group.add(stand);
+  });
+  const wingW = dim.w * 0.85 * spoilerScale;
+  const wing = new THREE.Mesh(
+    new THREE.BoxGeometry(wingW, 0.12, 0.65 * spoilerScale),
+    new THREE.MeshLambertMaterial({ color: 0x1a1a1a })
+  );
+  wing.position.set(0, bodyTopY + 0.85 * spoilerScale, -halfL + 0.3);
+  group.add(wing);
+  // 尾翼端板（兩端豎立的小翼板）
+  [-wingW*0.5, wingW*0.5].forEach(x => {
+    const endplate = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.35, 0.7 * spoilerScale),
+      new THREE.MeshLambertMaterial({ color: 0x4ade80 })
+    );
+    endplate.position.set(x, bodyTopY + 0.85 * spoilerScale + 0.1, -halfL + 0.3);
+    group.add(endplate);
+  });
+
   return group;
 }
 
