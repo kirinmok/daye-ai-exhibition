@@ -385,6 +385,17 @@ canvas { display: block; }
 }
 
 /* 🗂️ 三主分頁 Tab Navigation（車體 / 任務 / 工具）— 主從清楚分區 */
+/* 🗂️ Tab 切換時的元素歸屬清理（KIRIN 19:31 反饋：preset 跑錯 tab） */
+/* preset 預設車只在改裝庫顯示 */
+#garageScreen[data-tab="mission"] .preset-row,
+#garageScreen[data-tab="tools"] .preset-row {
+  display: none;
+}
+/* 頂部小 chip（救援任務/支援卡包/上路驗證）跟 Tab 重複，永遠隱藏 */
+#garageScreen .garage-tag-row {
+  display: none;
+}
+
 #garageScreen[data-tab="vehicle"] .support-dock,
 #garageScreen[data-tab="vehicle"] .mission-band {
   display: none;
@@ -1059,6 +1070,95 @@ canvas { display: block; }
 }
 .garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
 
+/* ⏸ 比賽暫停面板 */
+#pauseOverlay {
+  position: fixed; inset: 0; z-index: 9500;
+  background: rgba(8, 14, 28, 0.92);
+  display: none; align-items: center; justify-content: center;
+  font-family: 'PingFang TC', sans-serif;
+  backdrop-filter: blur(8px);
+}
+#pauseOverlay.show { display: flex; animation: fadeIn 0.25s ease; }
+.pause-card {
+  background: linear-gradient(160deg, #14233f 0%, #0a1424 100%);
+  border: 2px solid #59c7ff;
+  border-radius: 16px;
+  padding: 32px 40px;
+  max-width: 480px; width: 92%;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(89,199,255,0.25);
+}
+.pause-emoji { font-size: 72px; margin-bottom: 8px; }
+.pause-title {
+  font-size: 30px; font-weight: 900;
+  color: #59c7ff; letter-spacing: 8px;
+  margin-bottom: 8px;
+}
+.pause-sub {
+  font-size: 14px; color: #94a3b8;
+  margin-bottom: 24px;
+}
+.pause-actions {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 16px;
+}
+.pause-btn {
+  padding: 14px 24px;
+  border-radius: 10px; border: none; cursor: pointer;
+  font-size: 16px; font-weight: 700; letter-spacing: 2px;
+  font-family: inherit;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pause-btn:hover { transform: translateY(-2px); }
+.pause-btn.primary {
+  background: linear-gradient(135deg, #59c7ff, #3b82f6);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(89,199,255,0.4);
+}
+.pause-btn.warn {
+  background: linear-gradient(135deg, #ff9933, #ff6633);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(255,153,51,0.35);
+}
+.pause-btn.ghost {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+.pause-btn.ghost:hover { color: #cbd5e1; border-color: #94a3b8; }
+.pause-hint {
+  font-size: 12px; color: #64748b;
+  letter-spacing: 1px;
+}
+
+/* 🚧 路況突發事件 toast（賽道中） */
+#hazardToast {
+  position: fixed; top: 120px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 8800;
+  background: linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,153,51,0.95));
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-family: 'PingFang TC', sans-serif;
+  font-size: 18px; font-weight: 900; letter-spacing: 3px;
+  box-shadow: 0 10px 40px rgba(255,107,107,0.5);
+  border: 2px solid #fff;
+  display: none;
+  animation: hazardPulse 0.5s ease;
+}
+#hazardToast.show { display: block; }
+.hazard-tip {
+  display: block;
+  font-size: 13px; font-weight: 500; letter-spacing: 1px;
+  margin-top: 4px; opacity: 0.95;
+}
+@keyframes hazardPulse {
+  0% { transform: translateX(-50%) scale(0.6); opacity: 0; }
+  60% { transform: translateX(-50%) scale(1.08); }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
 /* 任務假設彈窗 */
 #guessModal {
   position: fixed; inset: 0; z-index: 8500;
@@ -1724,12 +1824,34 @@ canvas { display: block; }
         </div>
       </div>
 
-      <button class="garage-start" onclick="closeGarage()">📍 出車驗證</button>
+      <button class="garage-start" id="garageStartBtn" onclick="closeGarage()">📍 出車驗證</button>
+      <button class="garage-start pit-resume" id="pitResumeBtn" onclick="exitPitStopResume()" style="display:none;background:linear-gradient(135deg,#22c55e,#16a34a);">🔧 結束維修・回到比賽</button>
     </div>
 
     <div class="garage-right">
       <div class="garage-axes" id="garageAxes"></div>
     </div>
+  </div>
+</div>
+
+<!-- 🚧 路況突發事件 toast -->
+<div id="hazardToast">
+  <span id="hazardText">⚠️ 突發狀況</span>
+  <span class="hazard-tip" id="hazardTip">按 ESC 進站維修</span>
+</div>
+
+<!-- ⏸ 暫停面板（比賽中按 ESC / P 觸發） -->
+<div id="pauseOverlay">
+  <div class="pause-card">
+    <div class="pause-emoji">⏸</div>
+    <div class="pause-title">比賽暫停</div>
+    <div class="pause-sub">前方有狀況？要不要回工坊換裝備？</div>
+    <div class="pause-actions">
+      <button class="pause-btn primary" onclick="resumeRace()">▶ 繼續比賽</button>
+      <button class="pause-btn warn" onclick="enterPitStop()">🔧 進站維修・換裝備</button>
+      <button class="pause-btn ghost" onclick="abandonRace()">🏁 棄賽結算</button>
+    </div>
+    <div class="pause-hint">按 ESC 或 P 可隨時暫停</div>
   </div>
 </div>
 
@@ -2685,6 +2807,11 @@ function playBeep(freq, duration){
 }
 
 function startCountdown(){
+  // 🚧 reset 路況事件計時器
+  hazardTimer = 0;
+  hazardCooldown = 8; // 開賽 8 秒內不觸發
+  racePaused = false;
+  pitStopMode = false;
   const el = document.getElementById('cdNum');
   const flagEl = document.getElementById('flagWrap');
 
@@ -2770,11 +2897,110 @@ function closeOpeningSplash(){
     }, 2400); // reveal 停留 2.4 秒
   }, 850);
 }
-// ESC 跳過
+// ESC 跳過 splash / 暫停比賽 / P 暫停
 addEventListener('keydown', e => {
-  if(e.key === 'Escape' && !splashFinished) closeOpeningSplash();
+  if(e.key === 'Escape' && !splashFinished){ closeOpeningSplash(); return; }
+  if((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && splashFinished){
+    // 比賽中（raceRunning）或已暫停（racePaused）才理會
+    const garageOpen = document.getElementById('garageScreen').classList.contains('show');
+    if(racePaused){ resumeRace(); return; }
+    if(raceRunning && !alignActive && !garageOpen){ pauseRace(); return; }
+  }
 });
 setTimeout(startOpeningSplash, 300);
+
+// ═══ 比賽暫停 / 進站維修系統 ═══
+let racePaused = false;
+let pitStopMode = false;  // true = 從比賽進工坊維修中
+let hazardTimer = 0;
+let hazardCooldown = 0;
+const HAZARDS = [
+  { txt: '⚠️ 前方積水 60cm！',   tip: '輪胎/底盤不對會打滑 → 進站可換', dur: 3.5 },
+  { txt: '🌧 雨勢突然加大！',     tip: '抓地力下降 → 進站可換輪胎',     dur: 3.2 },
+  { txt: '🛢 路面有油漬！',       tip: '驅動方式影響很大 → 進站可換',   dur: 3.0 },
+  { txt: '⛰ 前方陡坡上升！',     tip: '低齒比比較好爬 → 進站可換',     dur: 3.2 },
+  { txt: '🚧 道路坑洞密集！',     tip: '高底盤通過率高 → 進站可換',     dur: 3.0 },
+];
+
+function showHazardToast(h){
+  const toast = document.getElementById('hazardToast');
+  document.getElementById('hazardText').textContent = h.txt;
+  document.getElementById('hazardTip').textContent  = h.tip + '（按 ESC 進站）';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), h.dur * 1000);
+}
+
+function maybeTriggerHazard(dt){
+  if(!raceRunning || racePaused || alignActive) return;
+  hazardCooldown -= dt;
+  if(hazardCooldown > 0) return;
+  hazardTimer += dt;
+  // 每 12 秒之後有 1% / frame 機率觸發（平均約 15-20 秒一次）
+  if(hazardTimer > 12 && Math.random() < 0.012){
+    const h = HAZARDS[Math.floor(Math.random() * HAZARDS.length)];
+    showHazardToast(h);
+    hazardTimer = 0;
+    hazardCooldown = 14; // 至少間隔 14 秒
+  }
+}
+
+function togglePause(){ racePaused ? resumeRace() : pauseRace(); }
+
+function pauseRace(){
+  if(!raceRunning) return;
+  racePaused = true;
+  raceRunning = false;
+  document.getElementById('pauseOverlay').classList.add('show');
+}
+
+function resumeRace(){
+  racePaused = false;
+  raceRunning = true;
+  document.getElementById('pauseOverlay').classList.remove('show');
+}
+
+function enterPitStop(){
+  // 從比賽進入工坊維修
+  racePaused = true;
+  raceRunning = false;
+  pitStopMode = true;
+  document.getElementById('pauseOverlay').classList.remove('show');
+  document.getElementById('garageScreen').classList.add('show');
+  // 工坊內按鈕切換：藏「出車驗證」、顯「結束維修」
+  document.getElementById('garageStartBtn').style.display = 'none';
+  document.getElementById('pitResumeBtn').style.display = 'block';
+  // 啟動 garage 3D 預覽
+  try { startGarageAnimate(); } catch(e) {}
+  showPowerUpMsg('🔧 進站維修中・自由換裝');
+}
+
+function exitPitStopResume(){
+  // 從工坊回到比賽，重新套用 mods
+  pitStopMode = false;
+  document.getElementById('pitResumeBtn').style.display = 'none';
+  document.getElementById('garageStartBtn').style.display = '';
+  document.getElementById('garageScreen').classList.remove('show');
+  try { stopGarageAnimate(); } catch(e) {}
+  // 即時把新 mods 套到 playerCar
+  try {
+    const mods = computePlayerMods();
+    playerCar.userData.mods = mods;
+    playerCar.userData.gearLevel = garageChoice.gear - 1;
+    updateGearHud && updateGearHud();
+  } catch(e) {}
+  racePaused = false;
+  raceRunning = true;
+  showPowerUpMsg('✅ 維修完成・繼續比賽！');
+}
+
+function abandonRace(){
+  racePaused = false;
+  pitStopMode = false;
+  document.getElementById('pauseOverlay').classList.remove('show');
+  raceRunning = false;
+  // 直接觸發結算
+  try { showResults && showResults(); } catch(e) {}
+}
 
 // ═══ 對齊卡情境事件系統（卡內基領導 + 跨域取捨） ═══
 let reputationScore = 0;  // 口碑分
@@ -3359,6 +3585,8 @@ function switchGarageTab(name){
 }
 
 function closeGarage(){
+  // 🔧 維修模式下不該走「出車驗證」，走「結束維修」按鈕
+  if(pitStopMode){ exitPitStopResume(); return; }
   // 戰情室假設已是唯一押注點，不再彈第二次猜測 modal
   if(!currentHypothesis.risk && !currentHypothesis.solution){
     showPowerUpMsg('💡 沒押假設也能上路，但結算會少一段對照');
@@ -4959,6 +5187,8 @@ function animate(){
   requestAnimationFrame(animate);
   const dt = 1/60;
   if(raceRunning) raceTime += dt;
+  // 🚧 路況突發事件（賽道中隨機觸發）
+  maybeTriggerHazard(dt);
   const gp = pollGamepad();
 
   if(gp.triangle && !gpState.prevTriangle) cycleView();
