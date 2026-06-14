@@ -59,25 +59,31 @@ function createVotingSystem() {
 function createVotingForm_(sheet) {
   const form = FormApp.create('大業 AI 繪圖社期末成果展｜匿名投票');
   form.setDescription([
-    '這份表單用於成果展匿名投票與作品回饋。',
+    '這份表單用於成果展匿名投票與作品回饋，',
+    '🗳️ 投票歡迎所有人（含校外朋友）。',
     '',
-    '請登入學校 Google 帳號後填寫。表單不收集 Email，不公開個人資料。',
+    '表單不收集 Email，不公開個人資料。',
     '請勿在文字回饋中填入姓名、班級、座號、學號或聯絡方式。',
     '',
     '每位觀眾限投 1 件最想支持的作品。',
-    '投票期間網站只公開總投票人次，截止後才公布作品排行。'
+    '投票期間網站只公開總投票人次，截止後才公布作品排行。',
+    '',
+    '🎁 抽獎資格：限大業實驗中學「2025–2026 學年度在校學生」。',
+    '老師、家長、畢業校友、校外朋友皆可投票，但無抽獎資格。',
+    '抽獎請於投票完成後另填「抽獎登記」表單。'
   ].join('\n'));
   form.setCollectEmail(false);
-  form.setLimitOneResponsePerUser(true);
+  form.setLimitOneResponsePerUser(false);  // 不要求登入 → 不能用此限制
   form.setAllowResponseEdits(false);
-  form.setShowLinkToRespondAgain(false);
+  form.setShowLinkToRespondAgain(true);
+  // 不再強制登入：校外路人也能投票
   try {
-    form.setRequireLogin(true);
+    form.setRequireLogin(false);
   } catch (error) {
-    Logger.log('此帳號環境可能不支援 setRequireLogin(true)：' + error);
+    Logger.log('此帳號環境可能不支援 setRequireLogin(false)：' + error);
   }
   form.setConfirmationMessage(
-    '感謝你的投票與建議。若要參加抽獎，請另外填寫抽獎登記表單；抽獎資料不會與投票內容連結。'
+    '感謝你的投票與建議！\n\n🎁 抽獎只限大業實驗中學「在校學生」。若你是在校學生，請另外填寫抽獎登記表單；抽獎資料不會與投票內容連結。'
   );
   form.setDestination(FormApp.DestinationType.SPREADSHEET, sheet.getId());
 
@@ -117,10 +123,15 @@ function createVotingForm_(sheet) {
 }
 
 function createLotteryForm_(sheet) {
-  const form = FormApp.create('大業 AI 繪圖社期末成果展｜抽獎登記');
+  const form = FormApp.create('大業 AI 繪圖社期末成果展｜抽獎登記（限在校學生）');
   form.setDescription([
-    '這份表單只用於抽獎聯絡與領獎確認，與匿名投票表單分開。',
+    '⚠️ 抽獎資格限定：',
+    '大業實驗中學「2025–2026 學年度在校學生」。',
     '',
+    '✗ 老師、家長、校外朋友、已畢業校友皆無抽獎資格。',
+    '（投票本身仍歡迎所有人，請至投票表單填寫。）',
+    '',
+    '本表單只用於抽獎聯絡與領獎確認，與匿名投票表單分開。',
     '請依主辦單位公告填寫可聯絡到你的資料。'
   ].join('\n'));
   form.setCollectEmail(true);
@@ -132,16 +143,26 @@ function createLotteryForm_(sheet) {
   } catch (error) {
     Logger.log('此帳號環境可能不支援 setRequireLogin(true)：' + error);
   }
-  form.setConfirmationMessage('已收到抽獎登記。得獎與領獎方式依主辦單位公告為準。');
+  form.setConfirmationMessage('已收到抽獎登記。若身分不符（非在校學生），主辦單位有權取消抽獎資格。得獎與領獎方式依公告為準。');
   form.setDestination(FormApp.DestinationType.SPREADSHEET, sheet.getId());
 
   form.addSectionHeaderItem()
-    .setTitle('抽獎登記')
-    .setHelpText('此表單不詢問你投給哪件作品。');
+    .setTitle('身分聲明')
+    .setHelpText('請誠實填寫。資料造假將取消抽獎資格。');
+
+  form.addCheckboxItem()
+    .setTitle('我聲明我目前是大業實驗中學「2025–2026 學年度在校學生」（非畢業校友、非家長、非校外朋友）')
+    .setChoiceValues(['是'])
+    .setRequired(true);
 
   form.addTextItem()
-    .setTitle('班級座號')
-    .setHelpText('例如 80101。僅供抽獎與領獎聯絡。')
+    .setTitle('班級（例：804）')
+    .setHelpText('請填寫三位數班級代碼（5/6/7/8/9 開頭，例如 804、703、902）。')
+    .setRequired(true);
+
+  form.addTextItem()
+    .setTitle('座號（例：23）')
+    .setHelpText('請填寫純數字座號，1–40。')
     .setRequired(true);
 
   form.addTextItem()
@@ -155,7 +176,7 @@ function createLotteryForm_(sheet) {
     .setRequired(true);
 
   form.addCheckboxItem()
-    .setTitle('我了解抽獎資料只供本次活動聯絡使用')
+    .setTitle('我了解抽獎資料只供本次活動聯絡使用，並承諾到校現場領獎')
     .setChoiceValues(['是'])
     .setRequired(true);
 
