@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>嘉義水陸早餐車・街頭傳奇 | 大業實驗中學 PBL Quest</title>
+<title>瘋狂賽車・水城街頭傳奇 | 大業實驗中學</title>
 <style>
 body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
 canvas { display: block; }
@@ -1115,7 +1115,7 @@ canvas { display: block; }
 <div id="garageReveal">
   <div class="rv-icon">🔧</div>
   <div class="rv-title">改裝工坊已就緒</div>
-  <div class="rv-sub">準備改裝你的早餐車・看清楚每個配件的差異</div>
+  <div class="rv-sub">準備改裝你的救援車・看清楚每個配件的差異</div>
   <div class="rv-loader">
     <div class="rv-dot"></div>
     <div class="rv-dot"></div>
@@ -1292,7 +1292,7 @@ canvas { display: block; }
 
 <a id="homeBtn" href="index.html">← 首頁</a>
 <canvas id="minimap" width="200" height="120"></canvas>
-<div id="viewTip">🥞 早餐車・追蹤視角 | 鍵盤: W/S 加減速 A/D 方向 Shift 甩尾 V 視角 | PS2: 左搖桿/十字鍵 方向 ✕/R2 加速 □/L2 甩尾 △ 視角 Start 首頁</div>
+<div id="viewTip">🚙 救援車・追蹤視角 | 鍵盤: W/S 加減速 A/D 方向 Shift 甩尾 V 視角 | PS2: 左搖桿/十字鍵 方向 ✕/R2 加速 □/L2 甩尾 △ 視角 Start 首頁</div>
 <div id="countdown"><div id="cdNum">3</div></div>
 <div id="flagWrap"><canvas id="flagCanvas" width="160" height="120"></canvas></div>
 <div id="picoStatus" class="pico-off">Pico W: 偵測中...</div>
@@ -1316,7 +1316,7 @@ canvas { display: block; }
 // ═══════════════════════════════════════════════
 // OVAL TRACK CONFIG
 // ═══════════════════════════════════════════════
-const TOTAL_LAPS = 3;
+const TOTAL_LAPS = 2;  // 從 3 圈縮成 2 圈（KIRIN 反饋無聊撐不住）
 const HL = 100;        // half-length of straight sections
 const TR = 55;         // turn radius (centerline)
 const TW = 52;         // total track width
@@ -1401,7 +1401,7 @@ function cycleView(){
 
 function updateViewTip(){
   document.getElementById('viewTip').textContent =
-    '🥞 早餐車・' + VIEW_NAMES[viewIdx] +
+    '🚙 救援車・' + VIEW_NAMES[viewIdx] +
     ' | 鍵盤: W/S 加減速 A/D 方向 Shift 甩尾 V 視角 | PS2: 左搖桿/十字鍵 方向 ✕/R2 加速 □/L2 甩尾 △ 視角 Start 首頁';
 }
 
