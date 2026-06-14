@@ -1653,6 +1653,72 @@ function createUtilityPole(x, z){
     const p = getTrackPoint(d, -(TW/2 + 9));
     createUtilityPole(p.x, p.z);
   }
+
+  // 💧 賽道淹水水面（沿著水道 sector 鋪一段半透明水）
+  const waterLen = 7;
+  const sectorLen = L_TOTAL / 8;
+  const numSegments = Math.ceil(sectorLen / waterLen) + 2;
+  const waterMat = new THREE.MeshBasicMaterial({
+    color: 0x5fb0d5,
+    transparent: true,
+    opacity: 0.55,
+    depthWrite: false,
+  });
+  const rippleMat = new THREE.MeshBasicMaterial({
+    color: 0xb5dff0,
+    transparent: true,
+    opacity: 0.7,
+    depthWrite: false,
+  });
+  for(let i = 0; i < numSegments; i++){
+    const d = floodCenterD - sectorLen/2 + i * waterLen;
+    const p = getTrackPoint(d, 0);
+    const p2 = getTrackPoint(d + 1, 0);
+    const heading = Math.atan2(p2.x - p.x, p2.z - p.z);
+    // 水面本體（蓋住賽道 + 兩側）
+    const waterPlane = new THREE.Mesh(
+      new THREE.BoxGeometry(TW + 30, 0.18, waterLen + 0.5),
+      waterMat
+    );
+    waterPlane.position.set(p.x, 0.42, p.z);
+    waterPlane.rotation.y = heading;
+    scene.add(waterPlane);
+  }
+  // 水面波紋（隨機亮邊條）
+  for(let i = 0; i < numSegments * 3; i++){
+    const d = floodCenterD - sectorLen/2 + (i / 3) * waterLen;
+    const lat = (Math.random() - 0.5) * (TW + 18);
+    const p = getTrackPoint(d, lat);
+    const p2 = getTrackPoint(d + 1, lat);
+    const heading = Math.atan2(p2.x - p.x, p2.z - p.z);
+    const ripple = new THREE.Mesh(
+      new THREE.BoxGeometry(2 + Math.random() * 3, 0.08, 0.3),
+      rippleMat
+    );
+    ripple.position.set(p.x, 0.52, p.z);
+    ripple.rotation.y = heading + (Math.random() - 0.5) * 0.6;
+    scene.add(ripple);
+  }
+  // 進水道兩端的「淹水警告」三角錐（黃黑條紋路障）
+  [-sectorLen/2 - 2, sectorLen/2 + 2].forEach(dOff => {
+    const d = floodCenterD + dOff;
+    [-TW/2 + 4, TW/2 - 4].forEach(lat => {
+      const p = getTrackPoint(d, lat);
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(0.6, 1.8, 6),
+        new THREE.MeshLambertMaterial({ color: 0xffbb00 })
+      );
+      cone.position.set(p.x, 0.9, p.z);
+      scene.add(cone);
+      // 黑色條紋（中段）
+      const stripe = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.45, 0.55, 0.3, 6),
+        new THREE.MeshLambertMaterial({ color: 0x1a1a1a })
+      );
+      stripe.position.set(p.x, 0.6, p.z);
+      scene.add(stripe);
+    });
+  });
 }
 
 // Grandstand on the bottom straight
