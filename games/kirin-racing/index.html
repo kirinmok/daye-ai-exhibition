@@ -384,6 +384,113 @@ canvas { display: block; }
   flex-wrap: wrap;
 }
 
+/* 🗂️ 三主分頁 Tab Navigation（車體 / 任務 / 工具）— 主從清楚分區 */
+#garageScreen[data-tab="vehicle"] .support-dock,
+#garageScreen[data-tab="vehicle"] .mission-band {
+  display: none;
+}
+#garageScreen[data-tab="mission"] .garage-main-row {
+  display: none;
+}
+#garageScreen[data-tab="mission"] .mission-band {
+  margin: 24px 16px;
+  padding: 28px 32px;
+}
+#garageScreen[data-tab="mission"] .mission-title {
+  font-size: 28px;
+}
+#garageScreen[data-tab="tools"] .mission-band,
+#garageScreen[data-tab="tools"] .garage-left > :not(.support-dock),
+#garageScreen[data-tab="tools"] .garage-right {
+  display: none;
+}
+#garageScreen[data-tab="tools"] .garage-left {
+  flex: 1; position: static; max-height: none;
+}
+#garageScreen[data-tab="tools"] .support-dock {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  max-width: 1100px;
+  margin: 16px auto;
+  padding: 0 16px;
+}
+#garageScreen[data-tab="tools"] .support-card {
+  min-height: 200px;
+}
+
+.garage-tabs {
+  display: flex; gap: 6px; justify-content: center;
+  margin: 12px auto 8px;
+  max-width: 720px;
+  flex-wrap: wrap;
+  padding: 0 16px;
+}
+.garage-tab-btn {
+  flex: 1; min-width: 140px;
+  padding: 14px 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,.03) 0%, rgba(0,0,0,.4) 100%);
+  border: 1px solid #2a2014;
+  border-bottom: 2px solid transparent;
+  border-radius: 10px 10px 6px 6px;
+  color: #6c7a93;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  opacity: 0.55;
+}
+.garage-tab-btn:hover {
+  opacity: 0.85;
+  color: #ffd866;
+  border-color: #5a4030;
+}
+.garage-tab-btn.active {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(89,199,255,.18) 0%, rgba(89,199,255,.05) 100%);
+  border-color: #59c7ff;
+  border-bottom-color: #59c7ff;
+  color: #edf5ff;
+  box-shadow: 0 0 16px rgba(89,199,255,.25);
+}
+.garage-tab-btn .tab-icon {
+  font-size: 22px;
+  display: block;
+  margin-bottom: 2px;
+}
+.garage-tab-btn .tab-label {
+  font-size: 15px;
+  letter-spacing: 3px;
+}
+.garage-tab-btn .tab-hint {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  margin-top: 4px;
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+.tab-section { display: none; }
+.tab-section.active { display: block; animation: tabFadeIn 0.4s ease; }
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 工具 tab 內的支援卡片更大、更清楚 */
+#toolsTab { padding: 0 16px; max-width: 1100px; margin: 0 auto; }
+#toolsTab .support-dock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin: 8px 0 24px;
+}
+#toolsTab .support-card {
+  min-height: 220px;
+}
+
 /* 📋 Mission Band（KIRIN 給的水城重構局設計參考） */
 .mission-band {
   background: linear-gradient(135deg, rgba(89,199,255,.10) 0%, rgba(119,247,208,.06) 100%);
@@ -1364,6 +1471,25 @@ canvas { display: block; }
       <span class="garage-tag">支援卡包</span>
       <span class="garage-tag">上路驗證</span>
     </div>
+  </div>
+
+  <!-- 🗂️ 三主分頁 Tab（車體 / 任務 / 工具）— 主從分區 -->
+  <div class="garage-tabs">
+    <button class="garage-tab-btn active" data-tab="vehicle" onclick="switchGarageTab('vehicle')">
+      <span class="tab-icon">🚗</span>
+      <span class="tab-label">車體</span>
+      <span class="tab-hint">改裝決策</span>
+    </button>
+    <button class="garage-tab-btn" data-tab="mission" onclick="switchGarageTab('mission')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">任務</span>
+      <span class="tab-hint">暴雨運補</span>
+    </button>
+    <button class="garage-tab-btn" data-tab="tools" onclick="switchGarageTab('tools')">
+      <span class="tab-icon">🛠️</span>
+      <span class="tab-label">工具</span>
+      <span class="tab-hint">抽卡・無線電・錢包</span>
+    </button>
   </div>
 
   <div class="mission-band">
@@ -3020,13 +3146,40 @@ function updatePerfPrediction(){
 function showGarage(){
   renderGarage();
   renderWallet();
-  document.getElementById('garageScreen').classList.add('show');
+  const screen = document.getElementById('garageScreen');
+  screen.classList.add('show');
+  switchGarageTab('vehicle');  // 預設顯示車體分頁
   // 啟動 3D 預覽（要等 DOM 顯示後才能 init canvas size）
   setTimeout(() => {
     if(!garageRenderer) createGarageScene();
     rebuildPreviewCar();
     startGarageAnimate();
   }, 100);
+}
+
+// 🗂️ 三主分頁切換（車體 / 任務 / 工具）
+function switchGarageTab(name){
+  const screen = document.getElementById('garageScreen');
+  if(!screen) return;
+  screen.dataset.tab = name;
+  document.querySelectorAll('.garage-tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === name);
+  });
+  // 切回車體時，3D 預覽要重新 render 一次（避免 canvas 黑屏）
+  if(name === 'vehicle' && garageRenderer && garagePreviewCar){
+    setTimeout(() => {
+      const wrap = document.getElementById('garagePreviewWrap');
+      if(wrap && garageRenderer){
+        const w = wrap.clientWidth || 800;
+        const h = wrap.clientHeight || 280;
+        garageRenderer.setSize(w, h, false);
+        if(garageCamera){
+          garageCamera.aspect = w / h;
+          garageCamera.updateProjectionMatrix();
+        }
+      }
+    }, 50);
+  }
 }
 
 function closeGarage(){
