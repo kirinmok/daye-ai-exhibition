@@ -451,6 +451,15 @@ canvas { display: block; }
   height: 380px;
   box-shadow: 0 0 32px rgba(255,153,51,0.2) inset;
 }
+/* 進場 reveal：放慢給 KIRIN 看清楚 */
+@keyframes carReveal {
+  0% { opacity: 0; transform: scale(0.6); filter: brightness(0.4) blur(8px); }
+  60% { opacity: 1; transform: scale(1.02); filter: brightness(1.1) blur(0); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1) blur(0); }
+}
+#garageScreen.show #garagePreviewWrap {
+  animation: carReveal 1.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 #garagePreview { width: 100%; height: 100%; display: block; }
 .preview-overlay-tl {
   position: absolute; top: 10px; left: 14px;
@@ -1282,12 +1291,21 @@ function createCar(color, name){
   body.castShadow = true;
   group.add(body);
 
-  // 早餐車屋頂（橘紅經典色，整個車身寬）
+  // 🎂 蛋糕屋頂（奶油可可暖色）
   const topGeo = new THREE.BoxGeometry(4.4, 1.6, 5.5);
-  const topMat = new THREE.MeshLambertMaterial({ color: 0xffb3c1 }); // 蛋糕粉色屋頂
+  const topMat = new THREE.MeshLambertMaterial({ color: 0xf4d5a8 }); // 焦糖卡士達色
   const top = new THREE.Mesh(topGeo, topMat);
   top.position.set(0, 3.6, 0);
   group.add(top);
+  // 屋頂巧克力滴流（前緣淋醬感）
+  const dripGeo = new THREE.BoxGeometry(4.4, 0.6, 0.4);
+  const dripMat = new THREE.MeshLambertMaterial({ color: 0x5d3a1e });
+  const drip = new THREE.Mesh(dripGeo, dripMat);
+  drip.position.set(0, 3.0, 2.55);
+  group.add(drip);
+  const dripBack = new THREE.Mesh(dripGeo, dripMat);
+  dripBack.position.set(0, 3.0, -2.55);
+  group.add(dripBack);
 
   // 屋頂招牌（前後各一，金黃色 — Canvas 寫字效果）
   function makeSignTexture(text, bg, fg){
@@ -1304,7 +1322,7 @@ function createCar(color, name){
     ctx.strokeRect(4, 4, 504, 120);
     return new THREE.CanvasTexture(cv);
   }
-  const signTex = makeSignTexture('🍰 嘉義水城・甜點早餐 🧋', '#ffd6e8', '#c2185b');
+  const signTex = makeSignTexture('🍰 嘉義水城・甜點早餐 🧋', '#fff5e0', '#7a4f2b');
   const signMat = new THREE.MeshBasicMaterial({ map: signTex });
   const signGeo = new THREE.BoxGeometry(4.6, 1.1, 0.3);
   const signFront = new THREE.Mesh(signGeo, signMat);
