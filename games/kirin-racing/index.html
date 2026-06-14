@@ -233,6 +233,82 @@ canvas { display: block; }
   font-size: 12px; color: #5a8; letter-spacing: 3px;
   border: 1px solid #5a8; padding: 4px 10px; border-radius: 12px;
 }
+
+/* ═══ 對齊卡情境事件（卡內基領導 + 跨域取捨） ═══ */
+#alignCard {
+  position: fixed; inset: 0; z-index: 8888;
+  background: rgba(0,0,0,0.75);
+  display: none; align-items: center; justify-content: center;
+  font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+}
+#alignCard.show { display: flex; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.align-box {
+  background: linear-gradient(160deg, #fffce8 0%, #fff3c4 100%);
+  border: 3px solid #ffd866;
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 560px; width: 90%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  color: #2a2a2a;
+}
+.align-tag {
+  display: inline-block;
+  font-size: 11px; letter-spacing: 3px;
+  background: #ff9933; color: #fff;
+  padding: 3px 10px; border-radius: 10px;
+  margin-bottom: 10px;
+}
+.align-title {
+  font-size: 22px; font-weight: 900; margin: 4px 0 6px;
+}
+.align-emoji { font-size: 56px; text-align: center; margin: 6px 0; }
+.align-desc {
+  font-size: 15px; color: #555; margin-bottom: 16px; line-height: 1.6;
+}
+.align-options { display: flex; flex-direction: column; gap: 10px; }
+.align-btn {
+  background: #fff; border: 2px solid #ddd;
+  padding: 12px 16px; border-radius: 8px;
+  text-align: left; cursor: pointer;
+  font-family: inherit; font-size: 14px;
+  transition: all 0.15s ease;
+}
+.align-btn:hover {
+  border-color: #ff9933; background: #fff8e7;
+  transform: translateX(4px);
+}
+.align-btn .opt-label {
+  font-weight: 700; color: #333; margin-right: 8px;
+}
+.align-btn .opt-effect {
+  display: block; margin-top: 4px;
+  font-size: 12px; color: #888;
+}
+.align-timer {
+  text-align: right; font-size: 12px; color: #aaa; margin-top: 10px;
+}
+#alignResult {
+  position: fixed; top: 30%; left: 50%; transform: translateX(-50%);
+  z-index: 9000;
+  background: rgba(0,0,0,0.85); color: #ffd866;
+  padding: 18px 28px; border-radius: 12px;
+  font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  display: none; pointer-events: none;
+  animation: fadeIn 0.3s ease;
+}
+
+/* 三軸 HUD */
+#tripleHud {
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 12px;
+  background: rgba(0,20,0,0.85); border: 1px solid #0f0;
+  padding: 8px 14px; border-radius: 6px;
+  font-family: 'Courier New', monospace; color: #ccc; font-size: 13px;
+}
+#tripleHud .axis { display: flex; gap: 4px; align-items: center; }
+#tripleHud .axis-name { color: #888; font-size: 11px; }
+#tripleHud .axis-val { color: #ffd866; font-weight: 700; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -278,6 +354,26 @@ canvas { display: block; }
     </div>
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
+</div>
+
+<!-- ═══ 對齊卡情境事件（卡內基領導） ═══ -->
+<div id="alignCard">
+  <div class="align-box">
+    <div class="align-tag" id="alignTag">街頭抉擇</div>
+    <div class="align-title" id="alignTitle">—</div>
+    <div class="align-emoji" id="alignEmoji">🤔</div>
+    <div class="align-desc" id="alignDesc">—</div>
+    <div class="align-options" id="alignOptions"></div>
+    <div class="align-timer" id="alignTimer">⏱ 5</div>
+  </div>
+</div>
+<div id="alignResult"></div>
+
+<!-- 三軸 HUD（口碑/在地/取捨次數） -->
+<div id="tripleHud">
+  <div class="axis"><span class="axis-name">口碑</span><span class="axis-val" id="repVal">0</span></div>
+  <div class="axis"><span class="axis-name">在地</span><span class="axis-val" id="locVal">0</span></div>
+  <div class="axis"><span class="axis-name">取捨</span><span class="axis-val" id="chcVal">0</span></div>
 </div>
 
 <div id="hud">
@@ -961,6 +1057,120 @@ addEventListener('keydown', e => {
 });
 setTimeout(startOpeningSplash, 300);
 
+// ═══ 對齊卡情境事件系統（卡內基領導 + 跨域取捨） ═══
+let reputationScore = 0;  // 口碑分
+let localScore = 0;        // 在地分
+let choiceCount = 0;       // 取捨次數
+let alignActive = false;
+let alignTimerId = null;
+let alignTimerCount = 0;
+let alignedLaps = new Set(); // 避免同一圈觸發多次
+
+const ALIGN_SCENARIOS = [
+  {
+    tag: '🧓 街頭抉擇',
+    title: '前方阿嬤推著菜籃過馬路',
+    emoji: '🧓🚶‍♀️',
+    desc: '你正用「熱騰騰餐點」buff 加速衝刺中，但阿嬤就在你前面 30 公尺⋯⋯',
+    options: [
+      { label: '🚨 鳴喇叭衝過去', effect: '時間 +0 ｜口碑 -15 ｜在地 -10', rep: -15, loc: -10, msg: '阿嬤罵了你「囝仔啦你！」明天客人少一半' },
+      { label: '🛑 減速繞道', effect: '時間 -3 秒 ｜口碑 +10', rep: 10, loc: 0, msg: '阿嬤點頭微笑，旁邊路人看到都記得你的車' },
+      { label: '🤝 完全停下幫她過', effect: '時間 -5 秒 ｜口碑 +5 ｜在地 +20', rep: 5, loc: 20, msg: '阿嬤是文化路 50 年的老住戶，她認得你了' },
+    ],
+  },
+  {
+    tag: '😤 隔壁攤位',
+    title: '隔壁老闆嗆你：「囝仔郎搶啥米攤位！」',
+    emoji: '😤👨‍🍳',
+    desc: '他在這條街擺了 30 年，你才第一天。下一個客人正走過來⋯⋯',
+    options: [
+      { label: '💢 嗆回去：「合法申請的！」', effect: '口碑 -10 ｜在地 -20', rep: -10, loc: -20, msg: '客人聽到爭吵全跑掉，阿伯記恨你三年' },
+      { label: '🙇 真誠讚美：「您的火雞肉飯我從小吃到大」', effect: '口碑 +10 ｜在地 +15', rep: 10, loc: 15, msg: '阿伯臉色軟了：「囝仔郎還算有禮貌啦」' },
+      { label: '🤝 提議合作引流：「客人吃完我這個再去您那」', effect: '口碑 +20 ｜在地 +25', rep: 20, loc: 25, msg: '阿伯哈哈大笑，從此罩你。卡內基第一招：先給對方好處' },
+    ],
+  },
+];
+
+function triggerAlignCard(lapNum){
+  if(alignedLaps.has(lapNum)) return;
+  if(lapNum >= TOTAL_LAPS) return;  // 最後一圈進結算，不觸發
+  alignedLaps.add(lapNum);
+  const scenarioIdx = (lapNum - 1) % ALIGN_SCENARIOS.length;
+  showAlignCard(scenarioIdx);
+}
+
+function showAlignCard(idx){
+  if(alignActive) return;
+  alignActive = true;
+  raceRunning = false; // 暫停遊戲
+  const sc = ALIGN_SCENARIOS[idx];
+  document.getElementById('alignTag').textContent = sc.tag;
+  document.getElementById('alignTitle').textContent = sc.title;
+  document.getElementById('alignEmoji').textContent = sc.emoji;
+  document.getElementById('alignDesc').textContent = sc.desc;
+  const opts = document.getElementById('alignOptions');
+  opts.innerHTML = '';
+  sc.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'align-btn';
+    btn.innerHTML = '<span class="opt-label">' + String.fromCharCode(65+i) + '.</span>' + opt.label +
+                    '<span class="opt-effect">' + opt.effect + '</span>';
+    btn.onclick = () => pickAlignOption(idx, i);
+    opts.appendChild(btn);
+  });
+  document.getElementById('alignCard').classList.add('show');
+  // 倒數 8 秒，逾時自動選 B（中庸）
+  alignTimerCount = 8;
+  document.getElementById('alignTimer').textContent = '⏱ ' + alignTimerCount;
+  if(alignTimerId) clearInterval(alignTimerId);
+  alignTimerId = setInterval(() => {
+    alignTimerCount--;
+    document.getElementById('alignTimer').textContent = '⏱ ' + alignTimerCount;
+    if(alignTimerCount <= 0){
+      clearInterval(alignTimerId);
+      pickAlignOption(idx, 1); // default B
+    }
+  }, 1000);
+}
+
+function pickAlignOption(scenarioIdx, optIdx){
+  if(!alignActive) return;
+  alignActive = false;
+  if(alignTimerId) { clearInterval(alignTimerId); alignTimerId = null; }
+  const sc = ALIGN_SCENARIOS[scenarioIdx];
+  const opt = sc.options[optIdx];
+  reputationScore += opt.rep;
+  localScore += opt.loc;
+  choiceCount++;
+  updateTripleHud();
+  document.getElementById('alignCard').classList.remove('show');
+  // 顯示結果訊息
+  const r = document.getElementById('alignResult');
+  r.textContent = '💬 ' + opt.msg;
+  r.style.display = 'block';
+  setTimeout(() => { r.style.display = 'none'; }, 3500);
+  // 恢復遊戲
+  raceRunning = true;
+}
+
+function updateTripleHud(){
+  document.getElementById('repVal').textContent = reputationScore;
+  document.getElementById('locVal').textContent = localScore;
+  document.getElementById('chcVal').textContent = choiceCount;
+  // 顏色：負分變紅
+  document.getElementById('repVal').style.color = reputationScore < 0 ? '#ff6b6b' : '#ffd866';
+  document.getElementById('locVal').style.color = localScore < 0 ? '#ff6b6b' : '#ffd866';
+}
+function resetAlignState(){
+  reputationScore = 0; localScore = 0; choiceCount = 0;
+  alignedLaps.clear();
+  alignActive = false;
+  if(alignTimerId) { clearInterval(alignTimerId); alignTimerId = null; }
+  document.getElementById('alignCard').classList.remove('show');
+  document.getElementById('alignResult').style.display = 'none';
+  updateTripleHud();
+}
+
 // ═══════════════════════════════════════════════
 // RESET
 // ═══════════════════════════════════════════════
@@ -972,6 +1182,7 @@ function resetRace(){
   lightspeedActive = false;
   lightspeedTimer = 0;
   powerUpSpawnTimer = 0;
+  resetAlignState();  // 重置三軸 + 對齊卡狀態
   document.getElementById('hScore').textContent = '0';
   document.getElementById('lightspeedOverlay').classList.remove('active');
   document.getElementById('lightspeedTimer').style.opacity = '0';
@@ -1556,7 +1767,30 @@ function showResults(){
     ranksDiv.appendChild(line);
   });
   const statsDiv = document.getElementById('resultStats');
-  statsDiv.textContent = '總分: ' + playerScore + ' 分 | 總時間: ' + raceTime.toFixed(1) + 's';
+  // 三軸結算：時間 / 口碑 / 在地 + 取捨次數 + 傳奇老闆評語
+  const timeAxis = Math.max(0, 100 - Math.floor(raceTime / 1.5));  // 越快越高
+  const repAxis = Math.max(0, reputationScore);
+  const locAxis = Math.max(0, localScore);
+  const totalAxis = timeAxis + repAxis + locAxis;
+  const LEGEND_TARGET = 200;
+  const gapToLegend = Math.max(0, LEGEND_TARGET - totalAxis);
+  let verdict = '';
+  if(totalAxis >= LEGEND_TARGET) verdict = '🌟 你就是嘉義街頭傳奇老闆！';
+  else if(totalAxis >= 140) verdict = '👍 再多練幾次，傳奇就在不遠處';
+  else if(totalAxis >= 80) verdict = '🌱 還在學徒階段，每一個取捨都算數';
+  else verdict = '💭 重玩看看，這次學到了什麼？';
+
+  statsDiv.innerHTML =
+    '<div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;">' +
+      '<div>⏱ <b style="color:#ffd866">時間 ' + timeAxis + '</b></div>' +
+      '<div>💬 <b style="color:#ffd866">口碑 ' + repAxis + '</b></div>' +
+      '<div>🏘 <b style="color:#ffd866">在地 ' + locAxis + '</b></div>' +
+      '<div>🎯 <b style="color:#ffd866">取捨 ' + choiceCount + '</b></div>' +
+    '</div>' +
+    '<div style="font-size:18px; color:#ffd866; margin:8px 0;">合計 ' + totalAxis + ' / ' + LEGEND_TARGET + '</div>' +
+    '<div style="font-size:15px; color:#ccc;">' + verdict + '</div>' +
+    (gapToLegend > 0 ? '<div style="font-size:12px; color:#888; margin-top:6px;">離傳奇老闆還差 ' + gapToLegend + ' 分</div>' : '') +
+    '<div style="font-size:11px; color:#666; margin-top:14px;">原始分數: ' + playerScore + ' ｜ 總時間: ' + raceTime.toFixed(1) + 's</div>';
 
   // Save to history
   const pud = playerCar.userData;
@@ -1913,6 +2147,8 @@ function animate(){
       addScore(200);
       showPowerUpMsg('🏁 完成第 ' + ud.laps + ' 圈！+200');
       ud._prevLapCount = ud.laps;
+      // 對齊卡情境事件（第 1、2 圈完成後觸發）
+      setTimeout(() => triggerAlignCard(ud.laps), 1200);
     }
   }
 
