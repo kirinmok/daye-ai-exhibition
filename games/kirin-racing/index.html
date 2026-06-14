@@ -1487,6 +1487,50 @@ canvas { display: block; }
 #batteryHud.low { border-color: #ff3333; animation: batBlink 0.6s infinite; }
 @keyframes batBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
+/* 🆘 救援 / 寶物 / 撞擊 HUD */
+#rescueHud {
+  position: absolute; top: 130px; right: 16px;
+  background: rgba(8,14,28,0.88); border: 2px solid #59c7ff;
+  padding: 10px 14px; border-radius: 10px;
+  font-family: 'Courier New', monospace; color: #edf5ff;
+  z-index: 100; min-width: 130px;
+}
+#rescueHud .rh-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; margin: 4px 0;
+}
+#rescueHud .rh-icon { font-size: 16px; width: 22px; }
+#rescueHud .rh-label { color: #94a3b8; letter-spacing: 2px; flex: 1; }
+#rescueHud .rh-val { font-weight: 900; font-size: 16px; color: #ffd866; }
+#rescueHud .rh-row.warn .rh-val { color: #ff6b6b; }
+#rescueHud .rh-row.warn .rh-icon { color: #ff6b6b; }
+#cargoStack {
+  display: flex; flex-wrap: wrap; gap: 3px;
+  margin-top: 6px; padding-top: 6px;
+  border-top: 1px dashed #475569;
+  min-height: 22px;
+}
+.cargo-chip {
+  font-size: 18px; line-height: 1;
+  background: rgba(89,199,255,0.15);
+  padding: 2px 4px; border-radius: 4px;
+  animation: cargoIn 0.4s cubic-bezier(0.18,0.89,0.32,1.28);
+}
+@keyframes cargoIn {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* 💥 撞擊閃紅 */
+#crashFlash {
+  position: fixed; inset: 0; z-index: 8900;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(255,60,60,0) 30%, rgba(255,40,40,0.6) 100%);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+#crashFlash.flash { opacity: 1; }
+
 /* ☔ 突然下雨 overlay */
 #rainOverlay {
   position: fixed; inset: 0; z-index: 90;
@@ -1876,6 +1920,9 @@ canvas { display: block; }
   </div>
 </div>
 
+<!-- 💥 撞擊閃紅 -->
+<div id="crashFlash"></div>
+
 <!-- 🚧 路況突發事件 toast -->
 <div id="hazardToast">
   <span id="hazardText">⚠️ 突發狀況</span>
@@ -1917,6 +1964,14 @@ canvas { display: block; }
 <div id="sectorHud">
   <span class="sec-prefix">📍 現在位置</span>
   <span id="sectorName">🏁 起跑線・噴水池圓環前</span>
+</div>
+
+<!-- 🆘 救援+碰撞 HUD -->
+<div id="rescueHud">
+  <div class="rh-row"><span class="rh-icon">🆘</span><span class="rh-label">救出</span><span class="rh-val" id="rescuedCnt">0</span></div>
+  <div class="rh-row"><span class="rh-icon">💎</span><span class="rh-label">寶物</span><span class="rh-val" id="gemCnt">0</span></div>
+  <div class="rh-row warn"><span class="rh-icon">💥</span><span class="rh-label">撞擊</span><span class="rh-val" id="hitCnt">0</span></div>
+  <div id="cargoStack"></div>
 </div>
 
 <!-- 即時換檔 HUD（Z/X 賽道上動態換檔） -->
@@ -2518,6 +2573,159 @@ function createUtilityPole(x, z){
   });
 }
 
+// 🌊 蘭潭水庫風格：在水道外側鋪大片半透明深湖 + 山剪影 + 水底暗礁
+const obstacleRocks = []; // 路上石頭（碰到扣分）
+const rescueItems = [];   // 救援目標（撿到加分）
+const reefRocks = [];     // 水底暗礁（碰到車體受損）
+{
+  const floodCenterD = (6.5 / 8) * L_TOTAL;
+  const lakeCenter = getTrackPoint(floodCenterD, -(TW/2 + 60));
+  // 大湖面板（半透明深藍綠）
+  const lakeMat = new THREE.MeshBasicMaterial({
+    color: 0x3a7d8c, transparent: true, opacity: 0.7, depthWrite: false,
+  });
+  const lakeBed = new THREE.Mesh(new THREE.PlaneGeometry(180, 110), lakeMat);
+  lakeBed.rotation.x = -Math.PI / 2;
+  lakeBed.position.set(lakeCenter.x, 0.3, lakeCenter.z);
+  scene.add(lakeBed);
+  // 湖面亮波紋
+  for(let i = 0; i < 14; i++){
+    const rip = new THREE.Mesh(
+      new THREE.BoxGeometry(2 + Math.random()*5, 0.06, 0.4),
+      new THREE.MeshBasicMaterial({ color: 0xb5dff0, transparent: true, opacity: 0.6 })
+    );
+    rip.position.set(
+      lakeCenter.x + (Math.random() - 0.5) * 150,
+      0.45,
+      lakeCenter.z + (Math.random() - 0.5) * 80
+    );
+    rip.rotation.y = Math.random() * Math.PI;
+    scene.add(rip);
+  }
+  // 水底暗礁（6 顆，玩家若衝進湖會撞到）
+  for(let i = 0; i < 6; i++){
+    const rx = lakeCenter.x + (Math.random() - 0.5) * 140;
+    const rz = lakeCenter.z + (Math.random() - 0.5) * 90;
+    const reef = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(1.6 + Math.random() * 1.4, 0),
+      new THREE.MeshLambertMaterial({ color: 0x2a3a4a, transparent: true, opacity: 0.85 })
+    );
+    reef.position.set(rx, 0.2, rz);
+    reef.rotation.y = Math.random() * Math.PI;
+    scene.add(reef);
+    reefRocks.push(reef);
+  }
+  // 對岸山的剪影（暗綠色錐 + 暗藍遠山）
+  for(let i = 0; i < 7; i++){
+    const mountainH = 18 + Math.random() * 14;
+    const mountainColor = i % 2 === 0 ? 0x3a5a3a : 0x2a4458;
+    const mt = new THREE.Mesh(
+      new THREE.ConeGeometry(15 + Math.random() * 8, mountainH, 5),
+      new THREE.MeshLambertMaterial({ color: mountainColor })
+    );
+    mt.position.set(
+      lakeCenter.x + (i - 3) * 28 + (Math.random() - 0.5) * 8,
+      mountainH * 0.5 - 1,
+      lakeCenter.z - 60 - Math.random() * 8
+    );
+    mt.castShadow = true;
+    scene.add(mt);
+  }
+  // 湖中央立一個「蘭潭水庫」招牌
+  const lakeSignPole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.18, 4, 6),
+    new THREE.MeshLambertMaterial({ color: 0x4a3a2a })
+  );
+  lakeSignPole.position.set(lakeCenter.x, 2, lakeCenter.z + 5);
+  scene.add(lakeSignPole);
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 96;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#0a2a3e'; ctx.fillRect(0, 0, 256, 96);
+  ctx.strokeStyle = '#59c7ff'; ctx.lineWidth = 4;
+  ctx.strokeRect(8, 8, 240, 80);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 32px "PingFang TC", sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🌊 蘭潭水庫', 128, 38);
+  ctx.font = '18px "PingFang TC", sans-serif'; ctx.fillStyle = '#94a3b8';
+  ctx.fillText('暗礁區・勿衝水中', 128, 68);
+  const tex = new THREE.CanvasTexture(cv);
+  const lakeSign = new THREE.Mesh(
+    new THREE.PlaneGeometry(5, 1.9),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+  );
+  lakeSign.position.set(lakeCenter.x, 4.5, lakeCenter.z + 5);
+  scene.add(lakeSign);
+}
+
+// 🪨 路上石頭障礙物（撞到減速 + 扣分 + 低底盤掉零件）
+function spawnObstacleRock(d, lateralOffset){
+  const p = getTrackPoint(d, lateralOffset);
+  const size = 0.7 + Math.random() * 0.6;
+  const rock = new THREE.Mesh(
+    new THREE.DodecahedronGeometry(size, 0),
+    new THREE.MeshLambertMaterial({ color: 0x6b6358 })
+  );
+  rock.position.set(p.x, size * 0.4, p.z);
+  rock.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+  rock.castShadow = true;
+  rock.userData = { hit: false };
+  scene.add(rock);
+  obstacleRocks.push(rock);
+}
+// 在賽道沿線散布 14 顆石頭（避開水道區）
+for(let i = 0; i < 14; i++){
+  const d = (i / 14 + 0.03) * L_TOTAL;
+  const sec = Math.floor(d / L_TOTAL * 8);
+  if(sec === 6) continue; // 水道區跳過
+  const lat = (Math.random() - 0.5) * (TW - 4);
+  spawnObstacleRock(d, lat);
+}
+
+// 🆘 救援目標：受困小狗 / 等救援的長輩 / 物資箱 / 泳圈（沿路擺）
+function spawnRescueTarget(d, lateralOffset, kind){
+  const p = getTrackPoint(d, lateralOffset);
+  // 視覺底座 + emoji 牌
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.6, 0.7, 0.3, 8),
+    new THREE.MeshLambertMaterial({ color: kind.baseColor || 0xffd866 })
+  );
+  base.position.set(p.x, 0.15, p.z);
+  scene.add(base);
+  // emoji 看板
+  const cv = document.createElement('canvas');
+  cv.width = 128; cv.height = 128;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = kind.baseColor ? '#' + kind.baseColor.toString(16).padStart(6, '0') : '#ffd866';
+  ctx.beginPath(); ctx.arc(64, 64, 60, 0, Math.PI * 2); ctx.fill();
+  ctx.font = '80px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(kind.emoji, 64, 70);
+  const tex = new THREE.CanvasTexture(cv);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+  sprite.scale.set(2, 2, 1);
+  sprite.position.set(p.x, 1.6, p.z);
+  scene.add(sprite);
+  // 上下浮動動畫用 userData
+  const group = { base, sprite, kind, picked: false, age: 0, position: { x: p.x, z: p.z } };
+  rescueItems.push(group);
+}
+const RESCUE_KINDS = [
+  { id: 'dog',    emoji: '🐕', label: '受困小狗',     score: 30, baseColor: 0xffaa33 },
+  { id: 'elder',  emoji: '🧓', label: '等救援的長輩', score: 50, baseColor: 0xff6b6b },
+  { id: 'supply', emoji: '📦', label: '物資箱',       score: 20, baseColor: 0xa0d878 },
+  { id: 'float',  emoji: '🛟', label: '泳圈',         score: 25, baseColor: 0x59c7ff },
+  { id: 'gem',    emoji: '💎', label: '隱藏寶物',     score: 60, baseColor: 0xc080ff },
+];
+// 沿賽道散布 10 個救援目標
+for(let i = 0; i < 10; i++){
+  const d = ((i + 0.5) / 10) * L_TOTAL;
+  const sec = Math.floor(d / L_TOTAL * 8);
+  if(sec === 6) continue; // 水道區跳過（路上不放）
+  const lat = (i % 2 === 0 ? 1 : -1) * (TW / 2 - 3 + Math.random() * 2);
+  const kind = RESCUE_KINDS[Math.floor(Math.random() * RESCUE_KINDS.length)];
+  spawnRescueTarget(d, lat, kind);
+}
+
 // Grandstand on the bottom straight
 {
   const standGeo = new THREE.BoxGeometry(60, 8, 8);
@@ -2993,6 +3201,18 @@ function startCountdown(){
   hazardCooldown = 8; // 開賽 8 秒內不觸發
   racePaused = false;
   pitStopMode = false;
+  // 🆘 reset 救援 / 寶物 / 撞擊計數
+  if(playerCar && playerCar.userData){
+    playerCar.userData.rescued = 0;
+    playerCar.userData.gemsCollected = 0;
+    playerCar.userData.hits = 0;
+  }
+  ['rescuedCnt','gemCnt','hitCnt'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = '0';
+  });
+  const stack = document.getElementById('cargoStack');
+  if(stack) stack.innerHTML = '';
   const el = document.getElementById('cdNum');
   const flagEl = document.getElementById('flagWrap');
 
@@ -5606,6 +5826,104 @@ function animate(){
 
     // Update distance along track
     ud._dist += ud._speed * dt;
+
+    // ── 🆘 RESCUE TARGETS（小狗/長輩/物資/泳圈/寶物）──
+    rescueItems.forEach(it => {
+      if(it.picked) return;
+      it.age += dt;
+      // 上下浮動
+      const yOff = 1.6 + Math.sin(it.age * 3) * 0.25;
+      it.sprite.position.y = yOff;
+      // 微旋轉
+      it.base.rotation.y += dt * 1.2;
+      // 碰撞檢測
+      if(isNearItem(playerCar.position, it.position, 4.5)){
+        it.picked = true;
+        scene.remove(it.base); scene.remove(it.sprite);
+        try { it.base.geometry.dispose(); it.base.material.dispose(); } catch(e) {}
+        try { it.sprite.material.map.dispose(); it.sprite.material.dispose(); } catch(e) {}
+        const k = it.kind;
+        // 加在地分
+        localScore += k.score;
+        playPickupSound();
+        updateTripleHud && updateTripleHud();
+        // 更新 HUD 計數
+        if(k.id === 'gem'){
+          ud.gemsCollected = (ud.gemsCollected || 0) + 1;
+          const el = document.getElementById('gemCnt');
+          if(el) el.textContent = ud.gemsCollected;
+          showPowerUpMsg('💎 隱藏寶物 +' + k.score + ' 在地分！');
+        } else {
+          ud.rescued = (ud.rescued || 0) + 1;
+          const el = document.getElementById('rescuedCnt');
+          if(el) el.textContent = ud.rescued;
+          showPowerUpMsg(k.emoji + ' 救出' + k.label + ' +' + k.score + ' 分');
+          // 載運貨架顯示
+          const stack = document.getElementById('cargoStack');
+          if(stack){
+            const chip = document.createElement('span');
+            chip.className = 'cargo-chip';
+            chip.textContent = k.emoji;
+            stack.appendChild(chip);
+            // 載運多了視覺擠擠的
+            if(stack.children.length > 8){
+              stack.removeChild(stack.firstChild);
+            }
+          }
+        }
+      }
+    });
+
+    // ── 🪨 OBSTACLE ROCKS（石頭碰撞）──
+    obstacleRocks.forEach(rock => {
+      if(rock.userData.hit) return;
+      if(isNearItem(playerCar.position, rock.position, 1.8)){
+        rock.userData.hit = true;
+        // 低底盤車：重傷；高底盤：擦過
+        const _mods = ud.mods || {};
+        const climb = (_mods.tot && _mods.tot.climb) || 0;
+        let dmg = -5, slow = 0.65, msg;
+        if(climb >= 2){ dmg = -1; slow = 0.92; msg = '🪨 高底盤輕鬆碾過石頭'; }
+        else if(climb <= -2){ dmg = -10; slow = 0.45; msg = '💥 低底盤撞石頭！掉零件 -10 分'; }
+        else { msg = '💥 撞到石頭！-5 分'; }
+        ud._speed *= slow;
+        localScore += dmg;
+        ud.hits = (ud.hits || 0) + 1;
+        const el = document.getElementById('hitCnt');
+        if(el) el.textContent = ud.hits;
+        updateTripleHud && updateTripleHud();
+        // 視覺：石頭翻過去 + 紅閃
+        rock.material.color.setHex(0x4a3a2a);
+        rock.position.y -= 0.3;
+        const flash = document.getElementById('crashFlash');
+        if(flash){
+          flash.classList.add('flash');
+          setTimeout(() => flash.classList.remove('flash'), 200);
+        }
+        showPowerUpMsg(msg);
+      }
+    });
+
+    // ── 🪸 REEF ROCKS（水底暗礁 / 衝進水庫才會撞到）──
+    reefRocks.forEach(reef => {
+      if(reef.userData && reef.userData.hit) return;
+      if(isNearItem(playerCar.position, reef.position, 2.2)){
+        reef.userData = reef.userData || {};
+        reef.userData.hit = true;
+        ud._speed *= 0.3;
+        localScore -= 15;
+        ud.hits = (ud.hits || 0) + 1;
+        const el = document.getElementById('hitCnt');
+        if(el) el.textContent = ud.hits;
+        updateTripleHud && updateTripleHud();
+        const flash = document.getElementById('crashFlash');
+        if(flash){
+          flash.classList.add('flash');
+          setTimeout(() => flash.classList.remove('flash'), 300);
+        }
+        showPowerUpMsg('💥 撞到水底暗礁！車體受損 -15 分');
+      }
+    });
 
     // ── POWER-UP COLLECTION ──
     for(let i = powerUpItems.length - 1; i >= 0; i--){
