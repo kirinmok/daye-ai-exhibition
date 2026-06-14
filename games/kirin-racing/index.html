@@ -2141,15 +2141,15 @@ function createGarageScene(){
 
 function buildPreviewCar(){
   const group = new THREE.Group();
-  // ─── 輪胎尺寸（16/20/26 寸 → 半徑差） ───
-  const tireSizes = [0.62, 0.85, 1.12];
+  // ─── 輪胎尺寸誇張化（16/20/26 寸，差距拉到 3 倍） ───
+  const tireSizes = [0.50, 0.95, 1.55];
   const wheelR = tireSizes[garageChoice.tire];
-  // ─── 軸距 + 車身比例（寬胖 / 中庸 / 窄長遊覽車型） ───
-  const wheelbases = [1.6, 2.4, 3.2];
+  // ─── 軸距 + 車身比例（寬胖矮 / 中庸 / 窄長高，差異全部拉誇張） ───
+  const wheelbases = [1.4, 2.4, 3.4];
   const bodyDims = [
-    { w: 5.0, l: 5.5, signZ: 2.2 },  // 寬胖
-    { w: 4.2, l: 6.5, signZ: 2.6 },  // 中庸
-    { w: 3.4, l: 7.8, signZ: 3.2 },  // 窄長遊覽車型
+    { w: 6.5, h: 1.5, l: 4.5, signZ: 2.2 },  // 寬胖矮 monster truck 風
+    { w: 4.2, h: 2.4, l: 6.5, signZ: 2.6 },  // 中庸標配
+    { w: 2.8, h: 3.6, l: 8.0, signZ: 3.2 },  // 窄長高遊覽車型
   ];
   const wheelZ = wheelbases[garageChoice.wheelbase];
   const dim = bodyDims[garageChoice.wheelbase];
@@ -2157,38 +2157,41 @@ function buildPreviewCar(){
   const powerColors = [0x4ade80, 0xffaa00, 0xcc4444]; // 純電綠 / 油電金 / 純油紅
   const bodyColor = powerColors[garageChoice.power];
 
-  // 車身（寬度×長度動態）
+  // 動態車身高度（h 由 dim 決定，偏移 offY 整體跟著動）
+  const offY = (dim.h - 2.4) * 0.5;
+  // 車身（寬度×高度×長度全動態）
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(dim.w, 2.4, dim.l),
+    new THREE.BoxGeometry(dim.w, dim.h, dim.l),
     new THREE.MeshLambertMaterial({ color: bodyColor })
   );
-  body.position.y = 1.6;
+  body.position.y = 1.6 + offY;
   group.add(body);
-  // 屋頂（跟著車身比例）
+  // 屋頂（高度也跟著車身比例變化）
+  const roofH = 1.6 + offY * 0.5;
   const top = new THREE.Mesh(
-    new THREE.BoxGeometry(dim.w + 0.2, 1.6, dim.l - 1.0),
-    new THREE.MeshLambertMaterial({ color: 0xff6633 })
+    new THREE.BoxGeometry(dim.w + 0.2, roofH, dim.l - 1.0),
+    new THREE.MeshLambertMaterial({ color: 0xffb3c1 })
   );
-  top.position.set(0, 3.6, 0);
+  top.position.set(0, 3.6 + offY * 1.5, 0);
   group.add(top);
   // 招牌（跟著車身比例）
   const sign = new THREE.Mesh(
     new THREE.BoxGeometry(dim.w + 0.4, 0.9, 0.3),
     new THREE.MeshLambertMaterial({ color: 0xffd866 })
   );
-  sign.position.set(0, 4.6, dim.signZ);
+  sign.position.set(0, 4.6 + offY * 1.5, dim.signZ);
   group.add(sign);
   const signBack = sign.clone();
   signBack.position.z = -dim.signZ;
   group.add(signBack);
-  // 紅燈籠（位置隨車身寬窄）
+  // 馬卡龍懸掛（位置隨車身寬窄）
   const lantX = dim.w * 0.45;
   [-lantX, lantX].forEach(x => {
     const lant = new THREE.Mesh(
       new THREE.SphereGeometry(0.45, 12, 8),
       new THREE.MeshBasicMaterial({ color: 0xff2222 })
     );
-    lant.position.set(x, 5.0, 0); lant.scale.y = 1.2;
+    lant.position.set(x, 5.0 + offY * 1.5, 0); lant.scale.y = 1.2;
     group.add(lant);
   });
 
