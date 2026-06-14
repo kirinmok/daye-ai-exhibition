@@ -463,10 +463,25 @@ canvas { display: block; }
 #batteryHud .bat-label { font-size: 10px; color: #888; letter-spacing: 2px; }
 #batteryHud .bat-pct { font-size: 22px; font-weight: 900; color: #4ade80; margin: 2px 0; }
 #batteryHud.low .bat-pct { color: #ff3333; }
-#batteryHud .bat-bar { background: #222; height: 8px; border-radius: 3px; margin-top: 4px; position: relative; overflow: hidden; }
+#batteryHud .bat-bar { background: #222; height: 10px; border-radius: 3px; margin-top: 4px; position: relative; overflow: hidden; }
 #batteryHud .bat-fill { position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 0.3s; }
+/* 鋰電池保養：80% 安全線（綠線） */
+#batteryHud .bat-bar::before {
+  content: ''; position: absolute; left: 80%; top: -2px;
+  width: 2px; height: 14px; background: #fff; opacity: 0.7;
+  z-index: 2;
+}
+/* 5% 紅警線 */
+#batteryHud .bat-bar::after {
+  content: ''; position: absolute; left: 5%; top: -2px;
+  width: 2px; height: 14px; background: #ff3333; opacity: 0.6;
+  z-index: 2;
+}
 #batteryHud.low .bat-fill { background: #ff3333; }
 #batteryHud .bat-mode { font-size: 9px; color: #aaa; margin-top: 3px; letter-spacing: 1px; }
+#batteryHud .bat-health { font-size: 10px; color: #4ade80; margin-top: 2px; letter-spacing: 1px; }
+#batteryHud .bat-health.warn { color: #ff9933; }
+#batteryHud .bat-health.bad { color: #ff3333; }
 
 /* 嘉義地標賽道區段 HUD */
 #sectorHud {
@@ -624,8 +639,9 @@ canvas { display: block; }
 <div id="batteryHud">
   <div class="bat-label">⚡ 電量</div>
   <div class="bat-pct" id="batPct">100%</div>
-  <div class="bat-bar"><div class="bat-fill" id="batFill"></div></div>
+  <div class="bat-bar" title="白線=80%安全上限 / 紅線=5%深度放電警告"><div class="bat-fill" id="batFill"></div></div>
   <div class="bat-mode" id="batMode">⚡ 油電混合</div>
+  <div class="bat-health" id="batHealth">💚 健康 100%</div>
 </div>
 
 <!-- 嘉義地標賽道區段顯示 -->
@@ -2028,10 +2044,11 @@ function updateSectorHud(sec){
   el.style.color = sec.class === 'water' ? '#4488ff' : sec.class === 'hill' ? '#ff9933' : '#ffd866';
 }
 
-// ═══ 🔋 電力系統（電力=生命值） ═══
+// ═══ 🔋 電力系統 + 鋰電池保養（健康度 SOH） ═══
 function initBattery(){
   const ud = playerCar.userData;
   ud.battery = 100;
+  ud.batteryHealth = 100; // 鋰電池健康度（SOH State of Health）
   // 動力配置決定電池模式（0=純電 / 1=油電 / 2=純油）
   ud.powerMode = garageChoice.power;
   updateBatteryHud();
@@ -2042,16 +2059,24 @@ function initBattery(){
 function drainBattery(dt){
   const ud = playerCar.userData;
   if(ud.powerMode === 2) return; // 純油不耗電
-  // 基礎消耗速率（無 boost 時跑滿三圈剛好用 85%）
-  let base = 2.0; // %/秒
-  // 驅動方式加成
+  let base = 2.0;
   const driveMul = [1.0, 1.2, 1.5][ud.mods ? ud.mods.driveIdx : 1];
-  // 動力配置加成（純電吃電快、油電省電）
   const powerMul = [1.0, 0.6, 0][ud.powerMode];
-  // boost 期間吃電翻倍
   const boostMul = (ud._speedBoost > 0 || lightspeedActive) ? 1.8 : 1.0;
   ud.battery -= base * driveMul * powerMul * boostMul * dt;
-  ud.battery = Math.max(0, Math.min(100, ud.battery));
+  // 上限受健康度影響（電池老化後充不滿）
+  const maxBat = ud.batteryHealth || 100;
+  ud.battery = Math.max(0, Math.min(maxBat, ud.battery));
+  // 🔬 鋰電池保養機制（真實 SOH 模型簡化）：
+  //   > 95% 高電壓區跑越久越傷
+  //   < 5%  深度放電傷得更快
+  //   高速 boost 同時電量極端會加倍受損
+  if(ud.batteryHealth > 0){
+    const extreme = ud.battery > 95 ? 0.06 : (ud.battery < 5 ? 0.12 : 0);
+    const heatPenalty = (ud._speedBoost > 0 || lightspeedActive) ? 1.5 : 1.0;
+    ud.batteryHealth -= extreme * heatPenalty * dt;
+    ud.batteryHealth = Math.max(0, ud.batteryHealth);
+  }
   updateBatteryHud();
 }
 function updateBatteryHud(){
@@ -2059,14 +2084,24 @@ function updateBatteryHud(){
   const el = document.getElementById('batteryHud');
   const pct = document.getElementById('batPct');
   const fill = document.getElementById('batFill');
+  const health = document.getElementById('batHealth');
   if(!el || !pct || !fill) return;
   const b = Math.round(ud.battery || 0);
   if(ud.powerMode === 2){
     pct.textContent = '⛽';
     fill.style.width = '100%';
+    if(health) health.textContent = '⛽ 純油車不適用';
   } else {
     pct.textContent = b + '%';
     fill.style.width = b + '%';
+    if(health){
+      const soh = Math.round(ud.batteryHealth || 100);
+      let icon = '💚', cls = '';
+      if(soh < 60) { icon = '💔'; cls = 'bad'; }
+      else if(soh < 85) { icon = '🧡'; cls = 'warn'; }
+      health.textContent = icon + ' 健康 ' + soh + '%';
+      health.className = 'bat-health ' + cls;
+    }
   }
   el.classList.toggle('low', b < 30 && ud.powerMode !== 2);
 }
@@ -2701,7 +2736,15 @@ function showResults(){
     '<div style="font-size:18px; color:#ffd866; margin:8px 0;">合計 ' + totalAxis + ' / ' + LEGEND_TARGET + '</div>' +
     '<div style="font-size:15px; color:#ccc;">' + verdict + '</div>' +
     (gapToLegend > 0 ? '<div style="font-size:12px; color:#888; margin-top:6px;">離傳奇老闆還差 ' + gapToLegend + ' 分</div>' : '') +
-    '<div style="font-size:11px; color:#666; margin-top:14px;">原始分數: ' + playerScore + ' ｜ 總時間: ' + raceTime.toFixed(1) + 's</div>';
+    '<div style="font-size:11px; color:#666; margin-top:14px;">原始分數: ' + playerScore + ' ｜ 總時間: ' + raceTime.toFixed(1) + 's</div>' +
+    (pud.powerMode !== 2 ? (
+      '<div style="font-size:12px; color:' + (pud.batteryHealth < 60 ? '#ff3333' : pud.batteryHealth < 85 ? '#ff9933' : '#4ade80') + '; margin-top:6px;">' +
+        '🔬 鋰電池健康度 SOH: ' + Math.round(pud.batteryHealth || 100) + '%　' +
+        (pud.batteryHealth >= 85 ? '✅ 你懂保養！80% 安全充電法則' :
+         pud.batteryHealth >= 60 ? '⚠️ 電池被你榨太兇，下次別充太滿/用太空' :
+                                    '💔 電池快壞了！這就是手機用兩年容量剩 70% 的原因')
+      + '</div>'
+    ) : '');
 
   // Save to history
   const pud = playerCar.userData;
