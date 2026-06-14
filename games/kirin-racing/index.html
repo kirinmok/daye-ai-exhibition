@@ -250,6 +250,50 @@ canvas { display: block; }
   font-size: 11px; color: #555; letter-spacing: 2px;
 }
 
+/* 工坊進場 reveal 過渡（從 splash → 工坊之間給 2.5 秒喘息） */
+#garageReveal {
+  position: fixed; inset: 0; z-index: 9500;
+  background: radial-gradient(ellipse at center, #2a2014 0%, #000 80%);
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column;
+  font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  color: #fff; text-align: center;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+#garageReveal.show { display: flex; opacity: 1; }
+#garageReveal .rv-icon {
+  font-size: 100px; margin-bottom: 18px;
+  animation: rvPulse 1.6s ease infinite;
+}
+@keyframes rvPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255,153,51,0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 36px rgba(255,153,51,0.8)); }
+}
+#garageReveal .rv-title {
+  font-size: 32px; font-weight: 900; color: #ff9933; letter-spacing: 6px;
+  text-shadow: 0 0 24px rgba(255,153,51,0.5);
+  margin-bottom: 12px;
+}
+#garageReveal .rv-sub {
+  font-size: 16px; color: #aaa; letter-spacing: 3px;
+}
+#garageReveal .rv-loader {
+  margin-top: 24px;
+  display: flex; gap: 8px;
+}
+#garageReveal .rv-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ff9933;
+  animation: rvDot 1.4s ease infinite;
+}
+#garageReveal .rv-dot:nth-child(2) { animation-delay: 0.2s; }
+#garageReveal .rv-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes rvDot {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-6px); }
+}
+
 /* ═══ 對齊卡情境事件（卡內基領導 + 跨域取捨） ═══ */
 #alignCard {
   position: fixed; inset: 0; z-index: 8888;
@@ -584,6 +628,18 @@ canvas { display: block; }
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
   <div class="splash-credit">🛠 KIRIN・大業實驗中學 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
+</div>
+
+<!-- ═══ 工坊進場 reveal 過渡 ═══ -->
+<div id="garageReveal">
+  <div class="rv-icon">🔧</div>
+  <div class="rv-title">改裝工坊已就緒</div>
+  <div class="rv-sub">準備改裝你的早餐車・看清楚每個配件的差異</div>
+  <div class="rv-loader">
+    <div class="rv-dot"></div>
+    <div class="rv-dot"></div>
+    <div class="rv-dot"></div>
+  </div>
 </div>
 
 <!-- ═══ 對齊卡情境事件（卡內基領導） ═══ -->
@@ -1443,7 +1499,7 @@ function startOpeningSplash(){
   if(splashStarted) return;
   splashStarted = true;
   const scenes = document.querySelectorAll('#openingSplash .splash-scene');
-  const sceneDuration = 3500; // 每場景 3.5 秒
+  const sceneDuration = 5500; // 每場景 5.5 秒（讓人有時間看清楚）
   let idx = 0;
   function showScene(i){
     scenes.forEach(s => s.classList.remove('active', 'shake'));
@@ -1470,8 +1526,16 @@ function closeOpeningSplash(){
   el.style.opacity = '0';
   setTimeout(() => {
     el.style.display = 'none';
-    // 進入車庫工坊（取代直接 startCountdown）
-    showGarage();
+    // 顯示工坊載入過渡（讓 KIRIN 喘口氣，看清楚車庫要開了）
+    const rv = document.getElementById('garageReveal');
+    rv.classList.add('show');
+    setTimeout(() => {
+      rv.classList.remove('show');
+      setTimeout(() => {
+        rv.style.display = 'none';
+        showGarage();
+      }, 600); // fade out
+    }, 2400); // reveal 停留 2.4 秒
   }, 850);
 }
 // ESC 跳過
