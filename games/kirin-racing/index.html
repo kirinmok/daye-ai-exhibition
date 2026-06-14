@@ -404,14 +404,51 @@ canvas { display: block; }
   display: none;
 }
 #garageScreen[data-tab="mission"] .mission-band {
-  margin: 24px 16px;
+  margin: 0;
   padding: 28px 32px;
+  flex-direction: column;
+  align-items: flex-start;
+}
+#garageScreen[data-tab="mission"] .mission-band .mission-text {
+  margin-bottom: 16px;
+}
+#garageScreen[data-tab="mission"] .mission-band .mission-chips {
+  flex-wrap: wrap;
+  margin-left: 0;
+  margin-top: auto;
 }
 #garageScreen[data-tab="mission"] .mission-title {
   font-size: 28px;
 }
 #garageScreen[data-tab="mission"] .hypothesis-card {
   display: block;
+  margin: 0;
+  max-width: none;
+}
+
+/* 戰情室專屬 flex 容器：任務（左）+ 本輪假設（右） */
+.mission-hypo-row { display: block; }
+#garageScreen[data-tab="mission"] .mission-hypo-row {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  max-width: 1400px;
+  margin: 24px auto 8px;
+  padding: 0 16px;
+}
+#garageScreen[data-tab="mission"] .mission-hypo-row > .mission-band {
+  flex: 1 1 0;
+  min-width: 0;
+}
+#garageScreen[data-tab="mission"] .mission-hypo-row > .hypothesis-card {
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* 窄螢幕 / 平板：自動換回上下 */
+@media (max-width: 980px) {
+  #garageScreen[data-tab="mission"] .mission-hypo-row {
+    flex-direction: column;
+  }
 }
 .hypothesis-card {
   display: none;
@@ -1801,6 +1838,8 @@ canvas { display: block; }
     </button>
   </div>
 
+  <!-- 戰情室：任務（左）+ 本輪假設（右）左右並排 -->
+  <div class="mission-hypo-row">
   <div class="mission-band">
     <div class="mission-icon">📋</div>
     <div class="mission-text">
@@ -1851,6 +1890,7 @@ canvas { display: block; }
     <div class="hypo-hint">🔍 結算會對照你押的假設跟實際發生的事</div>
     <div class="hypo-status empty" id="hypoStatus">⏳ 還沒押判斷</div>
   </div>
+  </div><!-- /.mission-hypo-row -->
 
   <div class="preset-row">
     <button class="preset-btn" onclick="applyPreset('street')">
