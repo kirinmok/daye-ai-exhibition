@@ -388,13 +388,37 @@ canvas { display: block; }
   padding: 3px 10px; border-radius: 10px;
   border: 1px solid #5a8; color: #5a8;
 }
+/* 工坊雙欄布局 — 3D 車在左 sticky / 五軸選項在右 */
+.garage-main-row {
+  display: flex;
+  gap: 18px;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: flex-start;
+  padding: 0 8px;
+}
+.garage-left {
+  flex: 0 0 480px;
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+}
+.garage-right {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 1000px) {
+  .garage-main-row { flex-direction: column; gap: 14px; }
+  .garage-left { flex: none; position: static; max-height: none; width: 100%; }
+  .garage-right { width: 100%; }
+}
+
 /* 3D 即時預覽車庫 */
 #garagePreviewWrap {
-  max-width: 900px; margin: 0 auto 16px;
   background: radial-gradient(ellipse at center, #2a2014 0%, #0a0a0a 80%);
   border: 2px solid #ff9933; border-radius: 12px;
   overflow: hidden; position: relative;
-  height: 280px;
+  height: 380px;
   box-shadow: 0 0 32px rgba(255,153,51,0.2) inset;
 }
 #garagePreview { width: 100%; height: 100%; display: block; }
@@ -418,9 +442,12 @@ canvas { display: block; }
 .garage-axes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-  max-width: 1300px; margin: 0 auto; width: 100%;
+  gap: 12px;
+  width: 100%;
 }
+/* 左欄 sticky 內，性能 bar / 開始按鈕排版微調 */
+.garage-left .garage-predict { margin: 12px 0 10px; max-width: none; }
+.garage-left .garage-start { margin: 4px 0 0; width: 100%; padding: 16px 20px; }
 .axis-card {
   background: rgba(0,0,0,0.5);
   border: 1px solid #444;
@@ -667,28 +694,35 @@ canvas { display: block; }
     </div>
   </div>
 
-  <!-- 3D 即時預覽車（換配件即時看到車變樣） -->
-  <div id="garagePreviewWrap">
-    <canvas id="garagePreview"></canvas>
-    <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
-    <div class="preview-overlay-bl">每換一個配件，車子立刻重新組裝</div>
-    <div class="preview-overlay-br" id="previewVerdict">🔧 街頭中庸配置</div>
-  </div>
+  <!-- 雙欄主區：左 3D 預覽（sticky）/ 右 五軸選項 -->
+  <div class="garage-main-row">
+    <div class="garage-left">
+      <div id="garagePreviewWrap">
+        <canvas id="garagePreview"></canvas>
+        <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
+        <div class="preview-overlay-bl">每換一個配件 → 車子立刻重組</div>
+        <div class="preview-overlay-br" id="previewVerdict">🔧 街頭中庸配置</div>
+      </div>
 
-  <div class="garage-axes" id="garageAxes"></div>
+      <!-- 性能預測也跟著放左邊，跟車一起看 -->
+      <div class="garage-predict">
+        <h3>📊 性能即時預測</h3>
+        <div class="perf-bars">
+          <div class="perf-bar"><div class="label">起步⚡</div><div class="bar-bg"><div class="bar-fill" id="perfStart" style="width:50%"></div></div><div class="val" id="perfStartVal">50</div></div>
+          <div class="perf-bar"><div class="label">極速🚀</div><div class="bar-bg"><div class="bar-fill" id="perfTop" style="width:50%"></div></div><div class="val" id="perfTopVal">50</div></div>
+          <div class="perf-bar"><div class="label">過彎🔄</div><div class="bar-bg"><div class="bar-fill" id="perfTurn" style="width:50%"></div></div><div class="val" id="perfTurnVal">50</div></div>
+          <div class="perf-bar"><div class="label">續航🔋</div><div class="bar-bg"><div class="bar-fill" id="perfRange" style="width:50%"></div></div><div class="val" id="perfRangeVal">50</div></div>
+          <div class="perf-bar"><div class="label">爬坡⛰</div><div class="bar-bg"><div class="bar-fill" id="perfClimb" style="width:50%"></div></div><div class="val" id="perfClimbVal">50</div></div>
+        </div>
+      </div>
 
-  <div class="garage-predict">
-    <h3>📊 性能即時預測</h3>
-    <div class="perf-bars">
-      <div class="perf-bar"><div class="label">起步⚡</div><div class="bar-bg"><div class="bar-fill" id="perfStart" style="width:50%"></div></div><div class="val" id="perfStartVal">50</div></div>
-      <div class="perf-bar"><div class="label">極速🚀</div><div class="bar-bg"><div class="bar-fill" id="perfTop" style="width:50%"></div></div><div class="val" id="perfTopVal">50</div></div>
-      <div class="perf-bar"><div class="label">過彎🔄</div><div class="bar-bg"><div class="bar-fill" id="perfTurn" style="width:50%"></div></div><div class="val" id="perfTurnVal">50</div></div>
-      <div class="perf-bar"><div class="label">續航🔋</div><div class="bar-bg"><div class="bar-fill" id="perfRange" style="width:50%"></div></div><div class="val" id="perfRangeVal">50</div></div>
-      <div class="perf-bar"><div class="label">爬坡⛰</div><div class="bar-bg"><div class="bar-fill" id="perfClimb" style="width:50%"></div></div><div class="val" id="perfClimbVal">50</div></div>
+      <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
+    </div>
+
+    <div class="garage-right">
+      <div class="garage-axes" id="garageAxes"></div>
     </div>
   </div>
-
-  <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
 </div>
 
 <!-- 🔋 電量 HUD（電力=生命值） -->
@@ -1499,7 +1533,7 @@ function startOpeningSplash(){
   if(splashStarted) return;
   splashStarted = true;
   const scenes = document.querySelectorAll('#openingSplash .splash-scene');
-  const sceneDuration = 5500; // 每場景 5.5 秒（讓人有時間看清楚）
+  const sceneDuration = 7500; // 每場景 7.5 秒（KIRIN 反饋還是太快，再加長）
   let idx = 0;
   function showScene(i){
     scenes.forEach(s => s.classList.remove('active', 'shake'));
