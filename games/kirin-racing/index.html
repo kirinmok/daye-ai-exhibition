@@ -466,6 +466,48 @@ canvas { display: block; }
   pointer-events: none;
   z-index: 5;
 }
+/* ⚙️ 齒輪特寫小窗（預覽圖右下角浮動） */
+.gear-zoom {
+  position: absolute; bottom: 12px; right: 12px;
+  width: 200px;
+  background: rgba(0,0,0,0.82);
+  border: 2px solid #ffd866;
+  border-radius: 10px;
+  padding: 8px 10px;
+  z-index: 6;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.gear-zoom-title {
+  font-size: 11px; color: #ffd866; letter-spacing: 1px;
+  text-align: center; margin-bottom: 4px;
+  font-weight: 700;
+}
+.gear-zoom-svg {
+  display: flex; align-items: center; justify-content: center;
+  gap: 2px; height: 70px;
+}
+.emoji-gear {
+  display: inline-block;
+  animation: gearSpin linear infinite;
+  transform-origin: center;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  transition: font-size 0.3s ease;
+}
+.emoji-gear.small { animation-direction: reverse; }
+@keyframes gearSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.gear-zoom-label {
+  font-size: 10px; color: #ffd866; text-align: center; margin-top: 4px;
+  letter-spacing: 1px; font-weight: 700;
+}
+.gear-zoom-sub {
+  font-size: 9px; color: #aaa; text-align: center; margin-top: 2px;
+  font-style: italic;
+}
+
 /* 配置診斷卡片（從預覽圖移出，獨立顯示） */
 .preview-info-card {
   margin-top: 8px;
@@ -813,6 +855,16 @@ canvas { display: block; }
       <div id="garagePreviewWrap">
         <canvas id="garagePreview"></canvas>
         <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
+        <!-- ⚙️ 齒輪嚙合特寫小窗（KIRIN 要求：齒輪比看得到差異） -->
+        <div class="gear-zoom" id="gearZoom">
+          <div class="gear-zoom-title">⚙️ 齒輪嚙合特寫</div>
+          <div class="gear-zoom-svg">
+            <span class="emoji-gear big" id="bigGear">⚙️</span>
+            <span class="emoji-gear small" id="smallGear">⚙️</span>
+          </div>
+          <div class="gear-zoom-label" id="gearZoomLabel">中齒比 1:1 · 街頭標配</div>
+          <div class="gear-zoom-sub" id="gearZoomSub">馬達端 ⇄ 輪子端</div>
+        </div>
       </div>
       <!-- 配置診斷卡片（從預覽圖移出） -->
       <div class="preview-info-card">
@@ -2154,6 +2206,51 @@ function buildPreviewCar(){
   return group;
 }
 
+// ⚙️ 齒輪嚙合特寫：根據 gear choice 設定 emoji 大小 + 旋轉速度
+function updateGearZoom(){
+  const choice = garageChoice.gear; // 0=低 / 1=中 / 2=高
+  const configs = [
+    {
+      leftSize: 28, rightSize: 56, leftDur: 1.0, rightDur: 2.6,
+      label: '🐢 低齒比 1:2 · 扭力 ×2',
+      sub: '馬達轉 2 圈、輪子轉 1 圈 → 爬坡神！',
+      color: '#4ade80'
+    },
+    {
+      leftSize: 42, rightSize: 42, leftDur: 1.8, rightDur: 1.8,
+      label: '⚙️ 中齒比 1:1 · 街頭標配',
+      sub: '馬達 ⇄ 輪子 等速嚙合',
+      color: '#ffd866'
+    },
+    {
+      leftSize: 56, rightSize: 28, leftDur: 2.6, rightDur: 1.0,
+      label: '🚀 高齒比 2:1 · 極速 ×2',
+      sub: '馬達轉 1 圈、輪子轉 2 圈 → 平地飛！',
+      color: '#ff6633'
+    },
+  ];
+  const cfg = configs[choice];
+  const big = document.getElementById('bigGear');
+  const small = document.getElementById('smallGear');
+  if(big){
+    big.style.fontSize = cfg.leftSize + 'px';
+    big.style.animationDuration = cfg.leftDur + 's';
+  }
+  if(small){
+    small.style.fontSize = cfg.rightSize + 'px';
+    small.style.animationDuration = cfg.rightDur + 's';
+  }
+  const lbl = document.getElementById('gearZoomLabel');
+  if(lbl){
+    lbl.textContent = cfg.label;
+    lbl.style.color = cfg.color;
+  }
+  const sub = document.getElementById('gearZoomSub');
+  if(sub) sub.textContent = cfg.sub;
+  const wrap = document.getElementById('gearZoom');
+  if(wrap) wrap.style.borderColor = cfg.color;
+}
+
 function rebuildPreviewCar(){
   if(!garageScene) return;
   if(garagePreviewCar){
@@ -2181,6 +2278,8 @@ function rebuildPreviewCar(){
     else if(tot.top <= -3 && tot.climb <= -2) label = '⚠️ 跛腳配置（小心）';
     verdict.textContent = label;
   }
+  // 同步更新齒輪嚙合特寫
+  updateGearZoom();
 }
 
 function startGarageAnimate(){
