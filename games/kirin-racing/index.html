@@ -459,26 +459,42 @@ canvas { display: block; }
   pointer-events: none;
   z-index: 5;
 }
-/* ⚙️ 齒輪特寫小窗（預覽圖右下角浮動） */
+/* ⚙️ 齒輪嚙合特寫（獨立區塊，不擋車） */
 .gear-zoom {
-  position: absolute; bottom: 12px; right: 12px;
-  width: 240px;
-  background: rgba(0,0,0,0.85);
-  border: 2px solid #ffd866;
-  border-radius: 10px;
-  padding: 8px 10px;
-  z-index: 6;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  position: relative;
+  margin-top: 10px;
+  width: 100%;
+  background: linear-gradient(180deg, rgba(20,15,10,0.9) 0%, rgba(10,5,0,0.9) 100%);
+  border: 1px solid #5a4030;
+  border-top: 2px solid #ffd866;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px 12px;
+  align-items: center;
 }
 .gear-zoom-title {
-  font-size: 11px; color: #ffd866; letter-spacing: 1px;
-  text-align: center; margin-bottom: 4px;
+  grid-column: 1 / 3;
+  font-size: 11px; color: #ffd866; letter-spacing: 2px;
+  text-align: left; margin-bottom: 4px;
   font-weight: 700;
+  border-bottom: 1px dashed #5a4030;
+  padding-bottom: 4px;
 }
 .gear-zoom-svg {
   display: flex; align-items: center; justify-content: center;
-  gap: 1px; height: 90px;
+  gap: 2px; height: 80px;
   padding: 0 4px;
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+.gear-zoom-info {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  text-align: right;
+  min-width: 130px;
 }
 /* 黃色 TT 馬達（讓學生秒懂哪個是馬達端） */
 .motor-block, .wheel-block {
@@ -532,12 +548,12 @@ canvas { display: block; }
   to   { transform: rotate(360deg); }
 }
 .gear-zoom-label {
-  font-size: 10px; color: #ffd866; text-align: center; margin-top: 4px;
-  letter-spacing: 1px; font-weight: 700;
+  font-size: 13px; color: #ffd866; text-align: right;
+  letter-spacing: 1px; font-weight: 900;
 }
 .gear-zoom-sub {
-  font-size: 9px; color: #aaa; text-align: center; margin-top: 2px;
-  font-style: italic;
+  font-size: 10px; color: #aaa; text-align: right; margin-top: 3px;
+  font-style: italic; line-height: 1.4;
 }
 
 /* 配置診斷卡片（從預覽圖移出，獨立顯示） */
@@ -884,32 +900,34 @@ canvas { display: block; }
       <div id="garagePreviewWrap">
         <canvas id="garagePreview"></canvas>
         <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
-        <!-- ⚙️ 齒輪嚙合特寫小窗（KIRIN 要求：齒輪比看得到差異） -->
-        <div class="gear-zoom" id="gearZoom">
-          <div class="gear-zoom-title">⚙️ 齒輪嚙合特寫</div>
-          <div class="gear-zoom-svg">
-            <div class="motor-block">
-              <div class="motor-body"></div>
-              <div class="motor-label">TT 馬達</div>
-            </div>
-            <span class="emoji-gear big" id="bigGear">⚙️</span>
-            <span class="emoji-gear small" id="smallGear">⚙️</span>
-            <div class="wheel-block">
-              <div class="wheel-icon">🛞</div>
-              <div class="wheel-label">輪子</div>
-            </div>
-          </div>
-          <div class="gear-zoom-label" id="gearZoomLabel">中齒比 1:1 · 街頭標配</div>
-          <div class="gear-zoom-sub" id="gearZoomSub">馬達端 ⇄ 輪子端</div>
-        </div>
       </div>
-      <!-- 配置診斷卡片（從預覽圖移出） -->
+      <!-- 配置診斷卡片（獨立） -->
       <div class="preview-info-card">
         <div>
           <div class="pi-label">⚡ 當前配置</div>
           <div class="pi-verdict" id="previewVerdict">🔧 街頭中庸配置</div>
         </div>
         <div class="pi-hint">每換一個配件 → 車子立刻重組</div>
+      </div>
+      <!-- ⚙️ 齒輪嚙合特寫（獨立區塊，不擋車） -->
+      <div class="gear-zoom" id="gearZoom">
+        <div class="gear-zoom-title">⚙️ 齒輪嚙合特寫・傳動原理</div>
+        <div class="gear-zoom-svg">
+          <div class="motor-block">
+            <div class="motor-body"></div>
+            <div class="motor-label">TT 馬達</div>
+          </div>
+          <span class="emoji-gear big" id="bigGear">⚙️</span>
+          <span class="emoji-gear small" id="smallGear">⚙️</span>
+          <div class="wheel-block">
+            <div class="wheel-icon">🛞</div>
+            <div class="wheel-label">輪子</div>
+          </div>
+        </div>
+        <div class="gear-zoom-info">
+          <div class="gear-zoom-label" id="gearZoomLabel">中齒比 1:1 · 街頭標配</div>
+          <div class="gear-zoom-sub" id="gearZoomSub">馬達端 ⇄ 輪子端</div>
+        </div>
       </div>
 
       <!-- 性能預測也跟著放左邊，跟車一起看 -->
