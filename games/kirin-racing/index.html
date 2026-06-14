@@ -380,9 +380,46 @@ canvas { display: block; }
   font-size: 13px; color: #888; letter-spacing: 2px; margin-top: 4px;
 }
 .garage-tag-row {
-  display: flex; justify-content: center; gap: 10px; margin: 8px 0 16px;
+  display: flex; justify-content: center; gap: 10px; margin: 8px 0 10px;
   flex-wrap: wrap;
 }
+
+/* 🏎️ 預設車選擇（賽車遊戲風） */
+.preset-row {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin: 6px auto 16px; max-width: 1100px;
+}
+.preset-btn {
+  background: linear-gradient(135deg, #2a2014 0%, #1a1410 100%);
+  border: 2px solid #ff9933;
+  border-radius: 10px;
+  padding: 10px 18px;
+  color: #ffd866;
+  cursor: pointer; transition: all 0.18s ease;
+  font-family: inherit; min-width: 150px;
+  text-align: center;
+  position: relative;
+}
+.preset-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,216,102,0.15), transparent);
+  border-radius: 8px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.preset-btn:hover {
+  border-color: #ffd866;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(255,153,51,0.4);
+}
+.preset-btn:hover::before { opacity: 1; }
+.preset-btn.active {
+  border-color: #4ade80;
+  background: linear-gradient(135deg, #2d4a2a 0%, #1a2a1a 100%);
+  box-shadow: 0 0 16px rgba(74,222,128,0.4);
+}
+.preset-btn .ps-name { font-size: 15px; font-weight: 900; letter-spacing: 2px; }
+.preset-btn .ps-desc { font-size: 10px; color: #aaa; margin-top: 3px; letter-spacing: 1px; }
 .garage-tag {
   font-size: 11px; letter-spacing: 2px;
   padding: 3px 10px; border-radius: 10px;
@@ -425,18 +462,28 @@ canvas { display: block; }
 .preview-overlay-tl {
   position: absolute; top: 10px; left: 14px;
   font-size: 11px; color: #ffd866; letter-spacing: 2px;
-  background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 12px;
+  background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 12px;
   pointer-events: none;
+  z-index: 5;
 }
-.preview-overlay-bl {
-  position: absolute; bottom: 8px; left: 14px;
-  font-size: 10px; color: #888; letter-spacing: 1px;
-  pointer-events: none;
+/* 配置診斷卡片（從預覽圖移出，獨立顯示） */
+.preview-info-card {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #2a2014 0%, #1a1410 100%);
+  border: 1px solid #ff9933; border-radius: 8px;
+  padding: 10px 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px; flex-wrap: wrap;
 }
-.preview-overlay-br {
-  position: absolute; bottom: 8px; right: 14px;
-  font-size: 12px; color: #ffd866; font-weight: 700;
-  pointer-events: none;
+.preview-info-card .pi-label {
+  font-size: 11px; color: #888; letter-spacing: 1px;
+}
+.preview-info-card .pi-verdict {
+  font-size: 15px; font-weight: 900; color: #ffd866;
+  letter-spacing: 2px;
+}
+.preview-info-card .pi-hint {
+  font-size: 11px; color: #aaa; font-style: italic;
 }
 
 .garage-axes {
@@ -448,39 +495,85 @@ canvas { display: block; }
 /* 左欄 sticky 內，性能 bar / 開始按鈕排版微調 */
 .garage-left .garage-predict { margin: 12px 0 10px; max-width: none; }
 .garage-left .garage-start { margin: 4px 0 0; width: 100%; padding: 16px 20px; }
+/* 工具箱抽屜風格軸卡片 */
 .axis-card {
-  background: rgba(0,0,0,0.5);
-  border: 1px solid #444;
-  border-radius: 10px;
-  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(60,40,20,0.3) 0%, rgba(20,15,10,0.6) 100%),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 4px);
+  border: 2px solid #5a4030;
+  border-top: 3px solid #ff9933;
+  border-radius: 8px 8px 6px 6px;
+  padding: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,200,100,0.15),
+    0 4px 12px rgba(0,0,0,0.4);
+  position: relative;
+}
+.axis-card::before {
+  content: ''; position: absolute;
+  top: -2px; left: 50%; transform: translateX(-50%);
+  width: 28px; height: 4px;
+  background: linear-gradient(90deg, #5a4030, #8a6040, #5a4030);
+  border-radius: 0 0 4px 4px;
 }
 .axis-card h3 {
-  margin: 0 0 4px; font-size: 17px; color: #ffd866;
+  margin: 0 0 4px; font-size: 16px; color: #ffd866;
   display: flex; align-items: center; gap: 8px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
 .axis-hint {
-  font-size: 11px; color: #888; margin-bottom: 10px;
+  font-size: 11px; color: #aaa; margin-bottom: 10px;
   font-style: italic;
+  background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px;
+  border-left: 2px solid #ff9933;
 }
-.axis-options { display: flex; flex-direction: column; gap: 6px; }
+.axis-options {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 7px;
+}
+
+/* 櫥窗格子風格選項 */
 .opt-card {
-  background: rgba(255,255,255,0.04);
-  border: 2px solid #333;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
+  border: 2px solid #444;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
+  position: relative;
+  overflow: hidden;
 }
-.opt-card:hover { border-color: #ff9933; background: rgba(255,153,51,0.08); }
+.opt-card::after {
+  content: ''; position: absolute;
+  top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transition: left 0.5s;
+}
+.opt-card:hover {
+  border-color: #ff9933;
+  background: linear-gradient(180deg, rgba(255,153,51,0.12) 0%, rgba(0,0,0,0.3) 100%);
+  transform: translateX(3px);
+}
+.opt-card:hover::after { left: 100%; }
 .opt-card.selected {
-  border-color: #ffd866; background: rgba(255,216,102,0.12);
-  box-shadow: 0 0 12px rgba(255,216,102,0.3);
+  border-color: #4ade80;
+  background: linear-gradient(180deg, rgba(74,222,128,0.18) 0%, rgba(0,40,0,0.4) 100%);
+  box-shadow:
+    0 0 16px rgba(74,222,128,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.1);
 }
-.opt-card .opt-name { font-size: 14px; font-weight: 700; color: #fff; }
+.opt-card.selected::before {
+  content: '✓'; position: absolute;
+  top: 8px; right: 10px;
+  color: #4ade80; font-weight: 900; font-size: 16px;
+}
+.opt-card .opt-name { font-size: 13px; font-weight: 700; color: #fff; }
 .opt-card .opt-secret {
-  font-size: 11px; color: #aaa; margin-top: 3px; line-height: 1.4;
+  font-size: 11px; color: #bbb; margin-top: 3px; line-height: 1.4;
 }
-.opt-card.selected .opt-secret { color: #ffd866; }
+.opt-card.selected .opt-secret { color: #4ade80; }
 
 /* 性能預測長條 */
 .garage-predict {
@@ -694,14 +787,40 @@ canvas { display: block; }
     </div>
   </div>
 
+  <!-- 🏎️ 預設車選擇（賽車遊戲風） -->
+  <div class="preset-row">
+    <button class="preset-btn" onclick="applyPreset('street')">
+      <div class="ps-name">🏎️ 街頭老闆</div>
+      <div class="ps-desc">中庸平衡 · 新手首選</div>
+    </button>
+    <button class="preset-btn" onclick="applyPreset('speed')">
+      <div class="ps-name">🚀 飆速戰士</div>
+      <div class="ps-desc">直線王 · 極速優先</div>
+    </button>
+    <button class="preset-btn" onclick="applyPreset('offroad')">
+      <div class="ps-name">🌊 越野神獸</div>
+      <div class="ps-desc">爬坡水道 · 全地形</div>
+    </button>
+    <button class="preset-btn" onclick="applyPreset('eco')">
+      <div class="ps-name">🌱 環保節能</div>
+      <div class="ps-desc">純電馬拉松配置</div>
+    </button>
+  </div>
+
   <!-- 雙欄主區：左 3D 預覽（sticky）/ 右 五軸選項 -->
   <div class="garage-main-row">
     <div class="garage-left">
       <div id="garagePreviewWrap">
         <canvas id="garagePreview"></canvas>
         <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
-        <div class="preview-overlay-bl">每換一個配件 → 車子立刻重組</div>
-        <div class="preview-overlay-br" id="previewVerdict">🔧 街頭中庸配置</div>
+      </div>
+      <!-- 配置診斷卡片（從預覽圖移出） -->
+      <div class="preview-info-card">
+        <div>
+          <div class="pi-label">⚡ 當前配置</div>
+          <div class="pi-verdict" id="previewVerdict">🔧 街頭中庸配置</div>
+        </div>
+        <div class="pi-hint">每換一個配件 → 車子立刻重組</div>
       </div>
 
       <!-- 性能預測也跟著放左邊，跟車一起看 -->
@@ -1744,6 +1863,27 @@ const GARAGE_AXES = [
 // 玩家當前選擇（index 0=第一選項；預設全部中庸 = index 1）
 const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1 };
 
+// 🏎️ 預設車種（賽車遊戲風一鍵選車）
+const PRESETS = {
+  street:  { tire: 1, wheelbase: 1, drive: 0, power: 1, gear: 1 }, // 街頭老闆：中庸
+  speed:   { tire: 0, wheelbase: 2, drive: 1, power: 2, gear: 2 }, // 飆速：光頭+長軸+後驅+純油+高齒
+  offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0 }, // 越野：越野胎+四驅+油電+低齒
+  eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1 }, // 環保：純電
+};
+
+function applyPreset(key){
+  const p = PRESETS[key];
+  if(!p) return;
+  Object.assign(garageChoice, p);
+  // 標記哪個 preset active
+  document.querySelectorAll('.preset-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['street','speed','offroad','eco'][i] === key);
+  });
+  renderGarage();
+  updatePerfPrediction();
+  rebuildPreviewCar();
+}
+
 function renderGarage(){
   const container = document.getElementById('garageAxes');
   container.innerHTML = '';
@@ -1762,6 +1902,8 @@ function renderGarage(){
                     '<div class="opt-secret">' + opt.secret + '</div>';
       o.onclick = () => {
         garageChoice[axis.key] = idx;
+        // 手動偏離 preset → 清 active 綠燈
+        document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
         renderGarage();
         updatePerfPrediction();
         rebuildPreviewCar();   // 3D 預覽即時重組
