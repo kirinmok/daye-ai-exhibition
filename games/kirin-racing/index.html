@@ -432,6 +432,34 @@ canvas { display: block; }
   position: sticky;
   top: 12px;
   max-height: calc(100vh - 24px);
+  box-sizing: border-box;
+}
+.garage-left > * {
+  width: 100%;
+  box-sizing: border-box;
+  margin-left: 0;
+  margin-right: 0;
+}
+.garage-left .garage-predict {
+  margin: 10px 0 0 0;
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.garage-left .gear-zoom {
+  margin: 10px 0 0 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.garage-left .preview-info-card {
+  margin: 10px 0 0 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.garage-left .garage-start {
+  margin: 10px 0 0 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .garage-right {
   flex: 1;
@@ -2203,8 +2231,12 @@ function buildPreviewCar(){
     rim.userData.kind = 'rim'; rim.userData.r = wheelR;
     group.add(rim);
   }
-  // 輪子 X 位置跟車身寬度走（寬胖車輪間距大、窄長車輪間距小）
-  const wheelX = dim.w * 0.55;
+  // 🛞 輪子突出量根據輪胎類型動態：光頭內鑲 / 多紋平齊 / 越野大幅突出
+  // 16 吋光頭：輪子內鑲（緊貼車殼，普通房車感）
+  // 20 吋多紋：輪子平齊（中庸街頭餐車）
+  // 26 吋越野：輪子大幅突出 + 軸距外伸（monster truck 感）
+  const wheelOuterOffsets = [-0.15, 0.1, 0.55];
+  const wheelX = dim.w * 0.5 + wheelOuterOffsets[garageChoice.tire];
   addWheel(-wheelX, wheelZ); addWheel(wheelX, wheelZ);
   addWheel(-wheelX, -wheelZ); addWheel(wheelX, -wheelZ);
 
