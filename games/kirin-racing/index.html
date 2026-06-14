@@ -422,6 +422,19 @@ canvas { display: block; }
 }
 .garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
 
+/* 嘉義地標賽道區段 HUD */
+#sectorHud {
+  position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.7); border: 1px solid #ffd866;
+  padding: 6px 16px; border-radius: 20px;
+  font-family: 'PingFang TC', sans-serif;
+  font-size: 15px; font-weight: 700; color: #ffd866;
+  letter-spacing: 2px;
+  z-index: 100;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+#sectorHud .sec-prefix { color: #888; font-size: 11px; margin-right: 6px; }
+
 /* 即時換檔 HUD（在賽道上 Z/X 即時換檔） */
 #gearHud {
   position: absolute; bottom: 100px; right: 30px;
@@ -551,6 +564,12 @@ canvas { display: block; }
   </div>
 
   <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
+</div>
+
+<!-- 嘉義地標賽道區段顯示 -->
+<div id="sectorHud">
+  <span class="sec-prefix">📍 現在位置</span>
+  <span id="sectorName">🏁 起跑線・噴水池圓環前</span>
 </div>
 
 <!-- 即時換檔 HUD（Z/X 賽道上動態換檔） -->
@@ -1501,12 +1520,12 @@ function resetAlignState(){
 // 每個選項對五個性能維度的影響（-2 to +2）：start/top/turn/range/climb
 const GARAGE_AXES = [
   {
-    key: 'tire', icon: '🛞', name: '輪胎設定',
-    hint: '外八字 = Negative Camber，過彎時輪面更貼地，但直線阻力增加',
+    key: 'tire', icon: '🛞', name: '輪胎套裝（吋數+紋路+外傾角）',
+    hint: '懂車的祕密：光頭胎平地神但雨天滑倒；外八字過彎強但內側磨損快',
     options: [
-      { name: '直立輪 0°', secret: '最省胎、直線神，但過彎打滑',  d: { start: 0, top: +1, turn: -1, range: +1, climb: 0 } },
-      { name: '外八字 -3°', secret: '中庸取捨，街頭最常見配置',     d: { start: 0, top:  0, turn:  0, range:  0, climb: 0 } },
-      { name: '外八字 -6°', secret: '甩尾神器！但內側胎兩週就磨爛', d: { start: 0, top: -1, turn: +2, range: -1, climb: 0 } },
+      { name: '16吋光頭胎・直立 0°',  secret: '平地速度神！但碰水道當場打滑',  d: { start: +1, top: +2, turn: -1, range: +1, climb: -1 }, slipWater: true },
+      { name: '20吋多紋胎・外八 -3°', secret: '街頭中庸，雨天也穩—老闆首選',  d: { start: 0, top: 0, turn: +1, range: 0, climb: 0 }, slipWater: false },
+      { name: '26吋越野胎・外八 -6°', secret: '過彎+爬坡神，但平地拖油瓶',     d: { start: 0, top: -2, turn: +2, range: -1, climb: +2 }, slipWater: false },
     ],
   },
   {
@@ -1616,15 +1635,39 @@ function computePlayerMods(){
     Object.keys(tot).forEach(k => tot[k] += choice.d[k]);
   });
   return {
-    speedMul:  1 + tot.top   * 0.05,   // 最高速 ±25%
-    accelMul:  1 + tot.start * 0.06,   // 起步加速 ±30%
-    turnMul:   1 + tot.turn  * 0.07,   // 過彎能力 ±35%
-    rangeMul:  1 + tot.range * 0.05,   // 續航係數（第三圈後段減速用）
+    speedMul:  1 + tot.top   * 0.05,
+    accelMul:  1 + tot.start * 0.06,
+    turnMul:   1 + tot.turn  * 0.07,
+    rangeMul:  1 + tot.range * 0.05,
     climbMul:  1 + tot.climb * 0.05,
-    drive:     GARAGE_AXES[2].options[garageChoice.drive].name, // 用於水道判定
-    waterproof: garageChoice.power === 0, // 小馬力是否含防水（簡化）
+    drive:     GARAGE_AXES[2].options[garageChoice.drive].name,
+    driveIdx:  garageChoice.drive,    // 0=FF, 1=FR, 2=AWD
+    waterproof: garageChoice.power === 0,
+    slipWater: GARAGE_AXES[0].options[garageChoice.tire].slipWater || false,
     tot: tot,
   };
+}
+
+// ═══ 嘉義地標賽道區段命名 + 水道/爬坡判定 ═══
+const SECTORS = [
+  { name: '🏁 起跑線・噴水池圓環前',   class: 'normal' },
+  { name: '⛲ 噴水池 U 彎道',           class: 'normal' },
+  { name: '🍜 文化路夜市直線',         class: 'normal' },
+  { name: '🐸 青蛙公園入口',           class: 'normal' },
+  { name: '⚾ KANO 棒球員銅像直道',    class: 'normal' },
+  { name: '🚂 嘉義火車站前彎',         class: 'normal' },
+  { name: '💧 秀泰百貨地下道（淹水）', class: 'water' },
+  { name: '🌉 民生南路天橋上坡',       class: 'hill' },
+];
+function getSector(dist){
+  const t = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
+  return Math.floor(t / L_TOTAL * SECTORS.length);
+}
+function updateSectorHud(sec){
+  const el = document.getElementById('sectorName');
+  if(!el) return;
+  el.textContent = sec.name;
+  el.style.color = sec.class === 'water' ? '#4488ff' : sec.class === 'hill' ? '#ff9933' : '#ffd866';
 }
 
 // ═══════════════════════════════════════════════
@@ -2618,6 +2661,38 @@ function animate(){
       ud._prevLapCount = ud.laps;
       // 對齊卡情境事件（第 1、2 圈完成後觸發）
       setTimeout(() => triggerAlignCard(ud.laps), 1200);
+    }
+
+    // ═══ 嘉義地標賽道區段判定 + 水道/爬坡 effect ═══
+    const curSector = getSector(ud._dist);
+    if(curSector !== ud._lastSector){
+      ud._lastSector = curSector;
+      const sec = SECTORS[curSector];
+      updateSectorHud(sec);
+      // 水道：依改裝判定打滑
+      if(sec.class === 'water'){
+        let slipMul = 1.0;
+        let msg = '💧 進入秀泰地下道淹水區！';
+        if(mods.slipWater) { slipMul *= 0.45; msg += ' 🛞 光頭胎當場打滑！'; }
+        if(!mods.waterproof) { slipMul *= 0.65; msg += ' 💀 馬達進水減速！'; }
+        if(mods.driveIdx === 1) { slipMul *= 0.85; msg += ' FR 後驅尾搖！'; }
+        else if(mods.driveIdx === 2) { slipMul *= 1.10; msg += ' AWD 四驅穩穩通過！'; }
+        ud._speed *= slipMul;
+        showPowerUpMsg(msg);
+      }
+      // 爬坡：climb 不足直接卡住
+      else if(sec.class === 'hill'){
+        if(mods.tot && mods.tot.climb <= -2){
+          ud._speed *= 0.35;
+          showPowerUpMsg('⛰ 民生南路天橋上坡！高齒比+小馬力爬不上去 🐢');
+        } else if(mods.tot && mods.tot.climb >= 2){
+          ud._speed *= 1.15;
+          showPowerUpMsg('⛰ 天橋上坡 / 低齒比+四驅輕鬆上 🚀');
+        } else {
+          ud._speed *= 0.80;
+          showPowerUpMsg('⛰ 民生南路天橋上坡，車速稍降');
+        }
+      }
     }
   }
 
