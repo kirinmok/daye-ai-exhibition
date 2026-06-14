@@ -834,7 +834,7 @@ canvas { display: block; }
     </div>
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
-  <div class="splash-credit">🛠 KIRIN・大業實驗中學 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
+  <div class="splash-credit">🛠 大業實驗中學 STEAM 工作室 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
 </div>
 
 <!-- ═══ 工坊進場 reveal 過渡 ═══ -->
@@ -1284,7 +1284,7 @@ function createCar(color, name){
 
   // 早餐車屋頂（橘紅經典色，整個車身寬）
   const topGeo = new THREE.BoxGeometry(4.4, 1.6, 5.5);
-  const topMat = new THREE.MeshLambertMaterial({ color: 0xff6633 });
+  const topMat = new THREE.MeshLambertMaterial({ color: 0xffb3c1 }); // 蛋糕粉色屋頂
   const top = new THREE.Mesh(topGeo, topMat);
   top.position.set(0, 3.6, 0);
   group.add(top);
@@ -1304,7 +1304,7 @@ function createCar(color, name){
     ctx.strokeRect(4, 4, 504, 120);
     return new THREE.CanvasTexture(cv);
   }
-  const signTex = makeSignTexture('🥞 嘉義水城・早餐 🥢', '#ffd866', '#8b0000');
+  const signTex = makeSignTexture('🍰 嘉義水城・甜點早餐 🧋', '#ffd6e8', '#c2185b');
   const signMat = new THREE.MeshBasicMaterial({ map: signTex });
   const signGeo = new THREE.BoxGeometry(4.6, 1.1, 0.3);
   const signFront = new THREE.Mesh(signGeo, signMat);
@@ -1315,64 +1315,81 @@ function createCar(color, name){
   signBack.rotation.y = Math.PI;
   group.add(signBack);
 
-  // 第五元素風・廟宇牌樓（兩根紅柱 + 金橫梁）
+  // 🍓 屋頂裝飾立柱（薄荷綠 + 草莓奶油黃）
   const pillarGeo = new THREE.CylinderGeometry(0.18, 0.18, 2.2, 8);
-  const pillarMat = new THREE.MeshLambertMaterial({ color: 0xcc1111 });
+  const pillarMat = new THREE.MeshLambertMaterial({ color: 0x8fd9b6 }); // 薄荷綠
   [-2.0, 2.0].forEach(x => {
     const p = new THREE.Mesh(pillarGeo, pillarMat);
     p.position.set(x, 5.6, 0);
     group.add(p);
   });
   const beamGeo = new THREE.BoxGeometry(4.6, 0.35, 0.6);
-  const beamMat = new THREE.MeshLambertMaterial({ color: 0xffaa00 });
+  const beamMat = new THREE.MeshLambertMaterial({ color: 0xffe9b3 }); // 奶油黃
   const beam = new THREE.Mesh(beamGeo, beamMat);
   beam.position.set(0, 6.6, 0);
   group.add(beam);
 
-  // 屋頂掛紅燈籠（兩顆，懸掛感）
-  const lanternGeo = new THREE.SphereGeometry(0.55, 12, 8);
-  const lanternMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
-  [-2.0, 2.0].forEach(x => {
-    const lant = new THREE.Mesh(lanternGeo, lanternMat);
-    lant.position.set(x, 5.0, 0);
-    lant.scale.y = 1.2;
-    group.add(lant);
-    // 燈籠底部金色穗
-    const tassel = new THREE.Mesh(
-      new THREE.ConeGeometry(0.12, 0.4, 6),
-      new THREE.MeshBasicMaterial({ color: 0xffd866 })
+  // 🍓🧁 馬卡龍懸掛（兩顆不同顏色：草莓粉 + 抹茶綠）
+  const macColors = [0xff8fb1, 0x9fd9a8]; // 草莓粉、抹茶綠
+  [-2.0, 2.0].forEach((x, i) => {
+    const macGeo = new THREE.SphereGeometry(0.55, 12, 8);
+    const macMat = new THREE.MeshBasicMaterial({ color: macColors[i] });
+    const mac = new THREE.Mesh(macGeo, macMat);
+    mac.position.set(x, 5.0, 0);
+    mac.scale.y = 0.7;  // 馬卡龍扁球形狀
+    group.add(mac);
+    // 馬卡龍夾心（奶油色橢圓中間層）
+    const cream = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.55, 0.55, 0.2, 12),
+      new THREE.MeshBasicMaterial({ color: 0xfff0c2 })
     );
-    tassel.position.set(x, 4.3, 0);
-    tassel.rotation.x = Math.PI;
-    group.add(tassel);
+    cream.position.set(x, 5.0, 0);
+    group.add(cream);
   });
 
-  // 屋頂中央金色脊飾（餐車老闆的招牌）
+  // 🍫 屋頂中央巧克力脊飾（焦糖咖啡色）
   const ridgeGeo = new THREE.BoxGeometry(5, 0.25, 0.8);
-  const ridgeMat = new THREE.MeshLambertMaterial({ color: 0xffaa00 });
+  const ridgeMat = new THREE.MeshLambertMaterial({ color: 0x7a4f2b }); // 巧克力色
   const ridge = new THREE.Mesh(ridgeGeo, ridgeMat);
   ridge.position.set(0, 4.55, 0);
   group.add(ridge);
 
-  // 煙囪（雙煙囪，更誇張）
-  const chimneyGeo = new THREE.CylinderGeometry(0.3, 0.35, 1.8, 8);
-  const chimneyMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
-  [-1.3, 1.3].forEach(x => {
-    const ch = new THREE.Mesh(chimneyGeo, chimneyMat);
-    ch.position.set(x, 5.4, -1.8);
-    group.add(ch);
-    // 煙囪頂金色圈
-    const ring = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.4, 0.4, 0.15, 8),
-      new THREE.MeshLambertMaterial({ color: 0xffaa00 })
+  // 🍓 草莓裝飾球（屋頂四角）
+  [[-2.0, 2.3], [2.0, 2.3], [-2.0, -2.3], [2.0, -2.3]].forEach(([x, z]) => {
+    const berry = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 8, 6),
+      new THREE.MeshBasicMaterial({ color: 0xe63946 })
     );
-    ring.position.set(x, 6.4, -1.8);
-    group.add(ring);
+    berry.position.set(x, 4.7, z);
+    group.add(berry);
+    // 草莓綠葉
+    const leaf = new THREE.Mesh(
+      new THREE.ConeGeometry(0.15, 0.18, 5),
+      new THREE.MeshBasicMaterial({ color: 0x6fbe8d })
+    );
+    leaf.position.set(x, 4.95, z);
+    group.add(leaf);
   });
 
-  // 側面遮陽棚（橘色窗篷，餐車經典元素）
+  // 🍦 煙囪改成鮮奶油擠花（雙色：奶油白 + 焦糖）
+  const chimneyGeo = new THREE.CylinderGeometry(0.3, 0.35, 1.8, 8);
+  const chimMats = [0xfff5e0, 0xd4a574]; // 奶油白 + 焦糖
+  [-1.3, 1.3].forEach((x, i) => {
+    const ch = new THREE.Mesh(chimneyGeo, new THREE.MeshLambertMaterial({ color: chimMats[i] }));
+    ch.position.set(x, 5.4, -1.8);
+    group.add(ch);
+    // 擠花頂端（粉色櫻桃）
+    const cherry = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28, 8, 6),
+      new THREE.MeshBasicMaterial({ color: 0xff5577 })
+    );
+    cherry.position.set(x, 6.45, -1.8);
+    group.add(cherry);
+  });
+
+  // 🎀 側面遮陽棚（粉嫩色）
   const awningGeo = new THREE.BoxGeometry(0.3, 0.4, 4);
-  const awningMat = new THREE.MeshLambertMaterial({ color: 0xff9933 });
+  const awningMat = new THREE.MeshLambertMaterial({ color: 0xffb0c8 }); // 粉嫩
   [-2.3, 2.3].forEach(x => {
     const aw = new THREE.Mesh(awningGeo, awningMat);
     aw.position.set(x, 2.9, 0);
