@@ -1521,6 +1521,46 @@ canvas { display: block; }
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
+/* ⚖️ 重心配重 HUD */
+#balanceHud {
+  position: absolute; top: 290px; right: 16px;
+  background: rgba(8,14,28,0.88); border: 2px solid #ffd866;
+  padding: 10px 14px; border-radius: 10px;
+  font-family: 'PingFang TC', sans-serif; color: #edf5ff;
+  z-index: 100; min-width: 200px;
+}
+.bh-label {
+  font-size: 13px; font-weight: 700; letter-spacing: 2px;
+  margin-bottom: 6px; text-align: center;
+  color: #4ade80;
+  transition: color 0.3s;
+}
+.bh-car {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: #94a3b8;
+}
+.bh-bar {
+  flex: 1; height: 14px;
+  background: linear-gradient(90deg, #ff6b6b 0%, #4ade80 50%, #ff6b6b 100%);
+  border-radius: 7px; position: relative;
+  border: 1px solid #475569;
+}
+.bh-arrow {
+  position: absolute; top: -4px;
+  width: 4px; height: 22px;
+  background: #fff;
+  border-radius: 2px;
+  transform: translateX(-2px);
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  left: 50%;
+}
+.bh-total {
+  font-size: 11px; color: #94a3b8;
+  text-align: center; margin-top: 4px;
+  letter-spacing: 1px;
+}
+
 /* 💥 撞擊閃紅 */
 #crashFlash {
   position: fixed; inset: 0; z-index: 8900;
@@ -1972,6 +2012,17 @@ canvas { display: block; }
   <div class="rh-row"><span class="rh-icon">💎</span><span class="rh-label">寶物</span><span class="rh-val" id="gemCnt">0</span></div>
   <div class="rh-row warn"><span class="rh-icon">💥</span><span class="rh-label">撞擊</span><span class="rh-val" id="hitCnt">0</span></div>
   <div id="cargoStack"></div>
+</div>
+
+<!-- ⚖️ 重心配重 HUD（撿到救援物才顯示）-->
+<div id="balanceHud" style="display:none;">
+  <div class="bh-label" id="balanceLabel">⚖️ 配重平衡</div>
+  <div class="bh-car">
+    <span class="bh-front">車頭</span>
+    <div class="bh-bar"><div class="bh-arrow" id="balanceArrow"></div></div>
+    <span class="bh-back">車尾</span>
+  </div>
+  <div class="bh-total" id="balanceTotal">總重 0 kg</div>
 </div>
 
 <!-- 即時換檔 HUD（Z/X 賽道上動態換檔） -->
@@ -2709,12 +2760,13 @@ function spawnRescueTarget(d, lateralOffset, kind){
   const group = { base, sprite, kind, picked: false, age: 0, position: { x: p.x, z: p.z } };
   rescueItems.push(group);
 }
+// 載運重心系統：pos -1=車頭、0=中央、+1=車尾；weight=配重影響
 const RESCUE_KINDS = [
-  { id: 'dog',    emoji: '🐕', label: '受困小狗',     score: 30, baseColor: 0xffaa33 },
-  { id: 'elder',  emoji: '🧓', label: '等救援的長輩', score: 50, baseColor: 0xff6b6b },
-  { id: 'supply', emoji: '📦', label: '物資箱',       score: 20, baseColor: 0xa0d878 },
-  { id: 'float',  emoji: '🛟', label: '泳圈',         score: 25, baseColor: 0x59c7ff },
-  { id: 'gem',    emoji: '💎', label: '隱藏寶物',     score: 60, baseColor: 0xc080ff },
+  { id: 'dog',    emoji: '🐕', label: '受困小狗',     score: 30, baseColor: 0xffaa33, pos:  0.4, weight: 2 }, // 跳到後座
+  { id: 'elder',  emoji: '🧓', label: '等救援的長輩', score: 50, baseColor: 0xff6b6b, pos: -0.3, weight: 4 }, // 副駕（前一點）
+  { id: 'supply', emoji: '📦', label: '物資箱',       score: 20, baseColor: 0xa0d878, pos:  0.8, weight: 5 }, // 後車斗（最重）
+  { id: 'float',  emoji: '🛟', label: '泳圈',         score: 25, baseColor: 0x59c7ff, pos: -0.7, weight: 1 }, // 前車頂（輕）
+  { id: 'gem',    emoji: '💎', label: '隱藏寶物',     score: 60, baseColor: 0xc080ff, pos:  0.6, weight: 1 }, // 後備胎位
 ];
 // 沿賽道散布 10 個救援目標
 for(let i = 0; i < 10; i++){
@@ -3201,11 +3253,12 @@ function startCountdown(){
   hazardCooldown = 8; // 開賽 8 秒內不觸發
   racePaused = false;
   pitStopMode = false;
-  // 🆘 reset 救援 / 寶物 / 撞擊計數
+  // 🆘 reset 救援 / 寶物 / 撞擊計數 + 配重
   if(playerCar && playerCar.userData){
     playerCar.userData.rescued = 0;
     playerCar.userData.gemsCollected = 0;
     playerCar.userData.hits = 0;
+    playerCar.userData.cargo = [];
   }
   ['rescuedCnt','gemCnt','hitCnt'].forEach(id => {
     const el = document.getElementById(id);
@@ -3213,6 +3266,8 @@ function startCountdown(){
   });
   const stack = document.getElementById('cargoStack');
   if(stack) stack.innerHTML = '';
+  const bh = document.getElementById('balanceHud');
+  if(bh) bh.style.display = 'none';
   const el = document.getElementById('cdNum');
   const flagEl = document.getElementById('flagWrap');
 
@@ -5280,6 +5335,36 @@ function isNearItem(carPos, itemPos, radius){
   return (dx*dx + dz*dz) < radius * radius;
 }
 
+// ⚖️ 重心計算（pos -1=車頭 / +1=車尾，weight=重量）
+function calcBalance(){
+  const ud = playerCar && playerCar.userData;
+  if(!ud || !ud.cargo || ud.cargo.length === 0) return { center: 0, total: 0 };
+  let sum = 0, w = 0;
+  ud.cargo.forEach(c => { sum += c.pos * c.weight; w += c.weight; });
+  return { center: w > 0 ? sum / w : 0, total: w };
+}
+function updateBalanceHud(){
+  const bal = calcBalance();
+  const el = document.getElementById('balanceHud');
+  if(!el) return;
+  el.style.display = bal.total > 0 ? 'block' : 'none';
+  if(bal.total === 0) return;
+  // 重心線（-1 ~ +1 → 0% ~ 100%）
+  const pct = ((bal.center + 1) / 2) * 100;
+  const arrow = document.getElementById('balanceArrow');
+  if(arrow) arrow.style.left = pct + '%';
+  // 標籤
+  const label = document.getElementById('balanceLabel');
+  let txt = '⚖️ 配重平衡', color = '#4ade80';
+  if(bal.center < -0.5){ txt = '⚠️ 重心過前・保險桿吃水'; color = '#ffd866'; }
+  else if(bal.center > 0.5){ txt = '⚠️ 重心過後・車尾下沉'; color = '#ff6b6b'; }
+  else if(Math.abs(bal.center) > 0.3){ txt = '🟡 略偏' + (bal.center > 0 ? '後' : '前'); color = '#ffd866'; }
+  if(label){ label.textContent = txt; label.style.color = color; }
+  // 載重總計
+  const total = document.getElementById('balanceTotal');
+  if(total) total.textContent = '總重 ' + bal.total + ' kg';
+}
+
 // ═══════════════════════════════════════════════
 // LIGHTSPEED VISUAL EFFECTS
 // ═══════════════════════════════════════════════
@@ -5865,12 +5950,15 @@ function animate(){
             chip.className = 'cargo-chip';
             chip.textContent = k.emoji;
             stack.appendChild(chip);
-            // 載運多了視覺擠擠的
             if(stack.children.length > 8){
               stack.removeChild(stack.firstChild);
             }
           }
         }
+        // ⚖️ 累積配重（連寶物也算重）
+        ud.cargo = ud.cargo || [];
+        ud.cargo.push({ pos: k.pos, weight: k.weight, emoji: k.emoji });
+        updateBalanceHud();
       }
     });
 
@@ -6070,7 +6158,7 @@ function animate(){
       ud._lastSector = curSector;
       const sec = SECTORS[curSector];
       updateSectorHud(sec);
-      // 水道：依改裝判定打滑（第 2 圈水位上升再加強）
+      // 水道：依改裝判定打滑（第 2 圈水位上升再加強）+ 重心配重
       if(sec.class === 'water'){
         let slipMul = 1.0;
         const lapNum = (ud.laps || 0) + 1;
@@ -6081,11 +6169,38 @@ function animate(){
         if(!mods.waterproof) { slipMul *= 0.65; msg += '💀 馬達進水減速！'; }
         if(mods.driveIdx === 1) { slipMul *= 0.85; msg += 'FR 後驅尾搖！'; }
         else if(mods.driveIdx === 2) { slipMul *= 1.10; msg += 'AWD 四驅穩穩通過！'; }
-        // 第 2 圈水位上升額外懲罰底盤太低的車
         if(lapNum >= 2 && mods.tot && mods.tot.climb < 0){
           slipMul *= 0.80; msg += '低底盤積水卡住！';
         }
+        // ⚖️ 重心配重判定（重心嚴重偏前/偏後 → 翻覆風險）
+        const bal = calcBalance();
+        if(bal.total > 0){
+          const c = bal.center;
+          if(c > 0.55){
+            slipMul *= 0.50;
+            localScore -= 10;
+            msg += '🔻 後車斗過重・車尾下沉翻肚 -10 分！';
+            // 載運物掉落（隨機踢掉一個）
+            if(ud.cargo && ud.cargo.length > 0){
+              const lost = ud.cargo.pop();
+              const stack = document.getElementById('cargoStack');
+              if(stack && stack.lastChild) stack.removeChild(stack.lastChild);
+              showPowerUpMsg('💦 ' + lost.emoji + ' 掉進水裡了！');
+            }
+          } else if(c < -0.55){
+            slipMul *= 0.55;
+            localScore -= 6;
+            msg += '🔺 前載過重・保險桿吃水 -6 分！';
+          } else if(Math.abs(c) > 0.3){
+            slipMul *= 0.85;
+            msg += '⚖️ 略偏重心拖速 ';
+          } else if(bal.total > 0){
+            slipMul *= 1.05; msg += '⚖️ 配重均衡穩穩通過！';
+          }
+        }
         ud._speed *= slipMul;
+        updateBalanceHud();
+        updateTripleHud && updateTripleHud();
         showPowerUpMsg(msg);
       }
       // 爬坡：climb 不足直接卡住
