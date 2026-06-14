@@ -676,13 +676,21 @@ canvas { display: block; }
 }
 
 .garage-axes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  columns: 2;
+  column-gap: 12px;
+  column-fill: balance;
+  width: 100%;
+}
+.garage-axes > .axis-card {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+  display: block;
+  margin-bottom: 12px;
   width: 100%;
 }
 @media (max-width: 1100px) {
-  .garage-axes { grid-template-columns: 1fr; }
+  .garage-axes { columns: 1; }
 }
 /* 左欄 sticky 內，性能 bar / 開始按鈕排版微調 */
 .garage-left .garage-predict { margin: 12px 0 10px; max-width: none; }
