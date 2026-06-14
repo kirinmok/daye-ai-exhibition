@@ -1006,7 +1006,7 @@ canvas { display: block; }
     </div>
     <div class="splash-scene" data-scene="6">
       <div class="headline" style="color:#4ade80; font-size:34px; line-height:1.4;">拆掉你以為的常識<br>從物理底線重新建造</div>
-      <div class="sub" style="font-size:16px; margin-top:14px;">這就是第一性原理。</div>
+      <div class="sub" style="font-size:16px; margin-top:14px;">每一個選擇，都要承擔後果。</div>
     </div>
     <div class="splash-scene" data-scene="7">
       <div class="small">🌧️ 現在</div>
@@ -1025,7 +1025,7 @@ canvas { display: block; }
 <div id="guessModal">
   <div class="guess-box">
     <div class="guess-header">
-      <div class="guess-tag">🔬 第一性原理 · 假設標記</div>
+      <div class="guess-tag">🤔 動手前先想一下</div>
       <h2>動手前先猜猜看</h2>
       <div class="guess-sub">你以為的，跑完才知道對不對</div>
     </div>
@@ -3741,13 +3741,13 @@ function buildFppSection(pud, totalAxis){
   // Insight 拆解金句
   let insight = '';
   if(matchCount === 3){
-    insight = '✨ <strong>完全拆解出原理了！</strong>你已經能從配置預測結果——這就是第一性原理的力量。';
+    insight = '✨ <strong>你已經能看穿這台車了。</strong>從配置就猜得到結果——這個感覺很爽吧？';
   } else if(matchCount === 2){
     insight = '👍 <strong>大方向對了</strong>，但有一處沒掌握。再玩一次，把那個沒猜對的拆解到底。';
   } else if(matchCount === 1){
-    insight = '💡 <strong>你以為的可能誤導了你。</strong>選了某個配置不代表它就是強項——記得拆到物理底線。';
+    insight = '💡 <strong>你想的跟實際不一樣。</strong>下一次回去工坊，是不是有想試的東西了？';
   } else {
-    insight = '🌱 <strong>才剛開始拆解。</strong>每個選擇背後都有物理原因，多玩幾次你會自己歸納出來。';
+    insight = '🌱 <strong>還在摸索。</strong>沒關係，再跑一輪，你會開始發現哪些選擇真的有用。';
   }
   const renderRow = (qLabel, guessKey, realKey, dict, match) => (
     '<div class="fpp-row' + (match ? ' match' : '') + '">' +
@@ -3758,7 +3758,7 @@ function buildFppSection(pud, totalAxis){
   );
   return (
     '<div class="fpp-section">' +
-      '<h4>🔬 第一性原理對照 · 你以為 vs 實際</h4>' +
+      '<h4>🎯 你以為 vs 實際</h4>' +
       renderRow('① 最強',  guess.strong, strongest, labels,      strongMatch) +
       renderRow('② 最弱',  guess.weak,   weakest,   labels,      weakMatch) +
       renderRow('③ 等級',  guess.level,  realLevel, levelLabels, levelMatch) +
