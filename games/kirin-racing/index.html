@@ -1005,16 +1005,15 @@ canvas { display: block; }
       <div class="sub" style="font-size:18px; margin-top:10px; line-height:1.6;">你的設計要在真實的街道、<br>真實的雨、真實的水位裡驗證。</div>
     </div>
     <div class="splash-scene" data-scene="6">
-      <div class="headline" style="color:#4ade80; font-size:34px; line-height:1.4;">拆掉你以為的常識<br>從物理底線重新建造</div>
-      <div class="sub" style="font-size:16px; margin-top:14px;">每一個選擇，都要承擔後果。</div>
+      <div class="headline" style="color:#4ade80; font-size:34px; line-height:1.4;">每一個選擇<br>都會出事</div>
+      <div class="sub" style="font-size:16px; margin-top:14px;">問題是——你會發現嗎？</div>
     </div>
     <div class="splash-scene" data-scene="7">
-      <div class="small">🌧️ 現在</div>
-      <div class="headline" style="color:#ffd866;">這是訓練開始的清晨</div>
-      <div class="sub" style="margin-top:6px;">你接到了第一份任務。</div>
-      <div class="headline" style="color:#ffd866; margin-top:18px; font-size:30px;">要回應這個時代，</div>
-      <div class="headline" style="color:#ffd866; font-size:30px;">現在的你要學什麼？</div>
-      <button id="splashStart" onclick="closeOpeningSplash()">▶  接受徵召・開始</button>
+      <div class="small" style="color:#ff6b6b;">⚠️ 警告</div>
+      <div class="headline" style="color:#ffd866; font-size:30px; line-height:1.5;">大部分人接到徵召，<br>三天內就放棄。</div>
+      <div class="sub" style="margin-top:14px; font-size:15px;">他們以為自己準備好了——其實沒有。</div>
+      <div class="headline" style="color:#ff9933; margin-top:20px; font-size:26px;">你會在裡面嗎？</div>
+      <button id="splashStart" onclick="closeOpeningSplash()">▶  我要試試看</button>
     </div>
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
@@ -1025,9 +1024,9 @@ canvas { display: block; }
 <div id="guessModal">
   <div class="guess-box">
     <div class="guess-header">
-      <div class="guess-tag">🤔 動手前先想一下</div>
-      <h2>動手前先猜猜看</h2>
-      <div class="guess-sub">你以為的，跑完才知道對不對</div>
+      <div class="guess-tag">🤔 等一下</div>
+      <h2>你的車真的會做你想的事嗎？</h2>
+      <div class="guess-sub">先說出來——3 圈後我們對答案</div>
     </div>
 
     <div class="guess-question">
@@ -2946,12 +2945,12 @@ function rebuildPreviewCar(){
   });
   const verdict = document.getElementById('previewVerdict');
   if(verdict){
-    let label = '🔧 街頭中庸配置';
-    if(tot.top >= 3) label = '🚀 飆速戰士配置';
-    else if(tot.climb >= 3) label = '⛰ 爬坡神獸配置';
-    else if(tot.turn >= 3) label = '🌀 過彎魔王配置';
-    else if(tot.range >= 3) label = '🔋 馬拉松配置';
-    else if(tot.top <= -3 && tot.climb <= -2) label = '⚠️ 跛腳配置（小心）';
+    let label = '🔧 安全牌・大家都選的';
+    if(tot.top >= 3) label = '🚀 你想飆？這台確實夠快';
+    else if(tot.climb >= 3) label = '⛰ 沒人選這個——但你看到了什麼？';
+    else if(tot.turn >= 3) label = '🌀 過彎像在跳舞——直線就不一定了';
+    else if(tot.range >= 3) label = '🔋 烏龜配置・但跑得完';
+    else if(tot.top <= -3 && tot.climb <= -2) label = '⚠️ 這台車有問題——你看出來了嗎？';
     verdict.textContent = label;
   }
   // 同步更新齒輪嚙合特寫
@@ -3741,13 +3740,13 @@ function buildFppSection(pud, totalAxis){
   // Insight 拆解金句
   let insight = '';
   if(matchCount === 3){
-    insight = '✨ <strong>你已經能看穿這台車了。</strong>從配置就猜得到結果——這個感覺很爽吧？';
+    insight = '✨ <strong>你解開了所有秘密。</strong>大部分人三圈後還看不穿——你不一樣。下一台車，要不要挑更難的配置？';
   } else if(matchCount === 2){
-    insight = '👍 <strong>大方向對了</strong>，但有一處沒掌握。再玩一次，把那個沒猜對的拆解到底。';
+    insight = '🔥 <strong>就差一步。</strong>有一個秘密還沒解開——它在工坊等著你。下一輪你會抓到嗎？';
   } else if(matchCount === 1){
-    insight = '💡 <strong>你想的跟實際不一樣。</strong>下一次回去工坊，是不是有想試的東西了？';
+    insight = '🎯 <strong>這台車比你想得複雜。</strong>有東西被你忽略了——下一輪打開工坊時，你會看到不同的東西。';
   } else {
-    insight = '🌱 <strong>還在摸索。</strong>沒關係，再跑一輪，你會開始發現哪些選擇真的有用。';
+    insight = '🌪 <strong>第一輪就猜對的人不多。</strong>真正的玩家從第二輪開始——你看到的會跟剛才完全不同。';
   }
   const renderRow = (qLabel, guessKey, realKey, dict, match) => (
     '<div class="fpp-row' + (match ? ' match' : '') + '">' +
