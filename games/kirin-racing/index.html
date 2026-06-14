@@ -739,6 +739,128 @@ canvas { display: block; }
 }
 .garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
 
+/* 🔬 第一性原理「猜猜看」彈窗 */
+#guessModal {
+  position: fixed; inset: 0; z-index: 8500;
+  background: rgba(0,0,0,0.85);
+  display: none; align-items: center; justify-content: center;
+  font-family: 'PingFang TC', sans-serif;
+}
+#guessModal.show { display: flex; animation: fadeIn 0.3s ease; }
+.guess-box {
+  background: linear-gradient(160deg, #2a2014 0%, #1a1410 100%);
+  border: 2px solid #ffd866;
+  border-radius: 12px;
+  padding: 24px 30px;
+  max-width: 580px; width: 92%;
+  color: #fff;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+}
+.guess-header {
+  text-align: center; margin-bottom: 14px;
+}
+.guess-header .guess-tag {
+  display: inline-block;
+  font-size: 11px; letter-spacing: 3px;
+  background: #c2185b; color: #fff;
+  padding: 3px 10px; border-radius: 10px;
+  margin-bottom: 8px;
+}
+.guess-header h2 {
+  margin: 0; font-size: 22px; color: #ffd866; letter-spacing: 3px;
+}
+.guess-header .guess-sub {
+  font-size: 12px; color: #888; margin-top: 4px; font-style: italic;
+}
+.guess-question {
+  margin: 14px 0 4px;
+}
+.guess-question .q-label {
+  font-size: 13px; color: #ccc; margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.guess-question .q-options {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.guess-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1.5px solid #444;
+  color: #aaa; cursor: pointer;
+  padding: 8px 14px; border-radius: 6px;
+  font-size: 13px; font-family: inherit;
+  transition: all 0.15s ease;
+}
+.guess-btn:hover {
+  border-color: #ff9933; color: #ffd866;
+}
+.guess-btn.selected {
+  border-color: #4ade80; color: #4ade80;
+  background: rgba(74,222,128,0.15);
+  box-shadow: 0 0 8px rgba(74,222,128,0.3);
+}
+.guess-confirm {
+  display: block; margin: 18px auto 0;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #ff9933, #ff6633);
+  color: #fff; font-size: 16px; font-weight: 900; letter-spacing: 4px;
+  border: none; border-radius: 8px; cursor: pointer;
+  font-family: inherit;
+  opacity: 0.5; pointer-events: none;
+  transition: all 0.2s;
+}
+.guess-confirm.ready {
+  opacity: 1; pointer-events: auto;
+}
+.guess-confirm.ready:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255,153,51,0.4);
+}
+.guess-skip {
+  display: block; margin: 8px auto 0;
+  background: none; border: none;
+  color: #666; font-size: 11px; cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+}
+
+/* 🔬 結算頁第一性原理對照 */
+.fpp-section {
+  margin-top: 16px;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid #ffd866;
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-align: left;
+}
+.fpp-section h4 {
+  margin: 0 0 10px; font-size: 14px; color: #ffd866;
+  letter-spacing: 3px;
+  border-bottom: 1px dashed #5a4030;
+  padding-bottom: 6px;
+}
+.fpp-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 0;
+  align-items: center;
+}
+.fpp-row .fpp-label { color: #888; }
+.fpp-row .fpp-guess { color: #ff6b6b; }
+.fpp-row .fpp-real { color: #4ade80; }
+.fpp-row.match .fpp-guess { color: #4ade80; }
+.fpp-insight {
+  margin-top: 10px;
+  font-size: 12px; color: #ccc;
+  background: rgba(255,216,102,0.08);
+  border-left: 3px solid #ffd866;
+  padding: 8px 12px;
+  border-radius: 4px;
+  line-height: 1.6;
+}
+.fpp-insight strong { color: #ffd866; }
+
 /* 🔋 電量 HUD（電力=生命值） */
 #batteryHud {
   position: absolute; bottom: 30px; right: 250px;
@@ -874,6 +996,37 @@ canvas { display: block; }
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
   <div class="splash-credit">🛠 大業實驗中學 STEAM 工作室 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
+</div>
+
+<!-- ═══ 🔬 第一性原理「猜猜看」彈窗（按開上街頭前彈出） ═══ -->
+<div id="guessModal">
+  <div class="guess-box">
+    <div class="guess-header">
+      <div class="guess-tag">🔬 第一性原理 · 假設標記</div>
+      <h2>動手前先猜猜看</h2>
+      <div class="guess-sub">你以為的，跑完才知道對不對</div>
+    </div>
+
+    <div class="guess-question">
+      <div class="q-label">① 你覺得這台車最強的是？</div>
+      <div class="q-options" id="qStrong"></div>
+    </div>
+
+    <div class="guess-question">
+      <div class="q-label">② 你覺得這台車最弱的是？</div>
+      <div class="q-options" id="qWeak"></div>
+    </div>
+
+    <div class="guess-question">
+      <div class="q-label">③ 你猜這趟總分會：</div>
+      <div class="q-options" id="qLevel"></div>
+    </div>
+
+    <button class="guess-confirm" id="guessConfirm" onclick="confirmGuessAndStart()">
+      📍 上路驗證！
+    </button>
+    <button class="guess-skip" onclick="skipGuessAndStart()">先跳過，直接上路</button>
+  </div>
 </div>
 
 <!-- ═══ 工坊進場 reveal 過渡 ═══ -->
@@ -2098,6 +2251,11 @@ function showGarage(){
 }
 
 function closeGarage(){
+  // 🔬 第一性原理：先彈「猜猜看」，再上路
+  showGuessModal();
+}
+
+function actuallyStartRace(){
   stopGarageAnimate();
   document.getElementById('garageScreen').classList.remove('show');
   // 套用 mods 到 playerCar
@@ -2108,6 +2266,69 @@ function closeGarage(){
   updateGearHud();
   initBattery();
   startCountdown();
+}
+
+// ═══ 🔬 第一性原理「猜猜看」系統 ═══
+let garageGuess = { strong: null, weak: null, level: null };
+const GUESS_DIMENSIONS = [
+  { key: 'top',   label: '🚀 極速' },
+  { key: 'turn',  label: '🔄 過彎' },
+  { key: 'climb', label: '⛰ 爬坡' },
+  { key: 'range', label: '🔋 續航' },
+  { key: 'start', label: '⚡ 起步' },
+];
+const GUESS_LEVELS = [
+  { key: 'legend', label: '🌟 破紀錄' },
+  { key: 'good',   label: '👍 中等' },
+  { key: 'okay',   label: '🌱 學徒' },
+  { key: 'fail',   label: '⚠️ 跛腳' },
+];
+
+function showGuessModal(){
+  garageGuess = { strong: null, weak: null, level: null };
+  // 渲染三題選項
+  renderGuessOptions('qStrong', GUESS_DIMENSIONS, 'strong');
+  renderGuessOptions('qWeak',   GUESS_DIMENSIONS, 'weak');
+  renderGuessOptions('qLevel',  GUESS_LEVELS,     'level');
+  updateGuessConfirm();
+  document.getElementById('guessModal').classList.add('show');
+}
+
+function renderGuessOptions(containerId, items, slot){
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  items.forEach(item => {
+    const b = document.createElement('button');
+    b.className = 'guess-btn';
+    b.textContent = item.label;
+    b.onclick = () => {
+      garageGuess[slot] = item.key;
+      // 重畫
+      c.querySelectorAll('.guess-btn').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      updateGuessConfirm();
+    };
+    c.appendChild(b);
+  });
+}
+
+function updateGuessConfirm(){
+  const ready = garageGuess.strong && garageGuess.weak && garageGuess.level;
+  document.getElementById('guessConfirm').classList.toggle('ready', !!ready);
+}
+
+function confirmGuessAndStart(){
+  if(!garageGuess.strong || !garageGuess.weak || !garageGuess.level) return;
+  // 存到 playerCar.userData
+  playerCar.userData.guess = { ...garageGuess };
+  document.getElementById('guessModal').classList.remove('show');
+  actuallyStartRace();
+}
+
+function skipGuessAndStart(){
+  playerCar.userData.guess = null;
+  document.getElementById('guessModal').classList.remove('show');
+  actuallyStartRace();
 }
 
 // ═══ 🎯 3D 即時預覽車庫（Three.js 獨立 scene） ═══
@@ -3157,6 +3378,60 @@ function playCelebrationSound(){
 }
 
 // Results & restart
+// 🔬 結算頁・第一性原理對照（你以為 vs 實際）
+function buildFppSection(pud, totalAxis){
+  const guess = pud.guess;
+  if(!guess) return ''; // 跳過猜猜看就不顯示對照
+  const mods = pud.mods || { tot: {} };
+  const tot = mods.tot || {};
+  // 找出實際最強/最弱（從 mods.tot 五個維度取最高/最低）
+  const keys = ['start', 'top', 'turn', 'range', 'climb'];
+  const labels = { start: '⚡ 起步', top: '🚀 極速', turn: '🔄 過彎', range: '🔋 續航', climb: '⛰ 爬坡' };
+  let strongest = keys[0], weakest = keys[0];
+  keys.forEach(k => {
+    if((tot[k] || 0) > (tot[strongest] || 0)) strongest = k;
+    if((tot[k] || 0) < (tot[weakest]   || 0)) weakest   = k;
+  });
+  // 實際等級
+  let realLevel = 'fail';
+  if(totalAxis >= 200) realLevel = 'legend';
+  else if(totalAxis >= 140) realLevel = 'good';
+  else if(totalAxis >= 80)  realLevel = 'okay';
+  const levelLabels = { legend: '🌟 破紀錄', good: '👍 中等', okay: '🌱 學徒', fail: '⚠️ 跛腳' };
+  // 對照
+  const strongMatch = (guess.strong === strongest);
+  const weakMatch   = (guess.weak   === weakest);
+  const levelMatch  = (guess.level  === realLevel);
+  const matchCount  = (strongMatch ? 1 : 0) + (weakMatch ? 1 : 0) + (levelMatch ? 1 : 0);
+  // Insight 拆解金句
+  let insight = '';
+  if(matchCount === 3){
+    insight = '✨ <strong>完全拆解出原理了！</strong>你已經能從配置預測結果——這就是第一性原理的力量。';
+  } else if(matchCount === 2){
+    insight = '👍 <strong>大方向對了</strong>，但有一處沒掌握。再玩一次，把那個沒猜對的拆解到底。';
+  } else if(matchCount === 1){
+    insight = '💡 <strong>你以為的可能誤導了你。</strong>選了某個配置不代表它就是強項——記得拆到物理底線。';
+  } else {
+    insight = '🌱 <strong>才剛開始拆解。</strong>每個選擇背後都有物理原因，多玩幾次你會自己歸納出來。';
+  }
+  const renderRow = (qLabel, guessKey, realKey, dict, match) => (
+    '<div class="fpp-row' + (match ? ' match' : '') + '">' +
+      '<div class="fpp-label">' + qLabel + '</div>' +
+      '<div class="fpp-guess">你以為：' + (dict[guessKey] || '—') + (match ? ' ✓' : ' ✕') + '</div>' +
+      '<div class="fpp-real">實際：' + (dict[realKey] || '—') + '</div>' +
+    '</div>'
+  );
+  return (
+    '<div class="fpp-section">' +
+      '<h4>🔬 第一性原理對照 · 你以為 vs 實際</h4>' +
+      renderRow('① 最強',  guess.strong, strongest, labels,      strongMatch) +
+      renderRow('② 最弱',  guess.weak,   weakest,   labels,      weakMatch) +
+      renderRow('③ 等級',  guess.level,  realLevel, levelLabels, levelMatch) +
+      '<div class="fpp-insight">' + insight + '</div>' +
+    '</div>'
+  );
+}
+
 function showResults(){
   const sorted = [...allCars].sort((a, b) => a.userData.rank - b.userData.rank);
   const ranksDiv = document.getElementById('resultRanks');
@@ -3203,7 +3478,9 @@ function showResults(){
          pud.batteryHealth >= 60 ? '⚠️ 電池被你榨太兇，下次別充太滿/用太空' :
                                     '💔 電池快壞了！這就是手機用兩年容量剩 70% 的原因')
       + '</div>'
-    ) : '');
+    ) : '') +
+    // 🔬 第一性原理對照（你以為 vs 實際）
+    buildFppSection(pud, totalAxis);
 
   // Save to history
   const pud = playerCar.userData;
