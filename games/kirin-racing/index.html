@@ -314,6 +314,114 @@ canvas { display: block; }
   animation: fadeIn 0.3s ease;
 }
 
+/* ═══ 車庫改裝工坊（STEAM 五軸取捨） ═══ */
+#garageScreen {
+  position: fixed; inset: 0; z-index: 7777;
+  background: linear-gradient(180deg, #1a1a1a 0%, #2a2014 100%);
+  display: none; flex-direction: column;
+  font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  color: #eee;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+#garageScreen.show { display: flex; }
+.garage-header {
+  text-align: center; margin-bottom: 14px;
+}
+.garage-header h2 {
+  margin: 0; font-size: 28px; color: #ff9933;
+  letter-spacing: 4px; text-shadow: 0 2px 12px rgba(255,153,51,0.4);
+}
+.garage-header .sub {
+  font-size: 13px; color: #888; letter-spacing: 2px; margin-top: 4px;
+}
+.garage-tag-row {
+  display: flex; justify-content: center; gap: 10px; margin: 8px 0 16px;
+  flex-wrap: wrap;
+}
+.garage-tag {
+  font-size: 11px; letter-spacing: 2px;
+  padding: 3px 10px; border-radius: 10px;
+  border: 1px solid #5a8; color: #5a8;
+}
+.garage-axes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  max-width: 1300px; margin: 0 auto; width: 100%;
+}
+.axis-card {
+  background: rgba(0,0,0,0.5);
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 14px;
+}
+.axis-card h3 {
+  margin: 0 0 4px; font-size: 17px; color: #ffd866;
+  display: flex; align-items: center; gap: 8px;
+}
+.axis-hint {
+  font-size: 11px; color: #888; margin-bottom: 10px;
+  font-style: italic;
+}
+.axis-options { display: flex; flex-direction: column; gap: 6px; }
+.opt-card {
+  background: rgba(255,255,255,0.04);
+  border: 2px solid #333;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.opt-card:hover { border-color: #ff9933; background: rgba(255,153,51,0.08); }
+.opt-card.selected {
+  border-color: #ffd866; background: rgba(255,216,102,0.12);
+  box-shadow: 0 0 12px rgba(255,216,102,0.3);
+}
+.opt-card .opt-name { font-size: 14px; font-weight: 700; color: #fff; }
+.opt-card .opt-secret {
+  font-size: 11px; color: #aaa; margin-top: 3px; line-height: 1.4;
+}
+.opt-card.selected .opt-secret { color: #ffd866; }
+
+/* 性能預測長條 */
+.garage-predict {
+  background: rgba(0,0,0,0.6);
+  border: 1px solid #ffd866;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 16px auto 12px;
+  max-width: 800px; width: 100%;
+}
+.garage-predict h3 {
+  margin: 0 0 10px; font-size: 15px; color: #ffd866;
+  letter-spacing: 3px;
+}
+.perf-bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.perf-bar { text-align: center; }
+.perf-bar .label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.perf-bar .bar-bg {
+  background: #222; border-radius: 4px; height: 10px;
+  position: relative; overflow: hidden;
+}
+.perf-bar .bar-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: linear-gradient(90deg, #ff6633, #ffd866);
+  transition: width 0.4s ease;
+}
+.perf-bar .val { font-size: 12px; color: #ffd866; margin-top: 3px; font-weight: 700; }
+
+.garage-start {
+  display: block; margin: 8px auto 24px;
+  padding: 14px 36px;
+  background: linear-gradient(135deg, #ff9933, #ff6633);
+  color: #fff; font-size: 18px; font-weight: 900; letter-spacing: 6px;
+  border: none; border-radius: 8px; cursor: pointer;
+  box-shadow: 0 6px 24px rgba(255,153,51,0.4);
+  font-family: inherit;
+}
+.garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
+
 /* 三軸 HUD */
 #tripleHud {
   position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
@@ -389,6 +497,34 @@ canvas { display: block; }
   </div>
 </div>
 <div id="alignResult"></div>
+
+<!-- ═══ 車庫改裝工坊（STEAM 五軸取捨） ═══ -->
+<div id="garageScreen">
+  <div class="garage-header">
+    <h2>🔧 改裝工坊・你的早餐車要怎麼跑？</h2>
+    <div class="sub">STEAM 取捨 ╳ 在地材料 ╳ 工程秘密</div>
+    <div class="garage-tag-row">
+      <span class="garage-tag">PBL · 自主迭代</span>
+      <span class="garage-tag">STEAM · 五軸取捨</span>
+      <span class="garage-tag">在地 · 嘉義材料</span>
+    </div>
+  </div>
+
+  <div class="garage-axes" id="garageAxes"></div>
+
+  <div class="garage-predict">
+    <h3>📊 性能即時預測</h3>
+    <div class="perf-bars">
+      <div class="perf-bar"><div class="label">起步⚡</div><div class="bar-bg"><div class="bar-fill" id="perfStart" style="width:50%"></div></div><div class="val" id="perfStartVal">50</div></div>
+      <div class="perf-bar"><div class="label">極速🚀</div><div class="bar-bg"><div class="bar-fill" id="perfTop" style="width:50%"></div></div><div class="val" id="perfTopVal">50</div></div>
+      <div class="perf-bar"><div class="label">過彎🔄</div><div class="bar-bg"><div class="bar-fill" id="perfTurn" style="width:50%"></div></div><div class="val" id="perfTurnVal">50</div></div>
+      <div class="perf-bar"><div class="label">續航🔋</div><div class="bar-bg"><div class="bar-fill" id="perfRange" style="width:50%"></div></div><div class="val" id="perfRangeVal">50</div></div>
+      <div class="perf-bar"><div class="label">爬坡⛰</div><div class="bar-bg"><div class="bar-fill" id="perfClimb" style="width:50%"></div></div><div class="val" id="perfClimbVal">50</div></div>
+    </div>
+  </div>
+
+  <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
+</div>
 
 <!-- 三軸 HUD（口碑/在地/取捨次數） -->
 <div id="tripleHud">
@@ -1177,7 +1313,8 @@ function closeOpeningSplash(){
   el.style.opacity = '0';
   setTimeout(() => {
     el.style.display = 'none';
-    startCountdown();
+    // 進入車庫工坊（取代直接 startCountdown）
+    showGarage();
   }, 850);
 }
 // ESC 跳過
@@ -1298,6 +1435,133 @@ function resetAlignState(){
   document.getElementById('alignCard').classList.remove('show');
   document.getElementById('alignResult').style.display = 'none';
   updateTripleHud();
+}
+
+// ═══ 車庫改裝工坊（STEAM 五軸取捨） ═══
+// 每個選項對五個性能維度的影響（-2 to +2）：start/top/turn/range/climb
+const GARAGE_AXES = [
+  {
+    key: 'tire', icon: '🛞', name: '輪胎設定',
+    hint: '外八字 = Negative Camber，過彎時輪面更貼地，但直線阻力增加',
+    options: [
+      { name: '直立輪 0°', secret: '最省胎、直線神，但過彎打滑',  d: { start: 0, top: +1, turn: -1, range: +1, climb: 0 } },
+      { name: '外八字 -3°', secret: '中庸取捨，街頭最常見配置',     d: { start: 0, top:  0, turn:  0, range:  0, climb: 0 } },
+      { name: '外八字 -6°', secret: '甩尾神器！但內側胎兩週就磨爛', d: { start: 0, top: -1, turn: +2, range: -1, climb: 0 } },
+    ],
+  },
+  {
+    key: 'wheelbase', icon: '📏', name: '軸距',
+    hint: '前後輪距離，影響轉動慣量與穩定性',
+    options: [
+      { name: '短軸 110cm',  secret: '靈活如機車，但煞車易甩飛',     d: { start: +1, top:  0, turn: +2, range: 0, climb: 0 } },
+      { name: '中軸 130cm',  secret: '街頭標配，平衡',              d: { start:  0, top:  0, turn:  0, range: 0, climb: 0 } },
+      { name: '長軸 150cm',  secret: '直線穩如船，但過彎要大減速',   d: { start: -1, top: +1, turn: -2, range: 0, climb: +1 } },
+    ],
+  },
+  {
+    key: 'drive', icon: '⚙️', name: '驅動方式',
+    hint: '動力傳到哪個輪子，水裡/坡上表現完全不同',
+    options: [
+      { name: 'FF 前輪驅動', secret: '雨天穩、操控好，爬坡弱',            d: { start: 0, top: 0, turn: +1, range: +1, climb: 0 } },
+      { name: 'FR 後輪驅動', secret: '猛！但水裡打滑、新手易甩出去',       d: { start: +1, top: +1, turn: -1, range: 0, climb: 0 } },
+      { name: 'AWD 四輪驅動', secret: '全能但吃電—跑不完三圈',           d: { start: +1, top: 0, turn: +1, range: -2, climb: +2 } },
+    ],
+  },
+  {
+    key: 'power', icon: '🔋', name: '動力配置',
+    hint: '馬力越大越爽，但電量消耗越快—馬力 ↔ 續航必互斥',
+    options: [
+      { name: '小馬力長續航', secret: '跑完三圈不打折，但起步弱',         d: { start: -1, top: -1, turn: 0, range: +2, climb: -1 } },
+      { name: '中馬力中庸',   secret: '街頭老闆首選',                    d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
+      { name: '大馬力短續航', secret: '前兩圈神，第三圈最後 30% 沒電',    d: { start: +2, top: +2, turn: 0, range: -2, climb: +1 } },
+    ],
+  },
+  {
+    key: 'gear', icon: '⚡', name: '齒輪比',
+    hint: '小齒輪馬達 + 大齒輪輪子 = 扭力大；反之 = 極速高',
+    options: [
+      { name: '低齒比（馬達小齒+輪子大齒）', secret: '起步神、爬坡王，但極速低',     d: { start: +2, top: -2, turn: 0, range: 0, climb: +2 } },
+      { name: '中齒比（中庸搭配）',         secret: '腳踏車的標準擋',              d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
+      { name: '高齒比（馬達大齒+輪子小齒）', secret: '極速王、平地飛，但爬坡停坡上', d: { start: -2, top: +2, turn: 0, range: 0, climb: -2 } },
+    ],
+  },
+];
+// 玩家當前選擇（index 0=第一選項；預設全部中庸 = index 1）
+const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1 };
+
+function renderGarage(){
+  const container = document.getElementById('garageAxes');
+  container.innerHTML = '';
+  GARAGE_AXES.forEach(axis => {
+    const card = document.createElement('div');
+    card.className = 'axis-card';
+    card.innerHTML = '<h3>' + axis.icon + ' ' + axis.name + '</h3>' +
+                     '<div class="axis-hint">💡 ' + axis.hint + '</div>' +
+                     '<div class="axis-options" id="opts-' + axis.key + '"></div>';
+    container.appendChild(card);
+    const optsDiv = card.querySelector('#opts-' + axis.key);
+    axis.options.forEach((opt, idx) => {
+      const o = document.createElement('div');
+      o.className = 'opt-card' + (garageChoice[axis.key] === idx ? ' selected' : '');
+      o.innerHTML = '<div class="opt-name">' + opt.name + '</div>' +
+                    '<div class="opt-secret">' + opt.secret + '</div>';
+      o.onclick = () => {
+        garageChoice[axis.key] = idx;
+        renderGarage();
+        updatePerfPrediction();
+      };
+      optsDiv.appendChild(o);
+    });
+  });
+  updatePerfPrediction();
+}
+
+function updatePerfPrediction(){
+  const tot = { start: 0, top: 0, turn: 0, range: 0, climb: 0 };
+  GARAGE_AXES.forEach(axis => {
+    const choice = axis.options[garageChoice[axis.key]];
+    Object.keys(tot).forEach(k => tot[k] += choice.d[k]);
+  });
+  // 把 -8~+8 範圍映射到 10~90 的 bar width
+  const map = v => Math.max(10, Math.min(95, 50 + v * 10));
+  const ids = { start: 'perfStart', top: 'perfTop', turn: 'perfTurn', range: 'perfRange', climb: 'perfClimb' };
+  Object.keys(ids).forEach(k => {
+    const w = map(tot[k]);
+    document.getElementById(ids[k]).style.width = w + '%';
+    document.getElementById(ids[k] + 'Val').textContent = Math.round(w);
+  });
+}
+
+function showGarage(){
+  renderGarage();
+  document.getElementById('garageScreen').classList.add('show');
+}
+
+function closeGarage(){
+  document.getElementById('garageScreen').classList.remove('show');
+  // 套用 mods 到 playerCar
+  const mods = computePlayerMods();
+  playerCar.userData.mods = mods;
+  startCountdown();
+}
+
+function computePlayerMods(){
+  // 把選擇轉成實際遊戲係數
+  const tot = { start: 0, top: 0, turn: 0, range: 0, climb: 0 };
+  GARAGE_AXES.forEach(axis => {
+    const choice = axis.options[garageChoice[axis.key]];
+    Object.keys(tot).forEach(k => tot[k] += choice.d[k]);
+  });
+  return {
+    speedMul:  1 + tot.top   * 0.05,   // 最高速 ±25%
+    accelMul:  1 + tot.start * 0.06,   // 起步加速 ±30%
+    turnMul:   1 + tot.turn  * 0.07,   // 過彎能力 ±35%
+    rangeMul:  1 + tot.range * 0.05,   // 續航係數（第三圈後段減速用）
+    climbMul:  1 + tot.climb * 0.05,
+    drive:     GARAGE_AXES[2].options[garageChoice.drive].name, // 用於水道判定
+    waterproof: garageChoice.power === 0, // 小馬力是否含防水（簡化）
+    tot: tot,
+  };
 }
 
 // ═══════════════════════════════════════════════
