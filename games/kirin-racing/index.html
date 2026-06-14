@@ -1798,15 +1798,17 @@ function buildPreviewCar(){
     w.rotation.z = Math.PI / 2;
     w.position.set(x, wheelR, z);
     if(camber !== 0) w.rotation.x = (x > 0 ? camber : -camber);
+    w.userData.kind = 'wheel'; w.userData.r = wheelR;
     group.add(w);
-    // 輪框（小光圈，吋數差異更明顯）
+    // 輪框（小光圈，吋數差異更明顯，加叉狀紋路讓滾動可見）
     const rim = new THREE.Mesh(
-      new THREE.CylinderGeometry(wheelR*0.55, wheelR*0.55, 0.9, 8),
-      new THREE.MeshLambertMaterial({ color: 0x888888 })
+      new THREE.CylinderGeometry(wheelR*0.55, wheelR*0.55, 0.9, 4),
+      new THREE.MeshLambertMaterial({ color: 0xaaaaaa })
     );
     rim.rotation.z = Math.PI / 2;
     rim.position.set(x, wheelR, z);
     if(camber !== 0) rim.rotation.x = (x > 0 ? camber : -camber);
+    rim.userData.kind = 'rim'; rim.userData.r = wheelR;
     group.add(rim);
   }
   addWheel(-2.3, wheelZ); addWheel(2.3, wheelZ);
@@ -1814,15 +1816,16 @@ function buildPreviewCar(){
 
   // ─── 動力配置裝飾 ───
   if(garageChoice.power === 0){
-    // 純電：屋頂電池組
+    // 純電：屋頂電池組（脈衝閃光）
     const batPack = new THREE.Mesh(
       new THREE.BoxGeometry(2.2, 0.55, 1.2),
       new THREE.MeshBasicMaterial({ color: 0x4ade80 })
     );
     batPack.position.set(0, 4.8, -1.7);
+    batPack.userData.kind = 'battery';
     group.add(batPack);
   } else if(garageChoice.power === 2){
-    // 純油：側面油桶
+    // 純油：側面油桶 + 煙囪冒煙
     [-2.55, 2.55].forEach(x => {
       const tank = new THREE.Mesh(
         new THREE.CylinderGeometry(0.4, 0.4, 1.6, 8),
@@ -1832,6 +1835,16 @@ function buildPreviewCar(){
       tank.rotation.z = Math.PI / 2;
       group.add(tank);
     });
+    // 煙霧球（屋頂上方，純油車冒煙）
+    for(let i = 0; i < 3; i++){
+      const smoke = new THREE.Mesh(
+        new THREE.SphereGeometry(0.35 + i*0.1, 8, 6),
+        new THREE.MeshBasicMaterial({ color: 0x666666, transparent: true, opacity: 0.6 - i*0.15 })
+      );
+      smoke.position.set(1.2, 6.5 + i*0.6, -1.8);
+      smoke.userData.kind = 'smoke'; smoke.userData.idx = i;
+      group.add(smoke);
+    }
   } else {
     // 油電混合：屋頂混合圖示（小綠+小紅）
     const gB = new THREE.Mesh(
@@ -1846,13 +1859,22 @@ function buildPreviewCar(){
     rB.position.set(0.6, 4.8, -1.7); group.add(rB);
   }
 
-  // ─── 齒輪比視覺化（屋頂齒輪大小換）───
+  // ─── 齒輪比視覺化（屋頂齒輪會轉，低齒比慢、高齒比快）───
   const gearSizes = [0.65, 0.45, 0.28];
-  const gearGeom = new THREE.CylinderGeometry(gearSizes[garageChoice.gear], gearSizes[garageChoice.gear], 0.18, 12);
+  const gearTeeth = [16, 12, 8]; // 齒數（segments），低齒比齒多
+  const gearGeom = new THREE.CylinderGeometry(gearSizes[garageChoice.gear], gearSizes[garageChoice.gear], 0.18, gearTeeth[garageChoice.gear]);
   const gearMesh = new THREE.Mesh(gearGeom, new THREE.MeshLambertMaterial({ color: 0xdddddd }));
   gearMesh.rotation.x = Math.PI / 2;
   gearMesh.position.set(-1.5, 4.65, -1.8);
+  gearMesh.userData.kind = 'gear'; gearMesh.userData.gearChoice = garageChoice.gear;
   group.add(gearMesh);
+  // 配合的小齒輪（嚙合視覺）
+  const smallGearGeom = new THREE.CylinderGeometry(0.25, 0.25, 0.18, 8);
+  const smallGear = new THREE.Mesh(smallGearGeom, new THREE.MeshLambertMaterial({ color: 0x888888 }));
+  smallGear.rotation.x = Math.PI / 2;
+  smallGear.position.set(-1.5 + gearSizes[garageChoice.gear] + 0.25, 4.65, -1.8);
+  smallGear.userData.kind = 'smallGear'; smallGear.userData.gearChoice = garageChoice.gear;
+  group.add(smallGear);
 
   // ─── 驅動方式視覺化（前輪/後輪 軸閃光指示）───
   const driveColors = [
@@ -1907,10 +1929,52 @@ function rebuildPreviewCar(){
 
 function startGarageAnimate(){
   let angle = 0;
+  let tick = 0;
+  const Y_AXIS = new THREE.Vector3(0, 1, 0);
   function loop(){
     if(!garageScene){ garageAnimId = null; return; }
     angle += 0.009;
-    if(garagePreviewCar) garagePreviewCar.rotation.y = angle;
+    tick++;
+    if(garagePreviewCar){
+      garagePreviewCar.rotation.y = angle;
+      // 🎯 機構動畫：眼見為憑
+      garagePreviewCar.traverse(o => {
+        if(!o.userData || !o.userData.kind) return;
+        switch(o.userData.kind){
+          case 'wheel':
+          case 'rim':
+            // 輪子滾動（同車速下小輪轉得比大輪快）
+            o.rotateOnAxis(Y_AXIS, 0.06 / Math.max(0.5, o.userData.r || 1));
+            break;
+          case 'gear': {
+            // 大齒輪慢轉（低齒比扭力大）
+            const spin = [0.04, 0.07, 0.13][o.userData.gearChoice || 1];
+            o.rotateOnAxis(Y_AXIS, spin);
+            break;
+          }
+          case 'smallGear': {
+            // 小齒輪反向轉、轉速 = 大齒輪 * 齒比（嚙合機構教學）
+            const ratio = [2.6, 1.8, 1.12][o.userData.gearChoice || 1];
+            const spin = [0.04, 0.07, 0.13][o.userData.gearChoice || 1];
+            o.rotateOnAxis(Y_AXIS, -spin * ratio);
+            break;
+          }
+          case 'battery': {
+            // 電池脈衝（充放電視覺）
+            const i = 0.55 + Math.sin(tick * 0.08) * 0.35;
+            if(o.material && o.material.color) o.material.color.setRGB(0.29 * (i+0.3), i, 0.5);
+            break;
+          }
+          case 'smoke': {
+            // 煙霧上升+消失（純油車冒煙）
+            const phase = (tick * 0.04 + o.userData.idx * 1.3) % 3;
+            o.position.y = 6.5 + phase * 0.7;
+            if(o.material) o.material.opacity = Math.max(0, 0.6 - phase * 0.2 - o.userData.idx * 0.1);
+            break;
+          }
+        }
+      });
+    }
     garageRenderer.render(garageScene, garageCamera);
     garageAnimId = requestAnimationFrame(loop);
   }
