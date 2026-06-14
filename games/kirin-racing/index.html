@@ -384,6 +384,66 @@ canvas { display: block; }
   flex-wrap: wrap;
 }
 
+/* 📋 Mission Band（KIRIN 給的水城重構局設計參考） */
+.mission-band {
+  background: linear-gradient(135deg, rgba(89,199,255,.10) 0%, rgba(119,247,208,.06) 100%);
+  border: 1px solid rgba(89,199,255,.25);
+  border-radius: 14px;
+  padding: 14px 20px;
+  margin: 0 16px 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.mission-band::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: linear-gradient(180deg, #59c7ff, #77f7d0);
+}
+.mission-icon { font-size: 28px; line-height: 1; }
+.mission-text { min-width: 0; }
+.mission-eyebrow {
+  font-size: 10px; color: #59c7ff; letter-spacing: 3px;
+  text-transform: uppercase; font-weight: 700;
+}
+.mission-title {
+  font-size: 18px; font-weight: 900; color: #edf5ff;
+  letter-spacing: 2px; margin: 2px 0;
+}
+.mission-sub {
+  font-size: 12px; color: #9db0cb;
+}
+.mission-chips {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.mission-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(160,196,255,.15);
+  color: #9db0cb;
+}
+.mission-chip.warn {
+  background: rgba(255,116,116,.12);
+  border-color: rgba(255,116,116,.3);
+  color: #ffbb5c;
+}
+.mission-chip.active {
+  background: rgba(89,199,255,.15);
+  border-color: rgba(89,199,255,.4);
+  color: #edf5ff;
+}
+@media (max-width: 800px) {
+  .mission-band { grid-template-columns: 1fr; text-align: center; }
+  .mission-chips { justify-content: center; }
+}
+
 /* 🏎️ 預設車選擇（賽車遊戲風） */
 .preset-row {
   display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
@@ -1085,6 +1145,22 @@ canvas { display: block; }
       <span class="garage-tag">徵召工程師</span>
       <span class="garage-tag">六軸改裝</span>
       <span class="garage-tag">嘉義街頭實測</span>
+    </div>
+  </div>
+
+  <!-- 📋 Mission Band（任務化敘事，呼應水城重構局世界觀） -->
+  <div class="mission-band">
+    <div class="mission-icon">📋</div>
+    <div class="mission-text">
+      <div class="mission-eyebrow">Active Mission</div>
+      <div class="mission-title">暴雨運補 Alpha-03</div>
+      <div class="mission-sub">送醫療物資進入嘉義老街淹水區，撐過三圈完整路線</div>
+    </div>
+    <div class="mission-chips">
+      <span class="mission-chip warn">⚠️ 積水 45cm</span>
+      <span class="mission-chip active">⏱ 限時 3 圈</span>
+      <span class="mission-chip">💊 醫療箱 ×2</span>
+      <span class="mission-chip">🔋 低耗能優先</span>
     </div>
   </div>
 
