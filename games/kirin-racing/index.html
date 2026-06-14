@@ -953,6 +953,23 @@ canvas { display: block; }
 }
 #batteryHud.low { border-color: #ff3333; animation: batBlink 0.6s infinite; }
 @keyframes batBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+/* ☔ 突然下雨 overlay */
+#rainOverlay {
+  position: fixed; inset: 0; z-index: 90;
+  pointer-events: none; opacity: 0;
+  background:
+    repeating-linear-gradient(105deg, transparent 0 6px, rgba(190,210,235,.18) 6px 8px),
+    repeating-linear-gradient(95deg, transparent 0 11px, rgba(190,210,235,.12) 11px 13px),
+    linear-gradient(180deg, rgba(20,30,50,.35), rgba(20,30,50,.15));
+  animation: rainShimmer 0.25s linear infinite;
+  transition: opacity 0.5s ease;
+}
+#rainOverlay.show { opacity: 1; }
+@keyframes rainShimmer {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: -20px 40px, -15px 30px, 0 0; }
+}
 #batteryHud .bat-label { font-size: 10px; color: #888; letter-spacing: 2px; }
 #batteryHud .bat-pct { font-size: 22px; font-weight: 900; color: #4ade80; margin: 2px 0; }
 #batteryHud.low .bat-pct { color: #ff3333; }
@@ -1303,6 +1320,8 @@ canvas { display: block; }
   <div id="historyRows"></div>
 </div>
 <div id="powerUpMsg"></div>
+<!-- ☔ 突然下雨 overlay -->
+<div id="rainOverlay"></div>
 <div id="lightspeedOverlay"></div>
 <div id="lightspeedTimer"></div>
 <div id="resultScreen">
@@ -3200,6 +3219,23 @@ function updateSectorHud(sec){
   el.style.color = sec.class === 'water' ? '#4488ff' : sec.class === 'hill' ? '#ff9933' : '#ffd866';
 }
 
+// ☔ 突然下雨事件（從第 1 圈完成後觸發，持續一段距離）
+function triggerRainStorm(){
+  const ud = playerCar && playerCar.userData;
+  if(!ud) return;
+  const el = document.getElementById('rainOverlay');
+  if(el) el.classList.add('show');
+  // 撐 200 距離單位（約 1/4 圈）
+  ud._rainEndDist = (ud._dist || 0) + 200;
+  showPowerUpMsg('☔ 突然下大雨！抓緊方向盤');
+  // 降低車速 30%
+  if(ud._speed) ud._speed *= 0.7;
+  setTimeout(() => {
+    if(el) el.classList.remove('show');
+    showPowerUpMsg('🌤 雨停了，繼續衝！');
+  }, 6000);
+}
+
 // ═══ 🔋 電力系統 + 鋰電池保養（健康度 SOH） ═══
 function initBattery(){
   const ud = playerCar.userData;
@@ -4337,6 +4373,17 @@ function animate(){
       ud._prevLapCount = ud.laps;
       // 對齊卡情境事件（第 1、2 圈完成後觸發）
       setTimeout(() => triggerAlignCard(ud.laps), 1200);
+      // ☔ 完成第 1 圈時觸發突然下雨（增加意外感）
+      if(ud.laps === 1){
+        setTimeout(() => triggerRainStorm(), 2000);
+      }
+    }
+    // ☔ 下雨期間隨機輕微打滑（lateral 抖動）
+    if(ud._rainEndDist && ud._dist < ud._rainEndDist){
+      if(Math.random() < 0.04){
+        ud._lateralOffset += (Math.random() - 0.5) * 1.4;
+        ud._lateralOffset = Math.max(-22, Math.min(22, ud._lateralOffset));
+      }
     }
 
     // ═══ 嘉義地標賽道區段判定 + 水道/爬坡 effect ═══
