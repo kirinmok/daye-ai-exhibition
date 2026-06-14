@@ -2487,16 +2487,25 @@ const GARAGE_AXES = [
       { name: '🛒 載貨車斗', secret: '能載物資但拖累速度與過彎', d: { start: -1, top: -1, turn: -1, range: -1, climb: 0 } },
     ],
   },
+  {
+    key: 'chassis', icon: '🦵', name: '底盤高度',
+    hint: '低底盤過彎神但路上石頭會卡、高底盤通過性強但過彎易翻',
+    options: [
+      { name: '🏎 低底盤・貼地飛',  secret: '重心低、過彎神，但小心路上障礙物',  d: { start: 0, top: +1, turn: +2, range: 0, climb: -1 } },
+      { name: '🚐 中底盤・標準',    secret: '街頭通用配置',                      d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
+      { name: '🚜 高底盤・支架架高', secret: '通過性神、但重心高過彎容易翻',      d: { start: 0, top: -1, turn: -2, range: 0, climb: +2 } },
+    ],
+  },
 ];
 // 玩家當前選擇（index 0=第一選項；預設全部中庸 = index 1）
-const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1, shell: 0 };
+const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1, shell: 0, chassis: 1 };
 
 // 🏎️ 預設車種（賽車遊戲風一鍵選車）
 const PRESETS = {
-  street:  { tire: 1, wheelbase: 1, drive: 0, power: 1, gear: 1, shell: 0 }, // 街頭老闆：封閉車殼
-  speed:   { tire: 0, wheelbase: 2, drive: 1, power: 2, gear: 2, shell: 0 }, // 飆速：流線封閉
-  offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0, shell: 1 }, // 越野：骨架
-  eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1, shell: 2 }, // 環保：載貨車斗
+  street:  { tire: 1, wheelbase: 1, drive: 0, power: 1, gear: 1, shell: 0, chassis: 1 }, // 街頭老闆：中底盤
+  speed:   { tire: 0, wheelbase: 2, drive: 1, power: 2, gear: 2, shell: 0, chassis: 0 }, // 飆速：低底盤貼地
+  offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0, shell: 1, chassis: 2 }, // 越野：高底盤支架
+  eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1, shell: 2, chassis: 1 }, // 環保：中底盤
 };
 
 function applyPreset(key){
@@ -3038,6 +3047,30 @@ function buildPreviewCar(){
     endplate.position.set(x, bodyTopY + 0.85 * spoilerScale + 0.1, -halfL + 0.3);
     group.add(endplate);
   });
+
+  // 🦵 底盤高度調整（chassis: 0=低貼地 / 1=標準 / 2=高+支架）
+  const chassisOff = [-0.45, 0, 0.85][garageChoice.chassis || 1];
+  if(chassisOff !== 0){
+    // 上移除輪子以外的所有元素（輪子貼地不動）
+    group.children.forEach(child => {
+      const kind = child.userData && child.userData.kind;
+      if(kind !== 'wheel' && kind !== 'rim'){
+        child.position.y += chassisOff;
+      }
+    });
+  }
+  // 高底盤：4 根支架柱連接輪子與車身
+  if(garageChoice.chassis === 2){
+    const supportMat = new THREE.MeshLambertMaterial({ color: 0x4a5568 });
+    [[-wheelX, wheelZ], [wheelX, wheelZ], [-wheelX, -wheelZ], [wheelX, -wheelZ]].forEach(([x, z]) => {
+      const support = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.18, 0.18, chassisOff + 0.5, 6),
+        supportMat
+      );
+      support.position.set(x, wheelR + (chassisOff + 0.5) * 0.5, z);
+      group.add(support);
+    });
+  }
 
   return group;
 }
