@@ -2206,16 +2206,25 @@ const GARAGE_AXES = [
       { name: '高齒比（馬達大齒+輪子小齒）', secret: '極速王、平地飛，但爬坡停坡上', d: { start: -2, top: +2, turn: 0, range: 0, climb: -2 } },
     ],
   },
+  {
+    key: 'shell', icon: '🦴', name: '車殼系統',
+    hint: '封閉防水 vs 骨架越野 vs 載貨車斗，車身外觀完全不同',
+    options: [
+      { name: '🚙 封閉車殼', secret: '流線、防水、適合街道',     d: { start: 0, top: +1, turn: 0, range: 0, climb: 0 } },
+      { name: '🦴 骨架越野', secret: '輕、排水好但防水差',       d: { start: +1, top: 0, turn: +1, range: 0, climb: +1 } },
+      { name: '🛒 載貨車斗', secret: '能載物資但拖累速度與過彎', d: { start: -1, top: -1, turn: -1, range: -1, climb: 0 } },
+    ],
+  },
 ];
 // 玩家當前選擇（index 0=第一選項；預設全部中庸 = index 1）
-const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1 };
+const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1, shell: 0 };
 
 // 🏎️ 預設車種（賽車遊戲風一鍵選車）
 const PRESETS = {
-  street:  { tire: 1, wheelbase: 1, drive: 0, power: 1, gear: 1 }, // 街頭老闆：中庸
-  speed:   { tire: 0, wheelbase: 2, drive: 1, power: 2, gear: 2 }, // 飆速：光頭+長軸+後驅+純油+高齒
-  offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0 }, // 越野：越野胎+四驅+油電+低齒
-  eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1 }, // 環保：純電
+  street:  { tire: 1, wheelbase: 1, drive: 0, power: 1, gear: 1, shell: 0 }, // 街頭老闆：封閉車殼
+  speed:   { tire: 0, wheelbase: 2, drive: 1, power: 2, gear: 2, shell: 0 }, // 飆速：流線封閉
+  offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0, shell: 1 }, // 越野：骨架
+  eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1, shell: 2 }, // 環保：載貨車斗
 };
 
 function applyPreset(key){
@@ -2441,14 +2450,92 @@ function buildPreviewCar(){
   );
   body.position.y = 1.6 + offY;
   group.add(body);
-  // 屋頂（高度也跟著車身比例變化）
+  // 🦴 車殼系統根據 shell 改造（封閉/骨架/車斗）
   const roofH = 1.6 + offY * 0.5;
-  const top = new THREE.Mesh(
-    new THREE.BoxGeometry(dim.w + 0.2, roofH, dim.l - 1.0),
-    new THREE.MeshLambertMaterial({ color: 0xffb3c1 })
-  );
-  top.position.set(0, 3.6 + offY * 1.5, 0);
-  group.add(top);
+  const shellChoice = garageChoice.shell || 0;
+  if(shellChoice === 0){
+    // 🚙 封閉車殼（標準屋頂）
+    const top = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w + 0.2, roofH, dim.l - 1.0),
+      new THREE.MeshLambertMaterial({ color: 0xffb3c1 })
+    );
+    top.position.set(0, 3.6 + offY * 1.5, 0);
+    group.add(top);
+  } else if(shellChoice === 1){
+    // 🦴 骨架越野（無屋頂，6 根金屬框架）
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0x4a5568 });
+    const roofYTop = 3.6 + offY * 1.5 + roofH * 0.5;
+    // 4 根直立柱
+    [
+      [-(dim.w*0.5), (dim.l*0.5 - 0.5)],
+      [(dim.w*0.5), (dim.l*0.5 - 0.5)],
+      [-(dim.w*0.5), -(dim.l*0.5 - 0.5)],
+      [(dim.w*0.5), -(dim.l*0.5 - 0.5)],
+    ].forEach(([x, z]) => {
+      const pillar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.13, 0.13, roofH * 0.95, 8),
+        frameMat
+      );
+      pillar.position.set(x, 3.6 + offY * 1.5, z);
+      group.add(pillar);
+    });
+    // 兩側縱梁
+    [-dim.w*0.5, dim.w*0.5].forEach(x => {
+      const beam = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.1, dim.l - 0.8, 6),
+        frameMat
+      );
+      beam.rotation.x = Math.PI / 2;
+      beam.position.set(x, roofYTop, 0);
+      group.add(beam);
+    });
+    // 前後橫梁
+    [-(dim.l*0.5 - 0.5), (dim.l*0.5 - 0.5)].forEach(z => {
+      const cross = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.1, dim.w, 6),
+        frameMat
+      );
+      cross.rotation.z = Math.PI / 2;
+      cross.position.set(0, roofYTop, z);
+      group.add(cross);
+    });
+  } else if(shellChoice === 2){
+    // 🛒 載貨車斗（前段駕駛艙 + 後段開放貨斗）
+    const cabL = (dim.l - 1.0) * 0.55;
+    const cab = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w + 0.2, roofH, cabL),
+      new THREE.MeshLambertMaterial({ color: 0xffb3c1 })
+    );
+    cab.position.set(0, 3.6 + offY * 1.5, dim.l * 0.5 - cabL * 0.5 - 0.5);
+    group.add(cab);
+    // 後段車斗框（U 字型，左右+後三面板）
+    const bedMat = new THREE.MeshLambertMaterial({ color: 0x8b6f47 });
+    const bedH = 1.0;
+    const bedYC = 1.6 + offY + dim.h * 0.5 + bedH * 0.5;
+    const bedL = (dim.l - 1.0) * 0.45;
+    const bedZC = -(dim.l * 0.5 - bedL * 0.5 - 0.5);
+    [-dim.w*0.5 + 0.1, dim.w*0.5 - 0.1].forEach(x => {
+      const side = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, bedH, bedL),
+        bedMat
+      );
+      side.position.set(x, bedYC, bedZC);
+      group.add(side);
+    });
+    const back = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w + 0.1, bedH, 0.15),
+      bedMat
+    );
+    back.position.set(0, bedYC, bedZC - bedL * 0.5);
+    group.add(back);
+    // 載貨物資（橘色 box）
+    const cargo = new THREE.Mesh(
+      new THREE.BoxGeometry(dim.w * 0.6, bedH * 0.7, bedL * 0.7),
+      new THREE.MeshLambertMaterial({ color: 0xff9933 })
+    );
+    cargo.position.set(0, bedYC - bedH * 0.1, bedZC);
+    group.add(cargo);
+  }
   // 招牌（跟著車身比例）
   const sign = new THREE.Mesh(
     new THREE.BoxGeometry(dim.w + 0.4, 0.9, 0.3),
