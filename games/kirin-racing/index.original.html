@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>嘉義水陸早餐車・街頭傳奇 | 大業實驗中學 PBL Quest</title>
+<title>Pico W 3D Racing — 橢圓賽道</title>
 <style>
 body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
 canvas { display: block; }
@@ -196,7 +196,7 @@ canvas { display: block; }
 
 <a id="homeBtn" href="index.html">← 首頁</a>
 <canvas id="minimap" width="200" height="120"></canvas>
-<div id="viewTip">🥞 早餐車・追蹤視角 | 鍵盤: W/S 加減速 A/D 方向 Shift 甩尾 V 視角 | PS2: 左搖桿/十字鍵 方向 ✕/R2 加速 □/L2 甩尾 △ 視角 Start 首頁</div>
+<div id="viewTip">追蹤視角 | 鍵盤: W/S 加減速 A/D 方向 Shift 甩尾 V 視角 | PS2: 左搖桿/十字鍵 方向 ✕/R2 加速 □/L2 甩尾 △ 視角 Start 首頁</div>
 <div id="countdown"><div id="cdNum">3</div></div>
 <div id="flagWrap"><canvas id="flagCanvas" width="160" height="120"></canvas></div>
 <div id="picoStatus" class="pico-off">Pico W: 偵測中...</div>
@@ -210,7 +210,7 @@ canvas { display: block; }
 <div id="lightspeedOverlay"></div>
 <div id="lightspeedTimer"></div>
 <div id="resultScreen">
-  <h1>🏁 今日打烊・街頭結算</h1>
+  <h1>🏁 比賽結束</h1>
   <div id="resultRanks"></div>
   <div id="resultStats" class="stats"></div>
   <button id="restartBtn" onclick="hideResults(); resetRace();">再來一場 (R)</button>
@@ -305,7 +305,7 @@ function cycleView(){
 
 function updateViewTip(){
   document.getElementById('viewTip').textContent =
-    '🥞 早餐車・' + VIEW_NAMES[viewIdx] +
+    VIEW_NAMES[viewIdx] +
     ' | 鍵盤: W/S 加減速 A/D 方向 Shift 甩尾 V 視角 | PS2: 左搖桿/十字鍵 方向 ✕/R2 加速 □/L2 甩尾 △ 視角 Start 首頁';
 }
 
@@ -994,13 +994,13 @@ const LIGHTSPEED_AI_MULT = 0.08; // AI moves at 8% speed (nearly frozen)
 // Power-up types
 // Normal pool (common items)
 const POWERUP_NORMAL = [
-  { id: 'speed',      name: '熱騰騰餐點',  color: 0xff4400, emoji: '🥞', score: 50 },
-  { id: 'oil',        name: '積水區',      color: 0x4488cc, emoji: '🌊', score: 30 },
-  { id: 'coin',       name: '客人小費',    color: 0xffd700, emoji: '💰', score: 25 },
-  { id: 'coin',       name: '客人小費',    color: 0xffd700, emoji: '💰', score: 25 },
+  { id: 'speed',      name: '加速火箭',   color: 0xff4400, emoji: '🚀', score: 50 },
+  { id: 'oil',        name: '機油陷阱',   color: 0x333300, emoji: '🛢️', score: 30 },
+  { id: 'coin',       name: '金幣',       color: 0xffd700, emoji: '🪙', score: 25 },
+  { id: 'coin',       name: '金幣',       color: 0xffd700, emoji: '🪙', score: 25 },
 ];
 // Legendary (rare, ~8% chance, spawns separately)
-const POWERUP_LEGENDARY = { id: 'lightspeed', name: '在地傳奇模式', color: 0x00ccff, emoji: '🌟', score: 100 };
+const POWERUP_LEGENDARY = { id: 'lightspeed', name: '光速模式', color: 0x00ccff, emoji: '⚡', score: 100 };
 const POWERUP_TYPES = [...POWERUP_NORMAL, POWERUP_LEGENDARY];
 
 // Active power-up items on track
@@ -1662,12 +1662,12 @@ function animate(){
         switch(type.id){
           case 'speed':
             ud._speedBoost = 4; // 4 seconds speed boost
-            showPowerUpMsg('🥞 熱騰騰餐點出爐！');
+            showPowerUpMsg('🚀 加速火箭！');
             break;
           case 'oil':
             // Drop oil slick behind player
             dropOilSlick(ud._dist - 20, ud._lateralOffset);
-            showPowerUpMsg('🌊 嘉義積水區！後車小心');
+            showPowerUpMsg('🛢️ 放置機油陷阱！');
             break;
           case 'lightspeed':
             lightspeedActive = true;
@@ -1677,10 +1677,10 @@ function animate(){
             scene.fog = new THREE.Fog(0x001133, 50, 400);
             scene.background = new THREE.Color(0x000822);
             playLightspeedSound();
-            showPowerUpMsg('🌟 在 地 傳 奇 模 式 🌟');
+            showPowerUpMsg('⚡ 光 速 模 式 ⚡');
             break;
           case 'coin':
-            showPowerUpMsg('💰 客人小費 +' + type.score);
+            showPowerUpMsg('🪙 +' + type.score);
             break;
         }
 
