@@ -3162,15 +3162,32 @@ function addSupportPenalty(points, label){
   if(el) el.textContent = '支援代價：-' + supportPenalty + ' 分';
 }
 
+// 🎯 補給站冷卻系統（每輪限制，避免亂抽亂呼叫）
+let drawnThisRound = 0;
+let radioThisRound = 0;
+const DRAW_COST_RC = 15;
+const MAX_DRAWS_PER_ROUND = 1;
+const MAX_RADIOS_PER_ROUND = 1;
+
 function drawSupportCard(){
+  if(drawnThisRound >= MAX_DRAWS_PER_ROUND){
+    showPowerUpMsg('🃏 本輪卡包已抽完，跑完一場才能再抽');
+    return;
+  }
+  if(rescueCoins < DRAW_COST_RC){
+    showPowerUpMsg('💳 抽卡要 ' + DRAW_COST_RC + ' RC，現在不夠');
+    return;
+  }
+  rescueCoins -= DRAW_COST_RC;
+  drawnThisRound++;
   const card = SUPPORT_DECK[Math.floor(Math.random() * SUPPORT_DECK.length)];
   if(card.penalty) addSupportPenalty(card.penalty, card.type);
   if(card.coins) {
     rescueCoins = Math.max(0, rescueCoins + card.coins);
-    renderWallet();
   }
+  renderWallet();
   const prefix = card.kind === 'chance' ? '機會' : card.kind === 'fate' ? '命運' : '線索';
-  const text = '【' + prefix + '】' + card.text;
+  const text = '【' + prefix + '】' + card.text + '（成本 -' + DRAW_COST_RC + ' RC）';
   const el = document.getElementById('supportCardText');
   if(el) el.textContent = text;
   showPowerUpMsg('🃏 ' + prefix + '卡：' + card.type);
@@ -3210,20 +3227,20 @@ function buyMaterial(id){
   showPowerUpMsg('🧰 裝備：' + mat.name);
 }
 
-const PROMPT_TEMPLATES = [
-  '我觀察到 ___，發生在 ___，數據是 ___。我想知道可能原因有哪些。',
-  '根據這些現象，可能是哪幾個原因？請不要直接給答案，給我測試方向。',
-  '如果要改善 ___，有哪些改法？每個改法可能產生什麼副作用？',
-  '方案 A 和方案 B 哪個更適合這場任務？請給我可以驗證的測試方法。'
-];
+// PROMPT_TEMPLATES 已移除 — 學生用自己的 ChatGPT，遊戲不再接 AI 顧問
 
 function callRadioSupport(){
+  if(radioThisRound >= MAX_RADIOS_PER_ROUND){
+    showPowerUpMsg('📻 本輪無線電已用過，跑完一場才能再呼叫');
+    return;
+  }
+  radioThisRound++;
   const line = RADIO_LINES[Math.floor(Math.random() * RADIO_LINES.length)];
   addSupportPenalty(35, '前輩無線電');
   radioUses.push(line);
   const last = document.getElementById('radioLastReply');
   if(last) last.textContent = '「' + line + '」';
-  showPowerUpMsg('📻 收到模糊線索');
+  showPowerUpMsg('📻 收到模糊線索（-35 分）');
 }
 
 function resetSupportState(){
@@ -3231,6 +3248,8 @@ function resetSupportState(){
   supportUses = [];
   radioUses = [];
   rescueCoins = 120;
+  drawnThisRound = 0;
+  radioThisRound = 0;
   Object.keys(materialOwned).forEach(k => delete materialOwned[k]);
   const card = document.getElementById('supportCardText');
   const radio = document.getElementById('radioLastReply');
@@ -3340,8 +3359,11 @@ function switchGarageTab(name){
 }
 
 function closeGarage(){
-  // 先押假設，再上路驗證。
-  showGuessModal();
+  // 戰情室假設已是唯一押注點，不再彈第二次猜測 modal
+  if(!currentHypothesis.risk && !currentHypothesis.solution){
+    showPowerUpMsg('💡 沒押假設也能上路，但結算會少一段對照');
+  }
+  actuallyStartRace();
 }
 
 function actuallyStartRace(){
@@ -4702,21 +4724,55 @@ function playCelebrationSound(){
 }
 
 // Results & restart
-// 🎯 結算頁・本輪假設回顧（戰情室押的判斷）
+// 🎯 結算頁・假設判定（成立/部分成立/不成立）
+const SOLUTION_CHECK = {
+  waterproof:  () => !!materialOwned.waterproofMount,
+  shaft:       () => !!materialOwned.driveShaft,
+  float:       () => !!materialOwned.sideFloat,
+  battery:     () => Object.values(materialOwned).filter(Boolean).length >= 2,
+  multitire:   () => garageChoice.tire === 1,
+  lowgear:     () => garageChoice.gear === 0,
+  awd:         () => garageChoice.drive === 2,
+  lowchassis:  () => garageChoice.chassis === 0,
+};
+
 function buildHypothesisSection(pud){
   const h = pud.hypothesis;
   if(!h || (!h.risk && !h.solution)) return '';
   const riskLabel = HYPO_RISK_LABEL[h.risk] || '（沒押）';
   const solLabel = HYPO_SOLUTION_LABEL[h.solution] || '（沒押）';
+
+  // 判定：你押的解法，實際是否真的做了
+  let verdict = '⏳ 假設不完整';
+  let verdictColor = '#888';
+  let verdictDetail = '只押了一半就上路，下一輪試試完整押兩題。';
+
+  if(h.risk && h.solution){
+    const check = SOLUTION_CHECK[h.solution];
+    const acted = check ? check() : false;
+    if(acted){
+      verdict = '✅ 假設成立 — 你做到自己說的';
+      verdictColor = '#4ade80';
+      verdictDetail = '你押了 ' + riskLabel + '，也真的用 ' + solLabel + ' 解了。' +
+                     '下一輪挑戰：只改這一項，看它是不是真的關鍵。';
+    } else {
+      verdict = '🟡 假設部分成立 — 你押的解法沒裝上';
+      verdictColor = '#ff9933';
+      verdictDetail = '你說要用 ' + solLabel + '，但實際沒裝。' +
+                     '回去工坊真的試試看那個改裝，再對照一次——這次別只是嘴上說。';
+    }
+  }
+
   return (
-    '<div class="fpp-section" style="border-color:#ff9933;">' +
+    '<div class="fpp-section" style="border-color:' + verdictColor + ';">' +
       '<h4 style="color:#ff9933;">🎯 你押的假設（戰情室）</h4>' +
       '<div style="font-size:13px; color:#ccc; line-height:1.8;">' +
         '<div>📌 你認為最大風險是：<strong style="color:#ffd866;">' + riskLabel + '</strong></div>' +
         '<div>🛠 你準備用：<strong style="color:#ffd866;">' + solLabel + '</strong></div>' +
       '</div>' +
-      '<div class="fpp-insight" style="border-left-color:#ff9933;">' +
-        '<strong>下一輪建議：</strong>回去戰情室重新押一次假設——你看到的世界會跟剛才不一樣。' +
+      '<div style="margin-top:14px; padding:12px 16px; background:rgba(0,0,0,.35); border-radius:6px; border-left:3px solid ' + verdictColor + ';">' +
+        '<div style="font-size:15px; font-weight:900; color:' + verdictColor + '; letter-spacing:2px;">' + verdict + '</div>' +
+        '<div style="font-size:12px; color:#aaa; margin-top:6px; line-height:1.6;">' + verdictDetail + '</div>' +
       '</div>' +
     '</div>'
   );
