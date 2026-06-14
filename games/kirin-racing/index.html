@@ -174,10 +174,111 @@ canvas { display: block; }
 #historyBoard .h-rank { color: #888; width: 24px; }
 #historyBoard .h-score { color: #f5c842; font-weight: 700; }
 #historyBoard .h-pos { font-size: 11px; }
+
+/* ═══ 開場結局預告 splash（PBL 以終為始） ═══ */
+#openingSplash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: radial-gradient(ellipse at center, #0a1a2e 0%, #000 80%);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column;
+  font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  color: #fff; text-align: center;
+  overflow: hidden;
+}
+#splashStage {
+  position: relative; width: 90%; max-width: 800px; min-height: 360px;
+  display: flex; align-items: center; justify-content: center;
+}
+.splash-scene {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.splash-scene.active { opacity: 1; }
+.splash-scene .big-emoji { font-size: 80px; line-height: 1; filter: drop-shadow(0 0 20px rgba(255,200,80,0.6)); }
+.splash-scene .headline { font-size: 36px; font-weight: 900; letter-spacing: 4px; color: #ffd866; text-shadow: 0 0 24px rgba(255,200,80,0.5); }
+.splash-scene .sub { font-size: 18px; color: #ccc; letter-spacing: 2px; }
+.splash-scene .small { font-size: 14px; color: #888; }
+#splashSkip {
+  position: absolute; bottom: 24px; right: 24px;
+  padding: 8px 16px; border: 1px solid #555; background: rgba(0,0,0,0.6);
+  color: #aaa; font-size: 13px; border-radius: 4px; cursor: pointer;
+  font-family: inherit;
+}
+#splashSkip:hover { background: rgba(255,255,255,0.1); color: #fff; }
+#splashStart {
+  margin-top: 32px; padding: 18px 48px;
+  background: linear-gradient(135deg, #ffd866, #ff9933);
+  color: #1a1a1a; font-size: 22px; font-weight: 900; letter-spacing: 6px;
+  border: none; border-radius: 8px; cursor: pointer;
+  box-shadow: 0 8px 32px rgba(255,200,80,0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.6s ease, transform 0.2s ease;
+  font-family: inherit;
+}
+#splashStart.show { opacity: 1; pointer-events: auto; }
+#splashStart:hover { transform: translateY(-2px); }
+@keyframes shake {
+  0%, 100% { transform: translate(0,0); }
+  20% { transform: translate(-8px, 4px); }
+  40% { transform: translate(8px, -4px); }
+  60% { transform: translate(-6px, -3px); }
+  80% { transform: translate(6px, 3px); }
+}
+.splash-scene.shake { animation: shake 0.6s ease; }
+.splash-pbl-tag {
+  position: absolute; top: 24px; left: 24px;
+  font-size: 12px; color: #5a8; letter-spacing: 3px;
+  border: 1px solid #5a8; padding: 4px 10px; border-radius: 12px;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+
+<!-- ═══ 開場結局預告 splash（PBL 以終為始機制化） ═══ -->
+<div id="openingSplash">
+  <div class="splash-pbl-tag">PBL · 以終為始</div>
+  <div id="splashStage">
+    <div class="splash-scene" data-scene="1">
+      <div class="small">2026 年 8 月 26 日</div>
+      <div class="headline">嘉義水陸食文化節</div>
+      <div class="sub">— 三個月後 —</div>
+    </div>
+    <div class="splash-scene" data-scene="2">
+      <div class="big-emoji">🏆</div>
+      <div class="headline">你站上頒獎台</div>
+      <div class="sub">手裡握著最佳在地餐車獎</div>
+    </div>
+    <div class="splash-scene" data-scene="3">
+      <div class="big-emoji">🥞 💰 ✨</div>
+      <div class="headline">攤位前排隊到街角</div>
+      <div class="sub">每個客人都拿手機拍你的早餐車</div>
+    </div>
+    <div class="splash-scene" data-scene="4">
+      <div class="big-emoji">🌊 🚗</div>
+      <div class="headline">突如其來的午後雷雨</div>
+      <div class="sub">你優雅地切到水模式，繼續送餐</div>
+    </div>
+    <div class="splash-scene" data-scene="5">
+      <div class="headline" style="color:#ff6b6b;">但這一刻——</div>
+      <div class="sub" style="font-size:24px; letter-spacing:6px;">還．沒．發．生</div>
+    </div>
+    <div class="splash-scene" data-scene="6">
+      <div class="small">⏪ 時間倒轉</div>
+      <div class="headline">現在，是三個月前的清晨</div>
+      <div class="sub">📩 你拿到嘉義文化節攤位通知書</div>
+    </div>
+    <div class="splash-scene" data-scene="7">
+      <div class="headline" style="color:#ffd866;">要走到那個未來，</div>
+      <div class="headline" style="color:#ffd866;">現在的你要學什麼？</div>
+      <button id="splashStart" onclick="closeOpeningSplash()">▶  開始這一天</button>
+    </div>
+  </div>
+  <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
+</div>
 
 <div id="hud">
   <h2>OVAL RACING</h2>
@@ -816,7 +917,49 @@ function startCountdown(){
   }
   step();
 }
-setTimeout(startCountdown, 500);
+
+// ═══ 開場結局預告 splash（PBL 以終為始） ═══
+let splashStarted = false;
+let splashFinished = false;
+function startOpeningSplash(){
+  if(splashStarted) return;
+  splashStarted = true;
+  const scenes = document.querySelectorAll('#openingSplash .splash-scene');
+  const sceneDuration = 3500; // 每場景 3.5 秒
+  let idx = 0;
+  function showScene(i){
+    scenes.forEach(s => s.classList.remove('active', 'shake'));
+    if(i >= scenes.length) return;
+    const cur = scenes[i];
+    cur.classList.add('active');
+    if(parseInt(cur.dataset.scene) === 5) cur.classList.add('shake');
+    if(parseInt(cur.dataset.scene) === 7){
+      // 最後一場景：顯示開始按鈕，等使用者按
+      setTimeout(() => {
+        document.getElementById('splashStart').classList.add('show');
+      }, 600);
+      return;
+    }
+    setTimeout(() => showScene(i + 1), sceneDuration);
+  }
+  showScene(0);
+}
+function closeOpeningSplash(){
+  if(splashFinished) return;
+  splashFinished = true;
+  const el = document.getElementById('openingSplash');
+  el.style.transition = 'opacity 0.8s ease';
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.style.display = 'none';
+    startCountdown();
+  }, 850);
+}
+// ESC 跳過
+addEventListener('keydown', e => {
+  if(e.key === 'Escape' && !splashFinished) closeOpeningSplash();
+});
+setTimeout(startOpeningSplash, 300);
 
 // ═══════════════════════════════════════════════
 // RESET
