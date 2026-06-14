@@ -344,6 +344,33 @@ canvas { display: block; }
   padding: 3px 10px; border-radius: 10px;
   border: 1px solid #5a8; color: #5a8;
 }
+/* 3D 即時預覽車庫 */
+#garagePreviewWrap {
+  max-width: 900px; margin: 0 auto 16px;
+  background: radial-gradient(ellipse at center, #2a2014 0%, #0a0a0a 80%);
+  border: 2px solid #ff9933; border-radius: 12px;
+  overflow: hidden; position: relative;
+  height: 280px;
+  box-shadow: 0 0 32px rgba(255,153,51,0.2) inset;
+}
+#garagePreview { width: 100%; height: 100%; display: block; }
+.preview-overlay-tl {
+  position: absolute; top: 10px; left: 14px;
+  font-size: 11px; color: #ffd866; letter-spacing: 2px;
+  background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 12px;
+  pointer-events: none;
+}
+.preview-overlay-bl {
+  position: absolute; bottom: 8px; left: 14px;
+  font-size: 10px; color: #888; letter-spacing: 1px;
+  pointer-events: none;
+}
+.preview-overlay-br {
+  position: absolute; bottom: 8px; right: 14px;
+  font-size: 12px; color: #ffd866; font-weight: 700;
+  pointer-events: none;
+}
+
 .garage-axes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -567,6 +594,14 @@ canvas { display: block; }
       <span class="garage-tag">STEAM · 五軸取捨</span>
       <span class="garage-tag">在地 · 嘉義材料</span>
     </div>
+  </div>
+
+  <!-- 3D 即時預覽車（換配件即時看到車變樣） -->
+  <div id="garagePreviewWrap">
+    <canvas id="garagePreview"></canvas>
+    <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
+    <div class="preview-overlay-bl">每換一個配件，車子立刻重新組裝</div>
+    <div class="preview-overlay-br" id="previewVerdict">🔧 街頭中庸配置</div>
   </div>
 
   <div class="garage-axes" id="garageAxes"></div>
@@ -1615,6 +1650,7 @@ function renderGarage(){
         garageChoice[axis.key] = idx;
         renderGarage();
         updatePerfPrediction();
+        rebuildPreviewCar();   // 3D 預覽即時重組
       };
       optsDiv.appendChild(o);
     });
@@ -1641,9 +1677,16 @@ function updatePerfPrediction(){
 function showGarage(){
   renderGarage();
   document.getElementById('garageScreen').classList.add('show');
+  // 啟動 3D 預覽（要等 DOM 顯示後才能 init canvas size）
+  setTimeout(() => {
+    if(!garageRenderer) createGarageScene();
+    rebuildPreviewCar();
+    startGarageAnimate();
+  }, 100);
 }
 
 function closeGarage(){
+  stopGarageAnimate();
   document.getElementById('garageScreen').classList.remove('show');
   // 套用 mods 到 playerCar
   const mods = computePlayerMods();
@@ -1653,6 +1696,229 @@ function closeGarage(){
   updateGearHud();
   initBattery();
   startCountdown();
+}
+
+// ═══ 🎯 3D 即時預覽車庫（Three.js 獨立 scene） ═══
+let garageRenderer, garageScene, garageCamera, garagePreviewCar, garageAnimId;
+
+function createGarageScene(){
+  const canvas = document.getElementById('garagePreview');
+  const wrap = canvas.parentElement;
+  const w = wrap.clientWidth || 800;
+  const h = wrap.clientHeight || 280;
+
+  garageRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  garageRenderer.setSize(w, h, false);
+  garageRenderer.setClearColor(0x1a1410);
+
+  garageScene = new THREE.Scene();
+  garageScene.add(new THREE.AmbientLight(0xffffff, 0.65));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+  dirLight.position.set(8, 14, 10);
+  garageScene.add(dirLight);
+  const fillLight = new THREE.DirectionalLight(0xff9933, 0.3);
+  fillLight.position.set(-10, 5, -5);
+  garageScene.add(fillLight);
+
+  garageCamera = new THREE.PerspectiveCamera(36, w/h, 0.1, 100);
+  garageCamera.position.set(0, 5.5, 18);
+  garageCamera.lookAt(0, 3, 0);
+
+  // 圓盤地板
+  const floor = new THREE.Mesh(
+    new THREE.CylinderGeometry(7.5, 7.5, 0.15, 32),
+    new THREE.MeshLambertMaterial({ color: 0x2a2014 })
+  );
+  floor.position.y = -0.08;
+  garageScene.add(floor);
+  // 圓盤邊光圈
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(7.2, 7.6, 32),
+    new THREE.MeshBasicMaterial({ color: 0xff9933, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI/2;
+  ring.position.y = 0.005;
+  garageScene.add(ring);
+}
+
+function buildPreviewCar(){
+  const group = new THREE.Group();
+  // ─── 輪胎尺寸（16/20/26 寸 → 半徑差） ───
+  const tireSizes = [0.62, 0.85, 1.12];
+  const wheelR = tireSizes[garageChoice.tire];
+  // ─── 軸距（短/中/長 → wheelZ 差） ───
+  const wheelbases = [1.8, 2.4, 3.0];
+  const wheelZ = wheelbases[garageChoice.wheelbase];
+  // ─── 動力配置決定車身顏色 ───
+  const powerColors = [0x4ade80, 0xffaa00, 0xcc4444]; // 純電綠 / 油電金 / 純油紅
+  const bodyColor = powerColors[garageChoice.power];
+
+  // 車身
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(4.2, 2.4, 6.5),
+    new THREE.MeshLambertMaterial({ color: bodyColor })
+  );
+  body.position.y = 1.6;
+  group.add(body);
+  // 屋頂
+  const top = new THREE.Mesh(
+    new THREE.BoxGeometry(4.4, 1.6, 5.5),
+    new THREE.MeshLambertMaterial({ color: 0xff6633 })
+  );
+  top.position.set(0, 3.6, 0);
+  group.add(top);
+  // 招牌
+  const sign = new THREE.Mesh(
+    new THREE.BoxGeometry(4.6, 0.9, 0.3),
+    new THREE.MeshLambertMaterial({ color: 0xffd866 })
+  );
+  sign.position.set(0, 4.6, 2.6);
+  group.add(sign);
+  const signBack = sign.clone();
+  signBack.position.z = -2.6;
+  group.add(signBack);
+  // 紅燈籠
+  [-1.8, 1.8].forEach(x => {
+    const lant = new THREE.Mesh(
+      new THREE.SphereGeometry(0.45, 12, 8),
+      new THREE.MeshBasicMaterial({ color: 0xff2222 })
+    );
+    lant.position.set(x, 5.0, 0); lant.scale.y = 1.2;
+    group.add(lant);
+  });
+
+  // 輪子（套尺寸 + 軸距 + 外八字）
+  const camberAngles = [0, -0.05, -0.11];
+  const camber = camberAngles[garageChoice.tire];
+  function addWheel(x, z){
+    const w = new THREE.Mesh(
+      new THREE.CylinderGeometry(wheelR, wheelR, 0.85, 16),
+      new THREE.MeshLambertMaterial({ color: 0x222222 })
+    );
+    w.rotation.z = Math.PI / 2;
+    w.position.set(x, wheelR, z);
+    if(camber !== 0) w.rotation.x = (x > 0 ? camber : -camber);
+    group.add(w);
+    // 輪框（小光圈，吋數差異更明顯）
+    const rim = new THREE.Mesh(
+      new THREE.CylinderGeometry(wheelR*0.55, wheelR*0.55, 0.9, 8),
+      new THREE.MeshLambertMaterial({ color: 0x888888 })
+    );
+    rim.rotation.z = Math.PI / 2;
+    rim.position.set(x, wheelR, z);
+    if(camber !== 0) rim.rotation.x = (x > 0 ? camber : -camber);
+    group.add(rim);
+  }
+  addWheel(-2.3, wheelZ); addWheel(2.3, wheelZ);
+  addWheel(-2.3, -wheelZ); addWheel(2.3, -wheelZ);
+
+  // ─── 動力配置裝飾 ───
+  if(garageChoice.power === 0){
+    // 純電：屋頂電池組
+    const batPack = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.55, 1.2),
+      new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+    );
+    batPack.position.set(0, 4.8, -1.7);
+    group.add(batPack);
+  } else if(garageChoice.power === 2){
+    // 純油：側面油桶
+    [-2.55, 2.55].forEach(x => {
+      const tank = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.4, 0.4, 1.6, 8),
+        new THREE.MeshLambertMaterial({ color: 0xaa3333 })
+      );
+      tank.position.set(x, 1.4, -2.2);
+      tank.rotation.z = Math.PI / 2;
+      group.add(tank);
+    });
+  } else {
+    // 油電混合：屋頂混合圖示（小綠+小紅）
+    const gB = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 0.5, 1),
+      new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+    );
+    gB.position.set(-0.6, 4.8, -1.7); group.add(gB);
+    const rB = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 0.5, 1),
+      new THREE.MeshBasicMaterial({ color: 0xff6633 })
+    );
+    rB.position.set(0.6, 4.8, -1.7); group.add(rB);
+  }
+
+  // ─── 齒輪比視覺化（屋頂齒輪大小換）───
+  const gearSizes = [0.65, 0.45, 0.28];
+  const gearGeom = new THREE.CylinderGeometry(gearSizes[garageChoice.gear], gearSizes[garageChoice.gear], 0.18, 12);
+  const gearMesh = new THREE.Mesh(gearGeom, new THREE.MeshLambertMaterial({ color: 0xdddddd }));
+  gearMesh.rotation.x = Math.PI / 2;
+  gearMesh.position.set(-1.5, 4.65, -1.8);
+  group.add(gearMesh);
+
+  // ─── 驅動方式視覺化（前輪/後輪 軸閃光指示）───
+  const driveColors = [
+    { front: 0x4ade80, rear: 0x222222 }, // FF 前驅
+    { front: 0x222222, rear: 0x4ade80 }, // FR 後驅
+    { front: 0x4ade80, rear: 0x4ade80 }, // AWD
+  ];
+  const dc = driveColors[garageChoice.drive];
+  function addAxle(z, color){
+    const axle = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.12, 0.12, 4.4, 8),
+      new THREE.MeshBasicMaterial({ color })
+    );
+    axle.rotation.z = Math.PI / 2;
+    axle.position.set(0, wheelR, z);
+    group.add(axle);
+  }
+  addAxle(wheelZ, dc.front);
+  addAxle(-wheelZ, dc.rear);
+
+  return group;
+}
+
+function rebuildPreviewCar(){
+  if(!garageScene) return;
+  if(garagePreviewCar){
+    garageScene.remove(garagePreviewCar);
+    garagePreviewCar.traverse(o => {
+      if(o.geometry) o.geometry.dispose();
+      if(o.material) o.material.dispose();
+    });
+  }
+  garagePreviewCar = buildPreviewCar();
+  garageScene.add(garagePreviewCar);
+  // 更新右下角性能判讀標籤
+  const tot = { start: 0, top: 0, turn: 0, range: 0, climb: 0 };
+  GARAGE_AXES.forEach(axis => {
+    const c = axis.options[garageChoice[axis.key]];
+    Object.keys(tot).forEach(k => tot[k] += c.d[k]);
+  });
+  const verdict = document.getElementById('previewVerdict');
+  if(verdict){
+    let label = '🔧 街頭中庸配置';
+    if(tot.top >= 3) label = '🚀 飆速戰士配置';
+    else if(tot.climb >= 3) label = '⛰ 爬坡神獸配置';
+    else if(tot.turn >= 3) label = '🌀 過彎魔王配置';
+    else if(tot.range >= 3) label = '🔋 馬拉松配置';
+    else if(tot.top <= -3 && tot.climb <= -2) label = '⚠️ 跛腳配置（小心）';
+    verdict.textContent = label;
+  }
+}
+
+function startGarageAnimate(){
+  let angle = 0;
+  function loop(){
+    if(!garageScene){ garageAnimId = null; return; }
+    angle += 0.009;
+    if(garagePreviewCar) garagePreviewCar.rotation.y = angle;
+    garageRenderer.render(garageScene, garageCamera);
+    garageAnimId = requestAnimationFrame(loop);
+  }
+  if(!garageAnimId) loop();
+}
+
+function stopGarageAnimate(){
+  if(garageAnimId){ cancelAnimationFrame(garageAnimId); garageAnimId = null; }
 }
 
 function computePlayerMods(){
