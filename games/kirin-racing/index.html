@@ -422,6 +422,33 @@ canvas { display: block; }
 }
 .garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
 
+/* 即時換檔 HUD（在賽道上 Z/X 即時換檔） */
+#gearHud {
+  position: absolute; bottom: 100px; right: 30px;
+  background: rgba(0,20,0,0.85); border: 1px solid #ff9933;
+  padding: 10px 18px; border-radius: 8px;
+  text-align: center;
+  font-family: 'Courier New', monospace; color: #ffd866;
+  min-width: 110px;
+  z-index: 100;
+}
+#gearHud .gear-label {
+  font-size: 11px; color: #888; letter-spacing: 2px;
+}
+#gearHud .gear-display {
+  font-size: 22px; font-weight: 900; color: #ffd866; margin: 4px 0;
+}
+#gearHud .gear-hint {
+  font-size: 10px; color: #666; letter-spacing: 1px;
+}
+#gearHud .gear-bar {
+  display: flex; gap: 3px; justify-content: center; margin-top: 4px;
+}
+#gearHud .gear-dot {
+  width: 14px; height: 5px; background: #333; border-radius: 2px;
+}
+#gearHud .gear-dot.active { background: #ffd866; box-shadow: 0 0 6px #ffd866; }
+
 /* 三軸 HUD */
 #tripleHud {
   position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
@@ -524,6 +551,18 @@ canvas { display: block; }
   </div>
 
   <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
+</div>
+
+<!-- 即時換檔 HUD（Z/X 賽道上動態換檔） -->
+<div id="gearHud">
+  <div class="gear-label">⚡ 即時齒輪</div>
+  <div class="gear-display" id="gearDisplay">⚙️ 中齒</div>
+  <div class="gear-bar">
+    <div class="gear-dot" id="gearDot-1"></div>
+    <div class="gear-dot active" id="gearDot0"></div>
+    <div class="gear-dot" id="gearDot1"></div>
+  </div>
+  <div class="gear-hint">Z 降檔 ｜ X 升檔</div>
 </div>
 
 <!-- 三軸 HUD（口碑/在地/取捨次數） -->
@@ -1038,7 +1077,28 @@ addEventListener('keydown', e => {
     else cycleView();
   }
   if(e.code==='KeyR') { hideResults(); resetRace(); }
+  // 即時換檔（Z 降檔到低齒比、X 升檔到高齒比）
+  if(e.code==='KeyZ') changeGear(-1);
+  if(e.code==='KeyX') changeGear(+1);
 });
+function changeGear(delta){
+  if(!playerCar) return;
+  const ud = playerCar.userData;
+  const old = ud.gearLevel || 0;
+  ud.gearLevel = Math.max(-1, Math.min(1, old + delta));
+  if(ud.gearLevel !== old) updateGearHud();
+}
+function updateGearHud(){
+  const lv = (playerCar.userData.gearLevel || 0);
+  const labels = ['🐢 低齒（扭力大）', '⚙️ 中齒', '🚀 高齒（極速高）'];
+  const colors = ['#5a8', '#ffd866', '#ff6633'];
+  const d = document.getElementById('gearDisplay');
+  if(d) { d.textContent = labels[lv+1]; d.style.color = colors[lv+1]; }
+  ['gearDot-1','gearDot0','gearDot1'].forEach((id, i) => {
+    const dot = document.getElementById(id);
+    if(dot) dot.classList.toggle('active', i === lv+1);
+  });
+}
 addEventListener('keyup', e => keys[e.code] = false);
 
 // Pico W WebSocket
@@ -1542,6 +1602,9 @@ function closeGarage(){
   // 套用 mods 到 playerCar
   const mods = computePlayerMods();
   playerCar.userData.mods = mods;
+  // 齒輪初始值用工坊選的齒輪比（0=低, 1=中, 2=高 → -1, 0, +1）
+  playerCar.userData.gearLevel = garageChoice.gear - 1;
+  updateGearHud();
   startCountdown();
 }
 
@@ -2321,9 +2384,22 @@ function animate(){
       if(gp.square || gp.l2) drift = true;
     }
 
-    // Speed control
-    const MAX_SPEED = lightspeedActive ? LIGHTSPEED_SPEED : (ud._speedBoost > 0 ? 140 : 90);
-    const ACCEL = lightspeedActive ? 600 : 80;
+    // Speed control（套用車庫改裝 mods + 即時齒輪檔位）
+    const mods = ud.mods || { speedMul:1, accelMul:1, turnMul:1, rangeMul:1, climbMul:1, tot:{} };
+    // 即時齒輪檔位（gearLevel: -1 低齒比, 0 中庸, +1 高齒比 → 玩家可在賽道上按 Z/X 切換）
+    const gearLevel = ud.gearLevel || 0;
+    const gearSpeedMul = 1 + gearLevel * 0.15;   // 高齒比 +15% 極速
+    const gearAccelMul = 1 - gearLevel * 0.20;   // 高齒比 -20% 起步加速（互相 trade-off）
+    // 續航：第 3 圈最後 30% 距離後 + rangeMul<1 → 減速
+    let rangePenalty = 1;
+    if(ud.laps >= TOTAL_LAPS - 1 && mods.rangeMul < 1){
+      const lapProgress = (ud._dist / L_TOTAL) % 1;
+      if(lapProgress > 0.7) rangePenalty = 0.65;  // 沒電了
+    }
+
+    const baseMax = lightspeedActive ? LIGHTSPEED_SPEED : (ud._speedBoost > 0 ? 140 : 90);
+    const MAX_SPEED = baseMax * mods.speedMul * gearSpeedMul * rangePenalty;
+    const ACCEL = (lightspeedActive ? 600 : 80) * mods.accelMul * gearAccelMul;
     const BRAKE = 120;
 
     if(fwd > 0) ud._speed += ACCEL * dt;
