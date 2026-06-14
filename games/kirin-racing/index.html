@@ -390,36 +390,29 @@ canvas { display: block; }
   margin: 6px auto 16px; max-width: 1100px;
 }
 .preset-btn {
-  background: linear-gradient(135deg, #2a2014 0%, #1a1410 100%);
-  border: 2px solid #ff9933;
-  border-radius: 10px;
-  padding: 10px 18px;
-  color: #ffd866;
-  cursor: pointer; transition: all 0.18s ease;
-  font-family: inherit; min-width: 150px;
-  text-align: center;
-  position: relative;
-}
-.preset-btn::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,216,102,0.15), transparent);
+  background: rgba(20,15,10,0.4);
+  border: 1px solid #333;
   border-radius: 8px;
-  opacity: 0; transition: opacity 0.2s;
+  padding: 8px 16px;
+  color: #888;
+  cursor: pointer; transition: all 0.18s ease;
+  font-family: inherit; min-width: 140px;
+  text-align: center;
+  opacity: 0.6;
 }
 .preset-btn:hover {
-  border-color: #ffd866;
-  transform: translateY(-3px);
-  box-shadow: 0 10px 28px rgba(255,153,51,0.4);
+  opacity: 0.9;
+  border-color: #ff9933; color: #ffd866;
 }
-.preset-btn:hover::before { opacity: 1; }
 .preset-btn.active {
+  opacity: 1;
   border-color: #4ade80;
-  background: linear-gradient(135deg, #2d4a2a 0%, #1a2a1a 100%);
+  background: linear-gradient(135deg, rgba(74,222,128,0.18) 0%, rgba(0,40,0,0.4) 100%);
+  color: #4ade80;
   box-shadow: 0 0 16px rgba(74,222,128,0.4);
 }
-.preset-btn .ps-name { font-size: 15px; font-weight: 900; letter-spacing: 2px; }
-.preset-btn .ps-desc { font-size: 10px; color: #aaa; margin-top: 3px; letter-spacing: 1px; }
+.preset-btn .ps-name { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
+.preset-btn .ps-desc { font-size: 9px; color: inherit; opacity: 0.7; margin-top: 2px; letter-spacing: 1px; }
 .garage-tag {
   font-size: 11px; letter-spacing: 2px;
   padding: 3px 10px; border-radius: 10px;
@@ -537,84 +530,81 @@ canvas { display: block; }
 /* 左欄 sticky 內，性能 bar / 開始按鈕排版微調 */
 .garage-left .garage-predict { margin: 12px 0 10px; max-width: none; }
 .garage-left .garage-start { margin: 4px 0 0; width: 100%; padding: 16px 20px; }
-/* 工具箱抽屜風格軸卡片 */
+/* 軸卡片：未聚焦時整張卡暗色，選中後亮 */
 .axis-card {
-  background:
-    linear-gradient(180deg, rgba(60,40,20,0.3) 0%, rgba(20,15,10,0.6) 100%),
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 4px);
-  border: 2px solid #5a4030;
-  border-top: 3px solid #ff9933;
-  border-radius: 8px 8px 6px 6px;
-  padding: 12px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,200,100,0.15),
-    0 4px 12px rgba(0,0,0,0.4);
-  position: relative;
+  background: rgba(20,15,10,0.5);
+  border: 1px solid #2a2014;
+  border-radius: 8px;
+  padding: 11px 12px;
+  opacity: 0.65;
+  transition: opacity 0.25s ease, border-color 0.25s ease;
 }
-.axis-card::before {
-  content: ''; position: absolute;
-  top: -2px; left: 50%; transform: translateX(-50%);
-  width: 28px; height: 4px;
-  background: linear-gradient(90deg, #5a4030, #8a6040, #5a4030);
-  border-radius: 0 0 4px 4px;
+.axis-card:hover,
+.axis-card:focus-within {
+  opacity: 1;
+  border-color: #5a4030;
 }
 .axis-card h3 {
-  margin: 0 0 4px; font-size: 16px; color: #ffd866;
-  display: flex; align-items: center; gap: 8px;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  margin: 0 0 4px; font-size: 14px; color: #888;
+  display: flex; align-items: center; gap: 6px;
+  font-weight: 700;
+  transition: color 0.25s;
 }
+.axis-card:hover h3,
+.axis-card:focus-within h3 { color: #ffd866; }
 .axis-hint {
-  font-size: 11px; color: #aaa; margin-bottom: 10px;
-  font-style: italic;
-  background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 4px;
-  border-left: 2px solid #ff9933;
+  font-size: 10px; color: #555;
+  margin-bottom: 8px;
+  display: none;
+}
+.axis-card:hover .axis-hint,
+.axis-card:focus-within .axis-hint {
+  display: block; color: #888;
 }
 .axis-options {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 7px;
+  display: flex; flex-direction: column; gap: 6px;
 }
 
-/* 櫥窗格子風格選項 */
+/* 選項：未選中極暗、選中才亮 */
 .opt-card {
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%);
-  border: 2px solid #444;
-  border-radius: 6px;
-  padding: 10px 12px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 8px 10px;
   cursor: pointer;
   transition: all 0.18s ease;
-  position: relative;
-  overflow: hidden;
-}
-.opt-card::after {
-  content: ''; position: absolute;
-  top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  transition: left 0.5s;
+  opacity: 0.55;
 }
 .opt-card:hover {
+  opacity: 0.85;
   border-color: #ff9933;
-  background: linear-gradient(180deg, rgba(255,153,51,0.12) 0%, rgba(0,0,0,0.3) 100%);
-  transform: translateX(3px);
+  background: rgba(255,153,51,0.06);
 }
-.opt-card:hover::after { left: 100%; }
 .opt-card.selected {
+  opacity: 1;
   border-color: #4ade80;
-  background: linear-gradient(180deg, rgba(74,222,128,0.18) 0%, rgba(0,40,0,0.4) 100%);
-  box-shadow:
-    0 0 16px rgba(74,222,128,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.1);
+  background: linear-gradient(180deg, rgba(74,222,128,0.15) 0%, rgba(0,40,0,0.3) 100%);
+  box-shadow: 0 0 12px rgba(74,222,128,0.3);
+  position: relative;
 }
 .opt-card.selected::before {
   content: '✓'; position: absolute;
-  top: 8px; right: 10px;
-  color: #4ade80; font-weight: 900; font-size: 16px;
+  top: 6px; right: 8px;
+  color: #4ade80; font-weight: 900; font-size: 14px;
 }
-.opt-card .opt-name { font-size: 13px; font-weight: 700; color: #fff; }
+.opt-card .opt-name {
+  font-size: 13px; font-weight: 700;
+  color: #888;
+  transition: color 0.18s;
+}
+.opt-card:hover .opt-name { color: #ddd; }
+.opt-card.selected .opt-name { color: #fff; }
 .opt-card .opt-secret {
-  font-size: 11px; color: #bbb; margin-top: 3px; line-height: 1.4;
+  font-size: 10px; color: #555; margin-top: 2px; line-height: 1.3;
+  display: none;
 }
+.opt-card.selected .opt-secret,
+.opt-card:hover .opt-secret { display: block; color: #aaa; }
 .opt-card.selected .opt-secret { color: #4ade80; }
 
 /* 性能預測長條 */
@@ -1876,12 +1866,12 @@ const GARAGE_AXES = [
     ],
   },
   {
-    key: 'wheelbase', icon: '📏', name: '軸距',
-    hint: '前後輪距離，影響轉動慣量與穩定性',
+    key: 'wheelbase', icon: '📏', name: '軸距 + 車身比例（寬窄長短）',
+    hint: '寬胖重心低抗側翻、窄長直線神但過彎易翻車（遊覽車就是這樣）',
     options: [
-      { name: '短軸 110cm',  secret: '靈活如機車，但煞車易甩飛',     d: { start: +1, top:  0, turn: +2, range: 0, climb: 0 } },
-      { name: '中軸 130cm',  secret: '街頭標配，平衡',              d: { start:  0, top:  0, turn:  0, range: 0, climb: 0 } },
-      { name: '長軸 150cm',  secret: '直線穩如船，但過彎要大減速',   d: { start: -1, top: +1, turn: -2, range: 0, climb: +1 } },
+      { name: '🚙 寬胖短軸（小型攤車）',  secret: '重心低、過彎神、抗側翻，但載貨少',  d: { start: +1, top:  -1, turn: +2, range: 0, climb: 0 } },
+      { name: '🚐 中庸標配（街頭餐車）',  secret: '寬窄適中，街頭老闆首選',          d: { start:  0, top:  0, turn:  0, range: 0, climb: 0 } },
+      { name: '🚌 窄長遊覽車型',         secret: '直線飛快、載貨多，但過彎易側翻 ⚠️', d: { start: -1, top: +2, turn: -2, range: +1, climb: +1 } },
     ],
   },
   {
@@ -2054,39 +2044,46 @@ function buildPreviewCar(){
   // ─── 輪胎尺寸（16/20/26 寸 → 半徑差） ───
   const tireSizes = [0.62, 0.85, 1.12];
   const wheelR = tireSizes[garageChoice.tire];
-  // ─── 軸距（短/中/長 → wheelZ 差） ───
-  const wheelbases = [1.8, 2.4, 3.0];
+  // ─── 軸距 + 車身比例（寬胖 / 中庸 / 窄長遊覽車型） ───
+  const wheelbases = [1.6, 2.4, 3.2];
+  const bodyDims = [
+    { w: 5.0, l: 5.5, signZ: 2.2 },  // 寬胖
+    { w: 4.2, l: 6.5, signZ: 2.6 },  // 中庸
+    { w: 3.4, l: 7.8, signZ: 3.2 },  // 窄長遊覽車型
+  ];
   const wheelZ = wheelbases[garageChoice.wheelbase];
+  const dim = bodyDims[garageChoice.wheelbase];
   // ─── 動力配置決定車身顏色 ───
   const powerColors = [0x4ade80, 0xffaa00, 0xcc4444]; // 純電綠 / 油電金 / 純油紅
   const bodyColor = powerColors[garageChoice.power];
 
-  // 車身
+  // 車身（寬度×長度動態）
   const body = new THREE.Mesh(
-    new THREE.BoxGeometry(4.2, 2.4, 6.5),
+    new THREE.BoxGeometry(dim.w, 2.4, dim.l),
     new THREE.MeshLambertMaterial({ color: bodyColor })
   );
   body.position.y = 1.6;
   group.add(body);
-  // 屋頂
+  // 屋頂（跟著車身比例）
   const top = new THREE.Mesh(
-    new THREE.BoxGeometry(4.4, 1.6, 5.5),
+    new THREE.BoxGeometry(dim.w + 0.2, 1.6, dim.l - 1.0),
     new THREE.MeshLambertMaterial({ color: 0xff6633 })
   );
   top.position.set(0, 3.6, 0);
   group.add(top);
-  // 招牌
+  // 招牌（跟著車身比例）
   const sign = new THREE.Mesh(
-    new THREE.BoxGeometry(4.6, 0.9, 0.3),
+    new THREE.BoxGeometry(dim.w + 0.4, 0.9, 0.3),
     new THREE.MeshLambertMaterial({ color: 0xffd866 })
   );
-  sign.position.set(0, 4.6, 2.6);
+  sign.position.set(0, 4.6, dim.signZ);
   group.add(sign);
   const signBack = sign.clone();
-  signBack.position.z = -2.6;
+  signBack.position.z = -dim.signZ;
   group.add(signBack);
-  // 紅燈籠
-  [-1.8, 1.8].forEach(x => {
+  // 紅燈籠（位置隨車身寬窄）
+  const lantX = dim.w * 0.45;
+  [-lantX, lantX].forEach(x => {
     const lant = new THREE.Mesh(
       new THREE.SphereGeometry(0.45, 12, 8),
       new THREE.MeshBasicMaterial({ color: 0xff2222 })
@@ -2119,8 +2116,10 @@ function buildPreviewCar(){
     rim.userData.kind = 'rim'; rim.userData.r = wheelR;
     group.add(rim);
   }
-  addWheel(-2.3, wheelZ); addWheel(2.3, wheelZ);
-  addWheel(-2.3, -wheelZ); addWheel(2.3, -wheelZ);
+  // 輪子 X 位置跟車身寬度走（寬胖車輪間距大、窄長車輪間距小）
+  const wheelX = dim.w * 0.55;
+  addWheel(-wheelX, wheelZ); addWheel(wheelX, wheelZ);
+  addWheel(-wheelX, -wheelZ); addWheel(wheelX, -wheelZ);
 
   // ─── 動力配置裝飾 ───
   if(garageChoice.power === 0){
