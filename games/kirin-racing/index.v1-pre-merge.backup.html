@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>水城救援隊・工程黑客松 | 大業實驗中學</title>
+<title>瘋狂賽車・水城街頭傳奇 | 大業實驗中學</title>
 <style>
 body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
 canvas { display: block; }
@@ -175,7 +175,7 @@ canvas { display: block; }
 #historyBoard .h-score { color: #f5c842; font-weight: 700; }
 #historyBoard .h-pos { font-size: 11px; }
 
-/* ═══ 開場徵召 splash ═══ */
+/* ═══ 開場結局預告 splash（PBL 以終為始） ═══ */
 #openingSplash {
   position: fixed; inset: 0; z-index: 9999;
   background: radial-gradient(ellipse at center, #0a1a2e 0%, #000 80%);
@@ -358,7 +358,7 @@ canvas { display: block; }
   animation: fadeIn 0.3s ease;
 }
 
-/* ═══ 車庫改裝工坊 ═══ */
+/* ═══ 車庫改裝工坊（STEAM 五軸取捨） ═══ */
 #garageScreen {
   position: fixed; inset: 0; z-index: 7777;
   background: linear-gradient(180deg, #1a1a1a 0%, #2a2014 100%);
@@ -869,7 +869,7 @@ canvas { display: block; }
 }
 .garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
 
-/* 任務假設彈窗 */
+/* 🔬 第一性原理「猜猜看」彈窗 */
 #guessModal {
   position: fixed; inset: 0; z-index: 8500;
   background: rgba(0,0,0,0.85);
@@ -953,7 +953,7 @@ canvas { display: block; }
   text-decoration: underline;
 }
 
-/* 結算頁假設對照 */
+/* 🔬 結算頁第一性原理對照 */
 .fpp-section {
   margin-top: 16px;
   background: rgba(0,0,0,0.5);
@@ -990,158 +990,6 @@ canvas { display: block; }
   line-height: 1.6;
 }
 .fpp-insight strong { color: #ffd866; }
-
-/* 🃏 支援卡 / 前輩無線電 / 驗證任務 */
-.support-dock {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
-}
-.support-card {
-  background: linear-gradient(160deg, rgba(12,22,34,.92), rgba(27,19,12,.9));
-  border: 1px solid rgba(89,199,255,.32);
-  border-radius: 10px;
-  padding: 10px 12px;
-  color: #dfeeff;
-  min-height: 104px;
-  box-shadow: inset 0 0 24px rgba(89,199,255,.06);
-}
-.support-card h3 {
-  margin: 0 0 6px;
-  font-size: 12px;
-  color: #59c7ff;
-  letter-spacing: 2px;
-}
-.support-card p {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.55;
-  color: #9db0cb;
-}
-.support-card .support-current {
-  margin-top: 7px;
-  font-size: 12px;
-  color: #ffd866;
-  min-height: 34px;
-  line-height: 1.45;
-}
-.support-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-.support-btn {
-  flex: 1;
-  border: 1px solid rgba(255,216,102,.35);
-  background: rgba(255,216,102,.08);
-  color: #ffd866;
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  cursor: pointer;
-}
-.support-btn:hover {
-  background: rgba(255,216,102,.16);
-  transform: translateY(-1px);
-}
-.support-btn.ai {
-  border-color: rgba(89,199,255,.35);
-  background: rgba(89,199,255,.08);
-  color: #8de4ff;
-}
-.support-cost {
-  margin-top: 6px;
-  color: #ffbb5c;
-  font-size: 10px;
-  letter-spacing: 1px;
-}
-.wallet-card {
-  grid-column: 1 / -1;
-}
-.wallet-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.wallet-money {
-  color: #ffd866;
-  font-size: 18px;
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-.material-shop {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: 8px;
-}
-.material-btn {
-  min-height: 82px;
-  border: 1px solid rgba(160,196,255,.16);
-  background: rgba(255,255,255,.035);
-  color: #dfeeff;
-  border-radius: 8px;
-  padding: 8px;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.material-btn:hover {
-  border-color: rgba(255,216,102,.45);
-  background: rgba(255,216,102,.07);
-}
-.material-btn.owned {
-  border-color: rgba(74,222,128,.5);
-  background: rgba(74,222,128,.12);
-}
-.material-btn .mat-name {
-  color: #fff;
-  font-size: 12px;
-  font-weight: 900;
-}
-.material-btn .mat-desc {
-  margin-top: 4px;
-  color: #9db0cb;
-  font-size: 10px;
-  line-height: 1.35;
-}
-.material-btn .mat-cost {
-  margin-top: 5px;
-  color: #ffbb5c;
-  font-size: 10px;
-}
-.experiment-report {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(130px, 1fr));
-  gap: 8px;
-}
-.report-box {
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(160,196,255,.14);
-  border-radius: 8px;
-  padding: 9px 10px;
-}
-.report-box .rb-label {
-  font-size: 10px;
-  color: #889bb4;
-  letter-spacing: 2px;
-}
-.report-box .rb-val {
-  margin-top: 4px;
-  color: #ffd866;
-  font-size: 13px;
-  line-height: 1.45;
-}
-@media (max-width: 700px) {
-  .support-dock,
-  .experiment-report { grid-template-columns: 1fr; }
-}
 
 /* 🔋 電量 HUD（電力=生命值） */
 #batteryHud {
@@ -1250,9 +1098,9 @@ canvas { display: block; }
 </head>
 <body>
 
-<!-- ═══ 開場徵召 splash ═══ -->
+<!-- ═══ 開場結局預告 splash（PBL 以終為始機制化） ═══ -->
 <div id="openingSplash">
-  <div class="splash-pbl-tag">RESCUE HACK</div>
+  <div class="splash-pbl-tag">PBL · 以終為始</div>
   <div class="splash-ps2-tag" id="splashPs2Tag">
     <span class="dot"></span>
     <span>🎮 PS2 手把・Pico W 連線</span>
@@ -1295,35 +1143,35 @@ canvas { display: block; }
     </div>
   </div>
   <button id="splashSkip" onclick="closeOpeningSplash()">跳過 ESC</button>
-  <div class="splash-credit">🛠 大業實驗中學救援工程隊 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
+  <div class="splash-credit">🛠 大業實驗中學 STEAM 工作室 ╳ 自製 Pico W 韌體 + PS2 手把整合</div>
 </div>
 
-<!-- ═══ 出車前假設彈窗（按開上街頭前彈出） ═══ -->
+<!-- ═══ 🔬 第一性原理「猜猜看」彈窗（按開上街頭前彈出） ═══ -->
 <div id="guessModal">
   <div class="guess-box">
     <div class="guess-header">
-      <div class="guess-tag">🔎 出車前推測</div>
-      <h2>你敢押哪個判斷？</h2>
-      <div class="guess-sub">線索不是答案，跑完才知道誰說得準</div>
+      <div class="guess-tag">🤔 等一下</div>
+      <h2>你的車真的會做你想的事嗎？</h2>
+      <div class="guess-sub">先說出來——3 圈後我們對答案</div>
     </div>
 
     <div class="guess-question">
-      <div class="q-label">① 你覺得這台車最可靠的是？</div>
+      <div class="q-label">① 你覺得這台車最強的是？</div>
       <div class="q-options" id="qStrong"></div>
     </div>
 
     <div class="guess-question">
-      <div class="q-label">② 你懷疑最大故障風險是？</div>
+      <div class="q-label">② 你覺得這台車最弱的是？</div>
       <div class="q-options" id="qWeak"></div>
     </div>
 
     <div class="guess-question">
-      <div class="q-label">③ 你猜這趟任務結果會：</div>
+      <div class="q-label">③ 你猜這趟總分會：</div>
       <div class="q-options" id="qLevel"></div>
     </div>
 
     <button class="guess-confirm" id="guessConfirm" onclick="confirmGuessAndStart()">
-      📍 上路驗證
+      📍 上路驗證！
     </button>
     <button class="guess-skip" onclick="skipGuessAndStart()">先跳過，直接上路</button>
   </div>
@@ -1332,8 +1180,8 @@ canvas { display: block; }
 <!-- ═══ 工坊進場 reveal 過渡 ═══ -->
 <div id="garageReveal">
   <div class="rv-icon">🔧</div>
-  <div class="rv-title">救援車庫已解鎖</div>
-  <div class="rv-sub">抽支援、聽無線電、押假設，然後上路驗證</div>
+  <div class="rv-title">改裝工坊已就緒</div>
+  <div class="rv-sub">準備改裝你的救援車・看清楚每個配件的差異</div>
   <div class="rv-loader">
     <div class="rv-dot"></div>
     <div class="rv-dot"></div>
@@ -1354,48 +1202,50 @@ canvas { display: block; }
 </div>
 <div id="alignResult"></div>
 
-<!-- ═══ 車庫改裝工坊 ═══ -->
+<!-- ═══ 車庫改裝工坊（STEAM 五軸取捨） ═══ -->
 <div id="garageScreen">
   <div class="garage-header">
-    <h2>🚨 水城救援隊・工程車庫</h2>
-    <div class="sub">答案不是被告訴的，是被測出來的。</div>
+    <h2>🔧 改裝工坊・你的車能撐過下一場暴雨嗎？</h2>
+    <div class="sub">想得越早，跑得越遠。</div>
     <div class="garage-tag-row">
-      <span class="garage-tag">救援任務</span>
-      <span class="garage-tag">支援卡包</span>
-      <span class="garage-tag">上路驗證</span>
+      <span class="garage-tag">徵召工程師</span>
+      <span class="garage-tag">六軸改裝</span>
+      <span class="garage-tag">嘉義街頭實測</span>
     </div>
   </div>
 
+  <!-- 📋 Mission Band（任務化敘事，呼應水城重構局世界觀） -->
   <div class="mission-band">
     <div class="mission-icon">📋</div>
     <div class="mission-text">
       <div class="mission-eyebrow">Active Mission</div>
       <div class="mission-title">暴雨運補 Alpha-03</div>
-      <div class="mission-sub">送醫療物資進入嘉義老街淹水區，撐過兩圈完整路線</div>
+      <div class="mission-sub">送醫療物資進入嘉義老街淹水區，撐過三圈完整路線</div>
     </div>
     <div class="mission-chips">
       <span class="mission-chip warn">⚠️ 積水 45cm</span>
-      <span class="mission-chip active">⏱ 兩圈驗證</span>
+      <span class="mission-chip active">⏱ 限時 3 圈</span>
       <span class="mission-chip">💊 醫療箱 ×2</span>
       <span class="mission-chip">🔋 低耗能優先</span>
     </div>
   </div>
 
+  <!-- 🏎️ 預設車選擇（賽車遊戲風） -->
   <div class="preset-row">
     <button class="preset-btn" onclick="applyPreset('street')">
-      <div class="ps-name">🏎️ 均衡新人</div>
+      <div class="ps-name">🏎️ 街頭老闆</div>
       <div class="ps-desc">中庸平衡 · 新手首選</div>
     </button>
     <button class="preset-btn" onclick="applyPreset('speed')">
-      <div class="ps-name">🚀 極速賭徒</div>
+      <div class="ps-name">🚀 飆速戰士</div>
       <div class="ps-desc">直線王 · 極速優先</div>
     </button>
     <button class="preset-btn" onclick="applyPreset('offroad')">
-      <div class="ps-name">🌊 涉水怪物</div>
+      <div class="ps-name">🌊 越野神獸</div>
       <div class="ps-desc">爬坡水道 · 全地形</div>
     </button>
     <button class="preset-btn" onclick="applyPreset('eco')">
-      <div class="ps-name">🔋 續航專家</div>
+      <div class="ps-name">🌱 環保節能</div>
       <div class="ps-desc">純電馬拉松配置</div>
     </button>
   </div>
@@ -1405,15 +1255,15 @@ canvas { display: block; }
     <div class="garage-left">
       <div id="garagePreviewWrap">
         <canvas id="garagePreview"></canvas>
-        <div class="preview-overlay-tl">🎯 積木車即時預覽・先看再賭</div>
+        <div class="preview-overlay-tl">🎯 3D 即時預覽・自動旋轉展示</div>
       </div>
       <!-- 配置診斷卡片（獨立） -->
       <div class="preview-info-card">
         <div>
-          <div class="pi-label">⚡ 當前原型</div>
+          <div class="pi-label">⚡ 當前配置</div>
           <div class="pi-verdict" id="previewVerdict">🔧 街頭中庸配置</div>
         </div>
-        <div class="pi-hint">每個選擇都可能救你，也可能害你</div>
+        <div class="pi-hint">每換一個配件 → 車子立刻重組</div>
       </div>
       <!-- ⚙️ 齒輪嚙合特寫（獨立區塊，不擋車） -->
       <div class="gear-zoom" id="gearZoom">
@@ -1431,39 +1281,8 @@ canvas { display: block; }
           </div>
         </div>
         <div class="gear-zoom-info">
-          <div class="gear-zoom-label" id="gearZoomLabel">中齒比 1:1 · 標準傳動</div>
+          <div class="gear-zoom-label" id="gearZoomLabel">中齒比 1:1 · 街頭標配</div>
           <div class="gear-zoom-sub" id="gearZoomSub">馬達端 ⇄ 輪子端</div>
-        </div>
-      </div>
-
-      <div class="support-dock">
-        <div class="support-card">
-          <h3>🃏 機會 / 命運卡包</h3>
-          <p>抽到機會可能拿材料券；抽到命運可能遇到突發狀況。卡片會改變分數與錢包。</p>
-          <div class="support-current" id="supportCardText">尚未抽卡。</div>
-          <div class="support-actions">
-            <button class="support-btn" onclick="drawSupportCard()">抽一張</button>
-          </div>
-          <div class="support-cost" id="supportCost">支援代價：0 分</div>
-        </div>
-        <div class="support-card">
-          <h3>📻 前輩無線電</h3>
-          <p>呼叫一次會得到模糊方向，不會給解法。支援越多，獨立破解分越低。</p>
-          <div class="support-current" id="radioLastReply">尚未呼叫。</div>
-          <div class="support-actions">
-            <button class="support-btn ai" onclick="callRadioSupport()">呼叫一次（-35 分）</button>
-          </div>
-          <div class="support-cost">無線電只給方向，不給答案</div>
-        </div>
-        <div class="support-card wallet-card">
-          <div class="wallet-top">
-            <div>
-              <h3>💳 救援錢包 / 材料兌換</h3>
-              <p>材料不一定讓車變強，常常只是把風險換到別處。買之前先想清楚。</p>
-            </div>
-            <div class="wallet-money" id="walletMoney">120 RC</div>
-          </div>
-          <div class="material-shop" id="materialShop"></div>
         </div>
       </div>
 
@@ -1479,7 +1298,7 @@ canvas { display: block; }
         </div>
       </div>
 
-      <button class="garage-start" onclick="closeGarage()">📍 出車驗證</button>
+      <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
     </div>
 
     <div class="garage-right">
@@ -1523,14 +1342,14 @@ canvas { display: block; }
 </div>
 
 <div id="hud">
-  <h2>RESCUE RUN</h2>
+  <h2>OVAL RACING</h2>
   <div class="data-row">速度: <span id="hSpeed">0</span> km/h</div>
   <div class="data-row">名次: <span id="hRank">--</span></div>
   <div class="data-row">狀態: <span id="hStatus">ON TRACK</span></div>
   <div class="data-row" style="color:#f5c842">得分: <span id="hScore" style="color:#f5c842">0</span></div>
 </div>
 
-<div id="lapInfo">驗證 <span id="lapCur">0</span> / <span id="lapMax">2</span></div>
+<div id="lapInfo">圈數 <span id="lapCur">0</span> / <span id="lapMax">3</span></div>
 
 <div id="speedGauge">
   <div id="speedNum">0</div>
@@ -1555,7 +1374,7 @@ canvas { display: block; }
 <div id="lightspeedOverlay"></div>
 <div id="lightspeedTimer"></div>
 <div id="resultScreen">
-  <h1>🏁 測試結算・證據回收</h1>
+  <h1>🏁 今日打烊・街頭結算</h1>
   <div id="resultRanks"></div>
   <div id="resultStats" class="stats"></div>
   <button id="restartBtn" onclick="hideResults(); resetRace();">再來一場 (R)</button>
@@ -2479,7 +2298,7 @@ function startCountdown(){
   step();
 }
 
-// ═══ 開場徵召 splash ═══
+// ═══ 開場結局預告 splash（PBL 以終為始） ═══
 let splashStarted = false;
 let splashFinished = false;
 function startOpeningSplash(){
@@ -2645,7 +2464,7 @@ function resetAlignState(){
   updateTripleHud();
 }
 
-// ═══ 車庫改裝工坊 ═══
+// ═══ 車庫改裝工坊（STEAM 五軸取捨） ═══
 // 每個選項對五個性能維度的影響（-2 to +2）：start/top/turn/range/climb
 const GARAGE_AXES = [
   {
@@ -2729,11 +2548,6 @@ const GARAGE_AXES = [
 ];
 // 玩家當前選擇（index 0=第一選項；預設全部中庸 = index 1）
 const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1, shell: 0, chassis: 1 };
-let supportPenalty = 0;
-let supportUses = [];
-let radioUses = [];
-let rescueCoins = 120;
-const materialOwned = {};
 
 // 🏎️ 預設車種（賽車遊戲風一鍵選車）
 const PRESETS = {
@@ -2805,207 +2619,11 @@ function renderGarage(){
   updatePerfPrediction();
 }
 
-const MATERIALS = [
-  {
-    id: 'waterproofMount',
-    name: '防水電機座',
-    cost: 45,
-    desc: '降低進水風險，但車身略重。',
-    d: { start: -1, top: 0, turn: 0, range: -1, climb: 0 }
-  },
-  {
-    id: 'driveShaft',
-    name: '長傳動軸',
-    cost: 50,
-    desc: '馬達可架高，傳動有損耗。',
-    d: { start: 0, top: -1, turn: 0, range: -1, climb: +2 }
-  },
-  {
-    id: 'sideFloat',
-    name: '側浮筒',
-    cost: 40,
-    desc: '涉水更穩，但直線速度下降。',
-    d: { start: 0, top: -2, turn: +1, range: 0, climb: 0 }
-  },
-  {
-    id: 'lowBatteryBox',
-    name: '低重心電池盒',
-    cost: 35,
-    desc: '過彎穩定，但維修較慢。',
-    d: { start: 0, top: 0, turn: +2, range: +1, climb: -1 }
-  }
-];
-
-const SUPPORT_DECK = [
-  {
-    kind: 'chance',
-    type: '機會',
-    text: '校友工程隊送來一張材料券。錢包 +30 RC。',
-    coins: +30,
-    penalty: 0
-  },
-  {
-    kind: 'hint',
-    type: '回放線索',
-    text: '如果車進水後兩秒內停住，先懷疑電路或馬達位置，不要只怪輪胎。',
-    coins: 0,
-    penalty: 15
-  },
-  {
-    kind: 'hint',
-    type: '傳動線索',
-    text: '馬達有聲音但速度上不去，可能不是電力，而是力量沒有順利到輪子。',
-    coins: 0,
-    penalty: 15
-  },
-  {
-    kind: 'fate',
-    type: '命運',
-    text: '突發水位上升，測試壓力提高。支援代價 +25。',
-    coins: 0,
-    penalty: 25
-  },
-  {
-    kind: 'chance',
-    type: '機會',
-    text: '撿到可用零件，錢包 +20 RC。',
-    coins: +20,
-    penalty: 0
-  },
-  {
-    kind: 'hint',
-    type: '穩定線索',
-    text: '把東西架高可能避開水，但也可能讓車更容易翻。救一個問題，常會生出另一個。',
-    coins: 0,
-    penalty: 15
-  },
-  {
-    kind: 'fate',
-    type: '命運',
-    text: '零件臨時漲價。錢包 -20 RC。',
-    coins: -20,
-    penalty: 0
-  },
-  {
-    kind: 'hint',
-    type: '能源線索',
-    text: '跑得快不代表跑得完。高輸出配置要看最後一段電量。',
-    coins: 0,
-    penalty: 15
-  },
-  {
-    kind: 'hint',
-    type: '輪胎線索',
-    text: '水裡慢不一定是馬達弱，也可能是胎型在水中只是在攪水。',
-    coins: 0,
-    penalty: 15
-  }
-];
-const RADIO_LINES = [
-  '我只能說：先不要急著換零件。你應該先確認故障發生在進水前，還是進水後。',
-  '如果馬達有聲音，輪子卻沒有明顯推進，去看傳動路徑，不要只看電量。',
-  '高底盤能避開水，但重心會變高。你最好跑一次低速彎道測試。',
-  '水中速度掉很多時，可能是阻力，也可能是輪胎推進效率不夠。兩個要分開測。',
-  '跑得最快的配置，常常不是最能完成任務的配置。注意最後一段電量。',
-  '把一個變因改掉就好。一次改太多，你會不知道到底是哪個改動有效。'
-];
-
-function addSupportPenalty(points, label){
-  supportPenalty += points;
-  supportUses.push(label);
-  const el = document.getElementById('supportCost');
-  if(el) el.textContent = '支援代價：-' + supportPenalty + ' 分';
-}
-
-function drawSupportCard(){
-  const card = SUPPORT_DECK[Math.floor(Math.random() * SUPPORT_DECK.length)];
-  if(card.penalty) addSupportPenalty(card.penalty, card.type);
-  if(card.coins) {
-    rescueCoins = Math.max(0, rescueCoins + card.coins);
-    renderWallet();
-  }
-  const prefix = card.kind === 'chance' ? '機會' : card.kind === 'fate' ? '命運' : '線索';
-  const text = '【' + prefix + '】' + card.text;
-  const el = document.getElementById('supportCardText');
-  if(el) el.textContent = text;
-  showPowerUpMsg('🃏 ' + prefix + '卡：' + card.type);
-}
-
-function renderWallet(){
-  const money = document.getElementById('walletMoney');
-  if(money) money.textContent = rescueCoins + ' RC';
-  const shop = document.getElementById('materialShop');
-  if(!shop) return;
-  shop.innerHTML = '';
-  MATERIALS.forEach(mat => {
-    const btn = document.createElement('button');
-    btn.className = 'material-btn' + (materialOwned[mat.id] ? ' owned' : '');
-    btn.innerHTML =
-      '<div class="mat-name">' + (materialOwned[mat.id] ? '✓ ' : '') + mat.name + '</div>' +
-      '<div class="mat-desc">' + mat.desc + '</div>' +
-      '<div class="mat-cost">' + (materialOwned[mat.id] ? '已裝備' : mat.cost + ' RC') + '</div>';
-    btn.onclick = () => buyMaterial(mat.id);
-    shop.appendChild(btn);
-  });
-}
-
-function buyMaterial(id){
-  const mat = MATERIALS.find(m => m.id === id);
-  if(!mat || materialOwned[id]) return;
-  if(rescueCoins < mat.cost){
-    showPowerUpMsg('💳 RC 不夠，先跑任務或抽機會卡');
-    return;
-  }
-  rescueCoins -= mat.cost;
-  materialOwned[id] = true;
-  supportUses.push('材料：' + mat.name);
-  renderWallet();
-  updatePerfPrediction();
-  rebuildPreviewCar();
-  showPowerUpMsg('🧰 裝備：' + mat.name);
-}
-
-const PROMPT_TEMPLATES = [
-  '我觀察到 ___，發生在 ___，數據是 ___。我想知道可能原因有哪些。',
-  '根據這些現象，可能是哪幾個原因？請不要直接給答案，給我測試方向。',
-  '如果要改善 ___，有哪些改法？每個改法可能產生什麼副作用？',
-  '方案 A 和方案 B 哪個更適合這場任務？請給我可以驗證的測試方法。'
-];
-
-function callRadioSupport(){
-  const line = RADIO_LINES[Math.floor(Math.random() * RADIO_LINES.length)];
-  addSupportPenalty(35, '前輩無線電');
-  radioUses.push(line);
-  const last = document.getElementById('radioLastReply');
-  if(last) last.textContent = '「' + line + '」';
-  showPowerUpMsg('📻 收到模糊線索');
-}
-
-function resetSupportState(){
-  supportPenalty = 0;
-  supportUses = [];
-  radioUses = [];
-  rescueCoins = 120;
-  Object.keys(materialOwned).forEach(k => delete materialOwned[k]);
-  const card = document.getElementById('supportCardText');
-  const radio = document.getElementById('radioLastReply');
-  const cost = document.getElementById('supportCost');
-  if(card) card.textContent = '尚未抽卡。';
-  if(radio) radio.textContent = '尚未呼叫。';
-  if(cost) cost.textContent = '支援代價：0 分';
-  renderWallet();
-}
-
 function updatePerfPrediction(){
   const tot = { start: 0, top: 0, turn: 0, range: 0, climb: 0 };
   GARAGE_AXES.forEach(axis => {
     const choice = axis.options[garageChoice[axis.key]];
     Object.keys(tot).forEach(k => tot[k] += choice.d[k]);
-  });
-  MATERIALS.forEach(mat => {
-    if(materialOwned[mat.id]){
-      Object.keys(tot).forEach(k => tot[k] += mat.d[k]);
-    }
   });
   // 把 -8~+8 範圍映射到 10~90 的 bar width
   const map = v => Math.max(10, Math.min(95, 50 + v * 10));
@@ -3019,7 +2637,6 @@ function updatePerfPrediction(){
 
 function showGarage(){
   renderGarage();
-  renderWallet();
   document.getElementById('garageScreen').classList.add('show');
   // 啟動 3D 預覽（要等 DOM 顯示後才能 init canvas size）
   setTimeout(() => {
@@ -3030,7 +2647,7 @@ function showGarage(){
 }
 
 function closeGarage(){
-  // 先押假設，再上路驗證。
+  // 🔬 第一性原理：先彈「猜猜看」，再上路
   showGuessModal();
 }
 
@@ -3040,11 +2657,6 @@ function actuallyStartRace(){
   // 套用 mods 到 playerCar
   const mods = computePlayerMods();
   playerCar.userData.mods = mods;
-  playerCar.userData.supportPenalty = supportPenalty;
-  playerCar.userData.supportUses = [...supportUses];
-  playerCar.userData.radioUses = [...radioUses];
-  playerCar.userData.materialOwned = MATERIALS.filter(m => materialOwned[m.id]).map(m => m.name);
-  playerCar.userData.rescueCoins = rescueCoins;
   // 齒輪初始值用工坊選的齒輪比（0=低, 1=中, 2=高 → -1, 0, +1）
   playerCar.userData.gearLevel = garageChoice.gear - 1;
   updateGearHud();
@@ -3052,20 +2664,20 @@ function actuallyStartRace(){
   startCountdown();
 }
 
-// ═══ 出車前假設系統 ═══
+// ═══ 🔬 第一性原理「猜猜看」系統 ═══
 let garageGuess = { strong: null, weak: null, level: null };
 const GUESS_DIMENSIONS = [
-  { key: 'top',   label: '🚀 直線速度' },
-  { key: 'turn',  label: '🔄 彎道穩定' },
-  { key: 'climb', label: '⛰ 坡道扭力' },
-  { key: 'range', label: '🔋 續航能源' },
-  { key: 'start', label: '⚡ 起步反應' },
+  { key: 'top',   label: '🚀 極速' },
+  { key: 'turn',  label: '🔄 過彎' },
+  { key: 'climb', label: '⛰ 爬坡' },
+  { key: 'range', label: '🔋 續航' },
+  { key: 'start', label: '⚡ 起步' },
 ];
 const GUESS_LEVELS = [
-  { key: 'legend', label: '🌟 完美救援' },
-  { key: 'good',   label: '👍 可完成' },
-  { key: 'okay',   label: '🌱 勉強過' },
-  { key: 'fail',   label: '⚠️ 會出事' },
+  { key: 'legend', label: '🌟 破紀錄' },
+  { key: 'good',   label: '👍 中等' },
+  { key: 'okay',   label: '🌱 學徒' },
+  { key: 'fail',   label: '⚠️ 跛腳' },
 ];
 
 function showGuessModal(){
@@ -3670,11 +3282,6 @@ function computePlayerMods(){
     const choice = axis.options[garageChoice[axis.key]];
     Object.keys(tot).forEach(k => tot[k] += choice.d[k]);
   });
-  MATERIALS.forEach(mat => {
-    if(materialOwned[mat.id]){
-      Object.keys(tot).forEach(k => tot[k] += mat.d[k]);
-    }
-  });
   return {
     speedMul:  1 + tot.top   * 0.05,
     accelMul:  1 + tot.start * 0.06,
@@ -3683,9 +3290,7 @@ function computePlayerMods(){
     climbMul:  1 + tot.climb * 0.05,
     drive:     GARAGE_AXES[2].options[garageChoice.drive].name,
     driveIdx:  garageChoice.drive,    // 0=FF, 1=FR, 2=AWD
-    waterproof: garageChoice.power === 0 || !!materialOwned.waterproofMount,
-    driveShaft: !!materialOwned.driveShaft,
-    sideFloat: !!materialOwned.sideFloat,
+    waterproof: garageChoice.power === 0,
     slipWater: GARAGE_AXES[0].options[garageChoice.tire].slipWater || false,
     tot: tot,
   };
@@ -3806,7 +3411,6 @@ function resetRace(){
   raceTime = 0;
   resultShown = false;
   playerScore = 0;
-  resetSupportState();
   lightspeedActive = false;
   lightspeedTimer = 0;
   powerUpSpawnTimer = 0;
@@ -4385,7 +3989,7 @@ function playCelebrationSound(){
 }
 
 // Results & restart
-// 結算頁・假設對照（你以為 vs 實際）
+// 🔬 結算頁・第一性原理對照（你以為 vs 實際）
 function buildFppSection(pud, totalAxis){
   const guess = pud.guess;
   if(!guess) return ''; // 跳過猜猜看就不顯示對照
@@ -4404,7 +4008,7 @@ function buildFppSection(pud, totalAxis){
   if(totalAxis >= 200) realLevel = 'legend';
   else if(totalAxis >= 140) realLevel = 'good';
   else if(totalAxis >= 80)  realLevel = 'okay';
-  const levelLabels = { legend: '🌟 完美救援', good: '👍 可完成', okay: '🌱 勉強過', fail: '⚠️ 會出事' };
+  const levelLabels = { legend: '🌟 破紀錄', good: '👍 中等', okay: '🌱 學徒', fail: '⚠️ 跛腳' };
   // 對照
   const strongMatch = (guess.strong === strongest);
   const weakMatch   = (guess.weak   === weakest);
@@ -4413,13 +4017,13 @@ function buildFppSection(pud, totalAxis){
   // Insight 拆解金句
   let insight = '';
   if(matchCount === 3){
-    insight = '✨ <strong>你的判斷很準。</strong>不是因為有人告訴你，而是因為你敢先下注再上路驗證。';
+    insight = '✨ <strong>你解開了所有秘密。</strong>大部分人三圈後還看不穿——你不一樣。下一台車，要不要挑更難的配置？';
   } else if(matchCount === 2){
-    insight = '🔥 <strong>就差一步。</strong>有一個變因還沒被你抓到，下一輪只改一件事再測。';
+    insight = '🔥 <strong>就差一步。</strong>有一個秘密還沒解開——它在工坊等著你。下一輪你會抓到嗎？';
   } else if(matchCount === 1){
-    insight = '🎯 <strong>這台車比你想得複雜。</strong>你已經抓到一部分，剩下的要靠下一次測試逼出來。';
+    insight = '🎯 <strong>這台車比你想得複雜。</strong>有東西被你忽略了——下一輪打開工坊時，你會看到不同的東西。';
   } else {
-    insight = '🌪 <strong>第一輪猜錯很正常。</strong>真正的玩家從第二輪開始，因為你現在有證據了。';
+    insight = '🌪 <strong>第一輪就猜對的人不多。</strong>真正的玩家從第二輪開始——你看到的會跟剛才完全不同。';
   }
   const renderRow = (qLabel, guessKey, realKey, dict, match) => (
     '<div class="fpp-row' + (match ? ' match' : '') + '">' +
@@ -4439,52 +4043,7 @@ function buildFppSection(pud, totalAxis){
   );
 }
 
-function buildExperimentReport(pud, rawTotal, adjustedTotal){
-  const mods = pud.mods || { tot: {} };
-  const tot = mods.tot || {};
-  const supportList = (pud.supportUses || []).join('、') || '無';
-  const radioCount = (pud.radioUses || []).length;
-  const materialCount = (pud.materialOwned || []).length;
-  const battery = Math.round(pud.battery || 0);
-  const soh = Math.round(pud.batteryHealth || 100);
-  let observation = '車輛完成測試，取得可比較數據。';
-  if(pud.rank > 2) observation = '速度或穩定仍有缺口，下一輪要先找最大瓶頸。';
-  if(battery < 20) observation = '最後電量偏低，代表這台車可能跑得動，但不一定跑得久。';
-  if(tot.turn <= -2) observation = '配置偏高速或高底盤，過彎風險值得下一輪專門測。';
-  if(tot.climb >= 3 && tot.top <= -2) observation = '扭力很強，但極速被犧牲，這是明顯的取捨。';
-
-  const sideEffect = (() => {
-    if(tot.top >= 3 && tot.range <= -2) return '速度換來高耗能，長距離任務可能出事。';
-    if(tot.climb >= 3 && tot.turn <= -2) return '通過性提升，但重心與轉向可能變成新風險。';
-    if(tot.range >= 3 && tot.top <= -2) return '續航漂亮，但時間壓力會變大。';
-    return '目前沒有單一明顯副作用，下一輪可以挑更極端配置測邊界。';
-  })();
-
-  const supportVerdict = pud.supportPenalty > 0
-    ? '用了 ' + supportList + '，扣 ' + pud.supportPenalty + ' 分；能過關，但破解榮譽會下降。'
-    : '無支援完成，破解榮譽保留。';
-
-  return (
-    '<div class="fpp-section">' +
-      '<h4>🧪 測試場證據</h4>' +
-      '<div class="experiment-report">' +
-        '<div class="report-box"><div class="rb-label">觀察</div><div class="rb-val">' + observation + '</div></div>' +
-        '<div class="report-box"><div class="rb-label">副作用</div><div class="rb-val">' + sideEffect + '</div></div>' +
-        '<div class="report-box"><div class="rb-label">支援</div><div class="rb-val">' + supportVerdict + '</div></div>' +
-        '<div class="report-box"><div class="rb-label">錢包/材料</div><div class="rb-val">剩 ' + (pud.rescueCoins || 0) + ' RC ｜ 材料 ' + materialCount + ' 件</div></div>' +
-      '</div>' +
-      '<div class="experiment-report" style="margin-top:8px;">' +
-        '<div class="report-box"><div class="rb-label">電力證據</div><div class="rb-val">剩餘 ' + battery + '% ｜ 健康 ' + soh + '%</div></div>' +
-        '<div class="report-box"><div class="rb-label">裝備材料</div><div class="rb-val">' + ((pud.materialOwned || []).join('、') || '無') + '</div></div>' +
-      '</div>' +
-      (radioCount ? '<div class="fpp-insight">📻 無線電給的是方向，不是答案。這輪用了 ' + radioCount + ' 次，下一輪試著少用一次。</div>' : '') +
-      '<div class="fpp-insight"><strong>測試結論：</strong>原分 ' + rawTotal + '，扣除支援後 ' + adjustedTotal + '。沒有測試，就沒有結論。</div>' +
-    '</div>'
-  );
-}
-
 function showResults(){
-  const pud = playerCar.userData;
   const sorted = [...allCars].sort((a, b) => a.userData.rank - b.userData.rank);
   const ranksDiv = document.getElementById('resultRanks');
   ranksDiv.innerHTML = '';
@@ -4503,8 +4062,7 @@ function showResults(){
   const timeAxis = Math.max(0, 100 - Math.floor(raceTime / 1.5));  // 越快越高
   const repAxis = Math.max(0, reputationScore);
   const locAxis = Math.max(0, localScore);
-  const rawTotalAxis = timeAxis + repAxis + locAxis;
-  const totalAxis = Math.max(0, rawTotalAxis - (pud.supportPenalty || 0));
+  const totalAxis = timeAxis + repAxis + locAxis;
   const LEGEND_TARGET = 200;
   const gapToLegend = Math.max(0, LEGEND_TARGET - totalAxis);
   let verdict = '';
@@ -4521,7 +4079,6 @@ function showResults(){
       '<div>🎯 <b style="color:#ffd866">取捨 ' + choiceCount + '</b></div>' +
     '</div>' +
     '<div style="font-size:18px; color:#ffd866; margin:8px 0;">合計 ' + totalAxis + ' / ' + LEGEND_TARGET + '</div>' +
-    ((pud.supportPenalty || 0) > 0 ? '<div style="font-size:12px; color:#ffbb5c; margin-top:4px;">支援代價 -' + pud.supportPenalty + ' ｜ 原始合計 ' + rawTotalAxis + '</div>' : '') +
     '<div style="font-size:15px; color:#ccc;">' + verdict + '</div>' +
     (gapToLegend > 0 ? '<div style="font-size:12px; color:#888; margin-top:6px;">離傳奇老闆還差 ' + gapToLegend + ' 分</div>' : '') +
     '<div style="font-size:11px; color:#666; margin-top:14px;">原始分數: ' + playerScore + ' ｜ 總時間: ' + raceTime.toFixed(1) + 's</div>' +
@@ -4533,10 +4090,11 @@ function showResults(){
                                     '💔 電池快壞了！這就是手機用兩年容量剩 70% 的原因')
       + '</div>'
     ) : '') +
-    buildFppSection(pud, totalAxis) +
-    buildExperimentReport(pud, rawTotalAxis, totalAxis);
+    // 🔬 第一性原理對照（你以為 vs 實際）
+    buildFppSection(pud, totalAxis);
 
   // Save to history
+  const pud = playerCar.userData;
   addToHistory(playerScore, pud.rank, pud.bestLap, raceTime);
 
   document.getElementById('resultScreen').classList.add('show');
