@@ -399,6 +399,89 @@ canvas { display: block; }
 #garageScreen[data-tab="mission"] .mission-title {
   font-size: 28px;
 }
+#garageScreen[data-tab="mission"] .hypothesis-card {
+  display: block;
+}
+.hypothesis-card {
+  display: none;
+  max-width: 760px;
+  margin: 16px auto 24px;
+  padding: 22px 28px;
+  background: linear-gradient(135deg, rgba(255,153,51,.08) 0%, rgba(0,0,0,.4) 100%);
+  border: 1px solid #5a4030;
+  border-left: 4px solid #ff9933;
+  border-radius: 10px;
+  color: #edf5ff;
+}
+.hypothesis-card .hypo-eyebrow {
+  font-size: 11px; color: #ff9933;
+  letter-spacing: 4px; text-transform: uppercase;
+  font-weight: 900;
+}
+.hypothesis-card h3 {
+  margin: 6px 0 8px;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: #ffd866;
+}
+.hypothesis-card .hypo-intro {
+  font-size: 13px; color: #9db0cb;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.hypo-row {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+  font-size: 15px;
+  color: #edf5ff;
+}
+.hypo-row label {
+  color: #9db0cb;
+  letter-spacing: 1px;
+}
+.hypo-row select {
+  flex: 1; min-width: 220px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,.5);
+  border: 1px solid #5a4030;
+  border-radius: 6px;
+  color: #ffd866;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hypo-row select:focus {
+  outline: none;
+  border-color: #ff9933;
+  box-shadow: 0 0 12px rgba(255,153,51,.25);
+}
+.hypo-row select option {
+  background: #1a1410;
+  color: #ffd866;
+}
+.hypothesis-card .hypo-hint {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: rgba(89,199,255,.06);
+  border-left: 3px solid #59c7ff;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #9db0cb;
+  font-style: italic;
+}
+.hypothesis-card .hypo-status {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #4ade80;
+  letter-spacing: 2px;
+}
+.hypothesis-card .hypo-status.empty {
+  color: #6c7a93;
+}
 #garageScreen[data-tab="tools"] .mission-band,
 #garageScreen[data-tab="tools"] .garage-left > :not(.support-dock),
 #garageScreen[data-tab="tools"] .garage-right {
@@ -1473,22 +1556,22 @@ canvas { display: block; }
     </div>
   </div>
 
-  <!-- 🗂️ 三主分頁 Tab（車體 / 任務 / 工具）— 主從分區 -->
+  <!-- 🗂️ 三主分頁 Tab（戰情室 → 改裝庫 → 補給站）— 破解流程順序 -->
   <div class="garage-tabs">
-    <button class="garage-tab-btn active" data-tab="vehicle" onclick="switchGarageTab('vehicle')">
-      <span class="tab-icon">🚗</span>
-      <span class="tab-label">車體</span>
-      <span class="tab-hint">改裝決策</span>
-    </button>
-    <button class="garage-tab-btn" data-tab="mission" onclick="switchGarageTab('mission')">
+    <button class="garage-tab-btn active" data-tab="mission" onclick="switchGarageTab('mission')">
       <span class="tab-icon">📋</span>
-      <span class="tab-label">任務</span>
-      <span class="tab-hint">暴雨運補</span>
+      <span class="tab-label">戰情室</span>
+      <span class="tab-hint">看任務・押假設</span>
+    </button>
+    <button class="garage-tab-btn" data-tab="vehicle" onclick="switchGarageTab('vehicle')">
+      <span class="tab-icon">🚗</span>
+      <span class="tab-label">改裝庫</span>
+      <span class="tab-hint">改車・看取捨</span>
     </button>
     <button class="garage-tab-btn" data-tab="tools" onclick="switchGarageTab('tools')">
       <span class="tab-icon">🛠️</span>
-      <span class="tab-label">工具</span>
-      <span class="tab-hint">抽卡・無線電・錢包</span>
+      <span class="tab-label">補給站</span>
+      <span class="tab-hint">抽卡・買材料・呼叫支援</span>
     </button>
   </div>
 
@@ -1505,6 +1588,42 @@ canvas { display: block; }
       <span class="mission-chip">💊 醫療箱 ×2</span>
       <span class="mission-chip">🔋 低耗能優先</span>
     </div>
+  </div>
+
+  <!-- 🎯 本輪假設：押判斷再去改車（KIRIN 19:15 加） -->
+  <div class="hypothesis-card">
+    <div class="hypo-eyebrow">⚙️ 本輪假設</div>
+    <h3>動車前先押判斷</h3>
+    <div class="hypo-intro">不押判斷的改裝是亂槍打鳥。先說出你以為的，等下跑完才看誰對。</div>
+    <div class="hypo-row">
+      <label>我認為最大風險是</label>
+      <select id="hypoRisk" onchange="updateHypothesis()">
+        <option value="">— 選一個 —</option>
+        <option value="water">💧 積水進水短路</option>
+        <option value="range">🔋 電力不夠用</option>
+        <option value="turn">🔄 過彎翻覆</option>
+        <option value="climb">⛰ 爬坡上不去</option>
+        <option value="cargo">📦 物資掉落損毀</option>
+        <option value="slip">🛞 雨天打滑</option>
+      </select>
+    </div>
+    <div class="hypo-row">
+      <label>我準備用</label>
+      <select id="hypoSolution" onchange="updateHypothesis()">
+        <option value="">— 選一個 —</option>
+        <option value="waterproof">🛡 防水電機座</option>
+        <option value="shaft">⚙️ 長傳動軸（轉四驅）</option>
+        <option value="float">🛟 側浮筒</option>
+        <option value="battery">🔋 低重心電池盒</option>
+        <option value="multitire">🛞 換 20 吋多紋胎</option>
+        <option value="lowgear">⚡ 換低齒比</option>
+        <option value="awd">⚙️ 改 AWD 四驅</option>
+        <option value="lowchassis">🏎 改低底盤</option>
+      </select>
+      <label>解決</label>
+    </div>
+    <div class="hypo-hint">🔍 結算會對照你押的假設跟實際發生的事</div>
+    <div class="hypo-status empty" id="hypoStatus">⏳ 還沒押判斷</div>
   </div>
 
   <div class="preset-row">
@@ -3148,7 +3267,7 @@ function showGarage(){
   renderWallet();
   const screen = document.getElementById('garageScreen');
   screen.classList.add('show');
-  switchGarageTab('vehicle');  // 預設顯示車體分頁
+  switchGarageTab('mission');  // 預設戰情室：先看任務、押假設，再去改車
   // 啟動 3D 預覽（要等 DOM 顯示後才能 init canvas size）
   setTimeout(() => {
     if(!garageRenderer) createGarageScene();
@@ -3157,7 +3276,45 @@ function showGarage(){
   }, 100);
 }
 
-// 🗂️ 三主分頁切換（車體 / 任務 / 工具）
+// 🎯 本輪假設（KIRIN 19:15 加）— 押判斷再改車
+let currentHypothesis = { risk: '', solution: '' };
+const HYPO_RISK_LABEL = {
+  water: '💧 積水進水短路',
+  range: '🔋 電力不夠用',
+  turn:  '🔄 過彎翻覆',
+  climb: '⛰ 爬坡上不去',
+  cargo: '📦 物資掉落損毀',
+  slip:  '🛞 雨天打滑',
+};
+const HYPO_SOLUTION_LABEL = {
+  waterproof:  '🛡 防水電機座',
+  shaft:       '⚙️ 長傳動軸',
+  float:       '🛟 側浮筒',
+  battery:     '🔋 低重心電池盒',
+  multitire:   '🛞 20 吋多紋胎',
+  lowgear:     '⚡ 低齒比',
+  awd:         '⚙️ AWD 四驅',
+  lowchassis:  '🏎 低底盤',
+};
+function updateHypothesis(){
+  const r = document.getElementById('hypoRisk');
+  const s = document.getElementById('hypoSolution');
+  const status = document.getElementById('hypoStatus');
+  if(!r || !s) return;
+  currentHypothesis.risk = r.value;
+  currentHypothesis.solution = s.value;
+  if(status){
+    if(currentHypothesis.risk && currentHypothesis.solution){
+      status.textContent = '✅ 假設已押 — 現在去改裝庫驗證';
+      status.classList.remove('empty');
+    } else {
+      status.textContent = '⏳ 還沒押判斷';
+      status.classList.add('empty');
+    }
+  }
+}
+
+// 🗂️ 三主分頁切換（戰情室 / 改裝庫 / 補給站）
 function switchGarageTab(name){
   const screen = document.getElementById('garageScreen');
   if(!screen) return;
@@ -3188,6 +3345,13 @@ function closeGarage(){
 }
 
 function actuallyStartRace(){
+  // 🎯 把戰情室押的假設帶上路（結算時對照）
+  if(currentHypothesis.risk || currentHypothesis.solution){
+    playerCar.userData.hypothesis = { ...currentHypothesis };
+  } else {
+    playerCar.userData.hypothesis = null;
+  }
+
   stopGarageAnimate();
   document.getElementById('garageScreen').classList.remove('show');
   // 套用 mods 到 playerCar
@@ -4538,6 +4702,26 @@ function playCelebrationSound(){
 }
 
 // Results & restart
+// 🎯 結算頁・本輪假設回顧（戰情室押的判斷）
+function buildHypothesisSection(pud){
+  const h = pud.hypothesis;
+  if(!h || (!h.risk && !h.solution)) return '';
+  const riskLabel = HYPO_RISK_LABEL[h.risk] || '（沒押）';
+  const solLabel = HYPO_SOLUTION_LABEL[h.solution] || '（沒押）';
+  return (
+    '<div class="fpp-section" style="border-color:#ff9933;">' +
+      '<h4 style="color:#ff9933;">🎯 你押的假設（戰情室）</h4>' +
+      '<div style="font-size:13px; color:#ccc; line-height:1.8;">' +
+        '<div>📌 你認為最大風險是：<strong style="color:#ffd866;">' + riskLabel + '</strong></div>' +
+        '<div>🛠 你準備用：<strong style="color:#ffd866;">' + solLabel + '</strong></div>' +
+      '</div>' +
+      '<div class="fpp-insight" style="border-left-color:#ff9933;">' +
+        '<strong>下一輪建議：</strong>回去戰情室重新押一次假設——你看到的世界會跟剛才不一樣。' +
+      '</div>' +
+    '</div>'
+  );
+}
+
 // 結算頁・假設對照（你以為 vs 實際）
 function buildFppSection(pud, totalAxis){
   const guess = pud.guess;
@@ -4686,6 +4870,7 @@ function showResults(){
                                     '💔 電池快壞了！這就是手機用兩年容量剩 70% 的原因')
       + '</div>'
     ) : '') +
+    buildHypothesisSection(pud) +
     buildFppSection(pud, totalAxis) +
     buildExperimentReport(pud, rawTotalAxis, totalAxis);
 
