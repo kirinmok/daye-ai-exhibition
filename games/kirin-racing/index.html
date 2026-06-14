@@ -1307,30 +1307,14 @@ function createCar(color, name){
   dripBack.position.set(0, 3.0, -2.55);
   group.add(dripBack);
 
-  // 屋頂招牌（前後各一，金黃色 — Canvas 寫字效果）
-  function makeSignTexture(text, bg, fg){
-    const cv = document.createElement('canvas');
-    cv.width = 512; cv.height = 128;
-    const ctx = cv.getContext('2d');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, 512, 128);
-    ctx.fillStyle = fg;
-    ctx.font = 'bold 84px "PingFang TC", sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(text, 256, 64);
-    // 邊框
-    ctx.strokeStyle = '#8b0000'; ctx.lineWidth = 8;
-    ctx.strokeRect(4, 4, 504, 120);
-    return new THREE.CanvasTexture(cv);
-  }
-  const signTex = makeSignTexture('🍰 嘉義水城・甜點早餐 🧋', '#fff5e0', '#7a4f2b');
-  const signMat = new THREE.MeshBasicMaterial({ map: signTex });
+  // 招牌條（純色奶油白，不寫字）
+  const signMat = new THREE.MeshLambertMaterial({ color: 0xfff5e0 });
   const signGeo = new THREE.BoxGeometry(4.6, 1.1, 0.3);
   const signFront = new THREE.Mesh(signGeo, signMat);
   signFront.position.set(0, 4.8, 2.6);
   group.add(signFront);
   const signBack = new THREE.Mesh(signGeo, signMat);
   signBack.position.set(0, 4.8, -2.6);
-  signBack.rotation.y = Math.PI;
   group.add(signBack);
 
   // 🍓 屋頂裝飾立柱（薄荷綠 + 草莓奶油黃）
