@@ -452,7 +452,13 @@ function renderHome() {
         <div class="hero-actions">
           <a class="btn primary" href="#browse">立刻試玩投票</a>
           <a class="btn ghost" href="#rules">先看投票 Q&A</a>
+          ${SITE_CONFIG.lottery && SITE_CONFIG.lottery.enabled && SITE_CONFIG.lottery.formUrl
+            ? `<a class="btn ghost lottery-cta" href="${escapeAttr(SITE_CONFIG.lottery.formUrl)}" target="_blank" rel="noreferrer">🎁 在校學生・登記抽獎</a>`
+            : ""}
         </div>
+        ${SITE_CONFIG.lottery && SITE_CONFIG.lottery.enabled
+          ? `<p class="lottery-note">🗳️ 投票歡迎所有人（含校外朋友）　🎁 抽獎限大業實驗中學在校學生（畢業校友也不算）</p>`
+          : ""}
       </div>
       <div class="hero-console" aria-label="成果展摘要">
         <div>
