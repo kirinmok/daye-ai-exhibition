@@ -1131,6 +1131,48 @@ canvas { display: block; }
   letter-spacing: 1px;
 }
 
+/* 📍 區段 banner（進入新關卡大字提示） */
+#sectorBanner {
+  position: fixed;
+  top: 38%;
+  left: -460px;
+  z-index: 8700;
+  background: linear-gradient(135deg, rgba(8,20,40,0.92), rgba(20,40,80,0.92));
+  padding: 18px 32px;
+  border-left: 6px solid #ffd866;
+  border-radius: 0 14px 14px 0;
+  font-family: 'PingFang TC', sans-serif;
+  color: #fff;
+  min-width: 360px;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transition: left 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  opacity: 0;
+}
+#sectorBanner.show { left: 0; opacity: 1; }
+.sb-tag {
+  font-size: 13px; color: #ffd866;
+  letter-spacing: 4px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.sb-name {
+  font-size: 30px; font-weight: 900;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(255,216,102,0.3);
+}
+.sb-sub {
+  font-size: 13px; color: #94a3b8;
+  letter-spacing: 1px;
+}
+#sectorBanner.danger { border-left-color: #ff6b6b; }
+#sectorBanner.danger .sb-tag { color: #ff6b6b; }
+#sectorBanner.hill   { border-left-color: #ff9933; }
+#sectorBanner.hill   .sb-tag { color: #ff9933; }
+#sectorBanner.water  { border-left-color: #59c7ff; }
+#sectorBanner.water  .sb-tag { color: #59c7ff; }
+
 /* 🚧 路況突發事件 toast（賽道中） */
 #hazardToast {
   position: fixed; top: 120px; left: 50%;
@@ -1840,6 +1882,13 @@ canvas { display: block; }
   <span class="hazard-tip" id="hazardTip">按 ESC 進站維修</span>
 </div>
 
+<!-- 📍 區段大字 banner（進入新關卡時 slide-in） -->
+<div id="sectorBanner">
+  <div class="sb-tag" id="sbTag">📍 進入下一區</div>
+  <div class="sb-name" id="sbName">老街區</div>
+  <div class="sb-sub" id="sbSub">注意路況 ・ 隨時可進站維修</div>
+</div>
+
 <!-- ⏸ 暫停面板（比賽中按 ESC / P 觸發） -->
 <div id="pauseOverlay">
   <div class="pause-card">
@@ -2206,6 +2255,87 @@ function createFloodedHouse(x, z, rot){
   });
 }
 
+// 🏚 滅頂房屋（最深水區，只露出三角屋頂尖 + 一截煙囪）
+function createDrownedHouse(x, z, rot){
+  const wallH = 4.5;
+  const houseW = 5.5 + Math.random() * 2;
+  const houseD = 5 + Math.random() * 1.5;
+  // 牆面（幾乎全部沒入水中，只露 0.2 公尺）
+  const wallColors = [0xb8a890, 0xa39078, 0x9c8870, 0xb09680];
+  const wall = new THREE.Mesh(
+    new THREE.BoxGeometry(houseW, wallH, houseD),
+    new THREE.MeshLambertMaterial({ color: wallColors[Math.floor(Math.random()*wallColors.length)] })
+  );
+  wall.position.set(x, wallH * 0.5 - 4.3, z); // 牆下移 4.3 → 只露 0.2
+  wall.rotation.y = rot;
+  scene.add(wall);
+  // 屋頂（pyramid，剛好露出水面）
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(Math.max(houseW, houseD) * 0.75, 2.2, 4),
+    new THREE.MeshLambertMaterial({ color: 0x7a3d33 })
+  );
+  roof.position.set(x, wallH - 4.3 + 1.1, z);
+  roof.rotation.y = rot + Math.PI / 4;
+  roof.castShadow = true;
+  scene.add(roof);
+  // 煙囪（細長矩形露出來，像求救的標記）
+  const chimney = new THREE.Mesh(
+    new THREE.BoxGeometry(0.55, 1.6, 0.55),
+    new THREE.MeshLambertMaterial({ color: 0x5a4a3a })
+  );
+  chimney.position.set(x + (Math.random()-0.5) * houseW * 0.3, 1.4, z + (Math.random()-0.5) * houseD * 0.3);
+  scene.add(chimney);
+  // 救援旗（紅色小布條掛在屋頂頂端）
+  const flagPole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.04, 1.5, 6),
+    new THREE.MeshLambertMaterial({ color: 0x2a2a2a })
+  );
+  flagPole.position.set(x, 2.6, z);
+  scene.add(flagPole);
+  const flagCloth = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.7, 0.4),
+    new THREE.MeshBasicMaterial({ color: 0xff3344, side: THREE.DoubleSide })
+  );
+  flagCloth.position.set(x + 0.35, 3.1, z);
+  flagCloth.rotation.y = Math.random() * Math.PI;
+  scene.add(flagCloth);
+}
+
+// 🚏 街景招牌柱（emoji texture 模擬不同街道風格）
+function createStreetSign(x, z, rot, emoji, label, color){
+  // 柱子
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.15, 3.2, 6),
+    new THREE.MeshLambertMaterial({ color: 0x4a4a4a })
+  );
+  pole.position.set(x, 1.6, z);
+  scene.add(pole);
+  // 招牌面（canvas texture）
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 128;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = color || '#0a1a2e';
+  ctx.fillRect(0, 0, 256, 128);
+  ctx.fillStyle = '#ffd866';
+  ctx.strokeStyle = '#ffd866';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(8, 8, 240, 112);
+  ctx.font = 'bold 72px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, 64, 64);
+  ctx.font = 'bold 26px "PingFang TC", sans-serif';
+  ctx.fillText(label, 168, 64);
+  const tex = new THREE.CanvasTexture(cv);
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(4, 2),
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+  );
+  sign.position.set(x, 3.6, z);
+  sign.rotation.y = rot;
+  scene.add(sign);
+}
+
 function createUtilityPole(x, z){
   const poleH = 9;
   // 桿身
@@ -2334,6 +2464,57 @@ function createUtilityPole(x, z){
       stripe.position.set(p.x, 0.6, p.z);
       scene.add(stripe);
     });
+  });
+  // 🏚 中段最深水區：滅頂屋（兩側各兩棟，屋頂剛剛露出水面 + 紅旗）
+  for(let i = 0; i < 4; i++){
+    const d = floodCenterD + (i - 1.5) * 9; // 中段密集
+    const side = (i % 2 === 0) ? 1 : -1;
+    const offset = TW / 2 + 8 + Math.random() * 3;
+    const p = getTrackPoint(d, side * offset);
+    const t = getTrackPoint(d + 1, side * offset);
+    const rot = Math.atan2(t.x - p.x, t.z - p.z);
+    createDrownedHouse(p.x, p.z, rot);
+  }
+}
+
+// 🚏 各 sector 街景招牌（兩側 spawn 不同主題的招牌柱，讓「風景變換」可見）
+{
+  const STREET_SCENES = [
+    { sec: 0, emoji: '🏁', label: '起跑線',   color: '#3b3b3b' },
+    { sec: 1, emoji: '⛲', label: '噴水池',   color: '#1e3a5f' },
+    { sec: 2, emoji: '🍜', label: '夜市',     color: '#7a2828' },
+    { sec: 3, emoji: '🐸', label: '青蛙公園', color: '#2d5a3a' },
+    { sec: 4, emoji: '⚾', label: 'KANO',     color: '#1a4d8c' },
+    { sec: 5, emoji: '🚂', label: '火車站',   color: '#4a2c1a' },
+    // sector 6 是水道區（已自帶屋頂滅頂）
+    { sec: 7, emoji: '⛰', label: '天橋上坡', color: '#5a3a1a' },
+  ];
+  STREET_SCENES.forEach(s => {
+    const center = (s.sec + 0.5) / 8 * L_TOTAL;
+    // 進場招牌（區頭）
+    const dEnter = center - L_TOTAL / 16; // 往前推半個 sector
+    [-1, 1].forEach(side => {
+      const offset = side * (TW / 2 + 6);
+      const p = getTrackPoint(dEnter, offset);
+      const t = getTrackPoint(dEnter + 1, offset);
+      const rot = Math.atan2(t.x - p.x, t.z - p.z);
+      // 招牌朝向賽道（旋轉 90 度）
+      createStreetSign(p.x, p.z, rot + Math.PI / 2, s.emoji, s.label, s.color);
+    });
+    // 區中央的「路燈」（簡單高柱+黃球）裝飾
+    const pCenter = getTrackPoint(center, TW / 2 + 4);
+    const lamp = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.1, 4.5, 6),
+      new THREE.MeshLambertMaterial({ color: 0x2a2a2a })
+    );
+    lamp.position.set(pCenter.x, 2.25, pCenter.z);
+    scene.add(lamp);
+    const bulb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.35, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffe082 })
+    );
+    bulb.position.set(pCenter.x, 4.6, pCenter.z);
+    scene.add(bulb);
   });
 }
 
@@ -4259,25 +4440,39 @@ function computePlayerMods(){
 }
 
 // ═══ 嘉義地標賽道區段命名 + 水道/爬坡判定 ═══
+// 每區用 tag/name/sub 三層描述，配合 banner 大字提示
 const SECTORS = [
-  { name: '🏁 起跑線・噴水池圓環前',   class: 'normal' },
-  { name: '⛲ 噴水池 U 彎道',           class: 'normal' },
-  { name: '🍜 文化路夜市直線',         class: 'normal' },
-  { name: '🐸 青蛙公園入口',           class: 'normal' },
-  { name: '⚾ KANO 棒球員銅像直道',    class: 'normal' },
-  { name: '🚂 嘉義火車站前彎',         class: 'normal' },
-  { name: '💧 秀泰百貨地下道（淹水）', class: 'water' },
-  { name: '🌉 民生南路天橋上坡',       class: 'hill' },
+  { tag: '🏁 第 1 關',  name: '噴水池起跑線',     sub: '中央噴水池前廣場・路面平整', class: 'normal' },
+  { tag: '⛲ 第 2 關',  name: '噴水池 U 彎道',     sub: '緊接連續轉彎・別衝太快',     class: 'normal' },
+  { tag: '🍜 第 3 關',  name: '文化路夜市直線',   sub: '路面油膩・打滑注意',          class: 'normal' },
+  { tag: '🐸 第 4 關',  name: '青蛙公園入口',     sub: '路面有坑洞・底盤太低小心',     class: 'normal' },
+  { tag: '⚾ 第 5 關',  name: 'KANO 銅像直道',     sub: '寬直線・全力衝刺',            class: 'normal' },
+  { tag: '🚂 第 6 關',  name: '嘉義火車站前彎',   sub: '人潮路口・對齊卡情境',         class: 'normal' },
+  { tag: '⚠️ 第 7 關', name: '秀泰地下道淹水區', sub: '前段淺水・中段屋頂滅頂', class: 'water' },
+  { tag: '⛰ 第 8 關',  name: '民生南路天橋上坡', sub: '爬坡高度差 18 公尺',          class: 'hill' },
 ];
 function getSector(dist){
   const t = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
   return Math.floor(t / L_TOTAL * SECTORS.length);
 }
 function updateSectorHud(sec){
+  // 小 HUD
   const el = document.getElementById('sectorName');
-  if(!el) return;
-  el.textContent = sec.name;
-  el.style.color = sec.class === 'water' ? '#4488ff' : sec.class === 'hill' ? '#ff9933' : '#ffd866';
+  if(el){
+    el.textContent = sec.tag + ' ' + sec.name;
+    el.style.color = sec.class === 'water' ? '#59c7ff' : sec.class === 'hill' ? '#ff9933' : '#ffd866';
+  }
+  // 大字 banner（slide-in）
+  const banner = document.getElementById('sectorBanner');
+  if(!banner) return;
+  document.getElementById('sbTag').textContent  = sec.tag;
+  document.getElementById('sbName').textContent = sec.name;
+  document.getElementById('sbSub').textContent  = sec.sub;
+  banner.className = ''; // reset
+  banner.classList.add(sec.class === 'water' ? 'water' : sec.class === 'hill' ? 'hill' : 'normal');
+  banner.classList.add('show');
+  clearTimeout(window._sectorBannerTo);
+  window._sectorBannerTo = setTimeout(() => banner.classList.remove('show'), 2800);
 }
 
 // ☔ 突然下雨事件（從第 1 圈完成後觸發，持續一段距離）
@@ -5557,14 +5752,21 @@ function animate(){
       ud._lastSector = curSector;
       const sec = SECTORS[curSector];
       updateSectorHud(sec);
-      // 水道：依改裝判定打滑
+      // 水道：依改裝判定打滑（第 2 圈水位上升再加強）
       if(sec.class === 'water'){
         let slipMul = 1.0;
-        let msg = '💧 進入秀泰地下道淹水區！';
-        if(mods.slipWater) { slipMul *= 0.45; msg += ' 🛞 光頭胎當場打滑！'; }
-        if(!mods.waterproof) { slipMul *= 0.65; msg += ' 💀 馬達進水減速！'; }
-        if(mods.driveIdx === 1) { slipMul *= 0.85; msg += ' FR 後驅尾搖！'; }
-        else if(mods.driveIdx === 2) { slipMul *= 1.10; msg += ' AWD 四驅穩穩通過！'; }
+        const lapNum = (ud.laps || 0) + 1;
+        let msg = lapNum >= 2
+          ? '⚠️ 第二輪・水位再升！屋頂全沒了 '
+          : '💧 進入秀泰地下道淹水區！前段淺水・中段屋頂滅頂 ';
+        if(mods.slipWater) { slipMul *= 0.45; msg += '🛞 光頭胎當場打滑！'; }
+        if(!mods.waterproof) { slipMul *= 0.65; msg += '💀 馬達進水減速！'; }
+        if(mods.driveIdx === 1) { slipMul *= 0.85; msg += 'FR 後驅尾搖！'; }
+        else if(mods.driveIdx === 2) { slipMul *= 1.10; msg += 'AWD 四驅穩穩通過！'; }
+        // 第 2 圈水位上升額外懲罰底盤太低的車
+        if(lapNum >= 2 && mods.tot && mods.tot.climb < 0){
+          slipMul *= 0.80; msg += '低底盤積水卡住！';
+        }
         ud._speed *= slipMul;
         showPowerUpMsg(msg);
       }
