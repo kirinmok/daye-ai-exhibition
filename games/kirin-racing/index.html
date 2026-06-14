@@ -422,6 +422,25 @@ canvas { display: block; }
 }
 .garage-start:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(255,153,51,0.6); }
 
+/* 🔋 電量 HUD（電力=生命值） */
+#batteryHud {
+  position: absolute; bottom: 30px; right: 250px;
+  background: rgba(0,20,0,0.85); border: 2px solid #4ade80;
+  padding: 8px 16px; border-radius: 8px;
+  text-align: center; min-width: 100px;
+  font-family: 'Courier New', monospace;
+  z-index: 100;
+}
+#batteryHud.low { border-color: #ff3333; animation: batBlink 0.6s infinite; }
+@keyframes batBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+#batteryHud .bat-label { font-size: 10px; color: #888; letter-spacing: 2px; }
+#batteryHud .bat-pct { font-size: 22px; font-weight: 900; color: #4ade80; margin: 2px 0; }
+#batteryHud.low .bat-pct { color: #ff3333; }
+#batteryHud .bat-bar { background: #222; height: 8px; border-radius: 3px; margin-top: 4px; position: relative; overflow: hidden; }
+#batteryHud .bat-fill { position: absolute; top: 0; left: 0; height: 100%; width: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 0.3s; }
+#batteryHud.low .bat-fill { background: #ff3333; }
+#batteryHud .bat-mode { font-size: 9px; color: #aaa; margin-top: 3px; letter-spacing: 1px; }
+
 /* 嘉義地標賽道區段 HUD */
 #sectorHud {
   position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
@@ -564,6 +583,14 @@ canvas { display: block; }
   </div>
 
   <button class="garage-start" onclick="closeGarage()">📍 開上嘉義街頭</button>
+</div>
+
+<!-- 🔋 電量 HUD（電力=生命值） -->
+<div id="batteryHud">
+  <div class="bat-label">⚡ 電量</div>
+  <div class="bat-pct" id="batPct">100%</div>
+  <div class="bat-bar"><div class="bat-fill" id="batFill"></div></div>
+  <div class="bat-mode" id="batMode">⚡ 油電混合</div>
 </div>
 
 <!-- 嘉義地標賽道區段顯示 -->
@@ -1547,12 +1574,12 @@ const GARAGE_AXES = [
     ],
   },
   {
-    key: 'power', icon: '🔋', name: '動力配置',
-    hint: '馬力越大越爽，但電量消耗越快—馬力 ↔ 續航必互斥',
+    key: 'power', icon: '🔋', name: '動力配置（純電/油電/純油）',
+    hint: '電池容量決定生命值。油電混合最穩，純電最環保但要找充電樁',
     options: [
-      { name: '小馬力長續航', secret: '跑完三圈不打折，但起步弱',         d: { start: -1, top: -1, turn: 0, range: +2, climb: -1 } },
-      { name: '中馬力中庸',   secret: '街頭老闆首選',                    d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
-      { name: '大馬力短續航', secret: '前兩圈神，第三圈最後 30% 沒電',    d: { start: +2, top: +2, turn: 0, range: -2, climb: +1 } },
+      { name: '🔋 純電・小馬力長續航',  secret: '電池滿格 100％，但起步弱', d: { start: -1, top: -1, turn: 0, range: +2, climb: -1 } },
+      { name: '⚡ 油電混合・中庸',      secret: '油+電雙系統，最不會拋錨',  d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
+      { name: '⛽ 純油・大馬力短續航',  secret: '不吃電但油耗猛，前兩圈神',   d: { start: +2, top: +2, turn: 0, range: -2, climb: +1 } },
     ],
   },
   {
@@ -1624,6 +1651,7 @@ function closeGarage(){
   // 齒輪初始值用工坊選的齒輪比（0=低, 1=中, 2=高 → -1, 0, +1）
   playerCar.userData.gearLevel = garageChoice.gear - 1;
   updateGearHud();
+  initBattery();
   startCountdown();
 }
 
@@ -1670,6 +1698,55 @@ function updateSectorHud(sec){
   el.style.color = sec.class === 'water' ? '#4488ff' : sec.class === 'hill' ? '#ff9933' : '#ffd866';
 }
 
+// ═══ 🔋 電力系統（電力=生命值） ═══
+function initBattery(){
+  const ud = playerCar.userData;
+  ud.battery = 100;
+  // 動力配置決定電池模式（0=純電 / 1=油電 / 2=純油）
+  ud.powerMode = garageChoice.power;
+  updateBatteryHud();
+  const modes = ['🔋 純電', '⚡ 油電混合', '⛽ 純油'];
+  const el = document.getElementById('batMode');
+  if(el) el.textContent = modes[ud.powerMode];
+}
+function drainBattery(dt){
+  const ud = playerCar.userData;
+  if(ud.powerMode === 2) return; // 純油不耗電
+  // 基礎消耗速率（無 boost 時跑滿三圈剛好用 85%）
+  let base = 2.0; // %/秒
+  // 驅動方式加成
+  const driveMul = [1.0, 1.2, 1.5][ud.mods ? ud.mods.driveIdx : 1];
+  // 動力配置加成（純電吃電快、油電省電）
+  const powerMul = [1.0, 0.6, 0][ud.powerMode];
+  // boost 期間吃電翻倍
+  const boostMul = (ud._speedBoost > 0 || lightspeedActive) ? 1.8 : 1.0;
+  ud.battery -= base * driveMul * powerMul * boostMul * dt;
+  ud.battery = Math.max(0, Math.min(100, ud.battery));
+  updateBatteryHud();
+}
+function updateBatteryHud(){
+  const ud = playerCar.userData;
+  const el = document.getElementById('batteryHud');
+  const pct = document.getElementById('batPct');
+  const fill = document.getElementById('batFill');
+  if(!el || !pct || !fill) return;
+  const b = Math.round(ud.battery || 0);
+  if(ud.powerMode === 2){
+    pct.textContent = '⛽';
+    fill.style.width = '100%';
+  } else {
+    pct.textContent = b + '%';
+    fill.style.width = b + '%';
+  }
+  el.classList.toggle('low', b < 30 && ud.powerMode !== 2);
+}
+function chargeBattery(amount){
+  const ud = playerCar.userData;
+  if(ud.powerMode === 2) return; // 純油不需要充電
+  ud.battery = Math.min(100, ud.battery + amount);
+  updateBatteryHud();
+}
+
 // ═══════════════════════════════════════════════
 // RESET
 // ═══════════════════════════════════════════════
@@ -1682,6 +1759,11 @@ function resetRace(){
   lightspeedTimer = 0;
   powerUpSpawnTimer = 0;
   resetAlignState();  // 重置三軸 + 對齊卡狀態
+  // 🔋 電力重設
+  if(playerCar) {
+    playerCar.userData.battery = 100;
+    updateBatteryHud();
+  }
   document.getElementById('hScore').textContent = '0';
   document.getElementById('lightspeedOverlay').classList.remove('active');
   document.getElementById('lightspeedTimer').style.opacity = '0';
@@ -1850,7 +1932,7 @@ const POWERUP_NORMAL = [
   { id: 'speed',      name: '熱騰騰餐點',  color: 0xff4400, emoji: '🥞', score: 50 },
   { id: 'oil',        name: '積水區',      color: 0x4488cc, emoji: '🌊', score: 30 },
   { id: 'coin',       name: '客人小費',    color: 0xffd700, emoji: '💰', score: 25 },
-  { id: 'coin',       name: '客人小費',    color: 0xffd700, emoji: '💰', score: 25 },
+  { id: 'battery',    name: '充電樁',      color: 0x4ade80, emoji: '🔌', score: 10 },
 ];
 // Legendary (rare, ~8% chance, spawns separately)
 const POWERUP_LEGENDARY = { id: 'lightspeed', name: '在地傳奇模式', color: 0x00ccff, emoji: '🌟', score: 100 };
@@ -2427,6 +2509,9 @@ function animate(){
       if(gp.square || gp.l2) drift = true;
     }
 
+    // 🔋 電力消耗 + 沒電減速
+    drainBattery(dt);
+    const noBattery = (ud.powerMode !== 2) && ud.battery <= 0;
     // Speed control（套用車庫改裝 mods + 即時齒輪檔位）
     const mods = ud.mods || { speedMul:1, accelMul:1, turnMul:1, rangeMul:1, climbMul:1, tot:{} };
     // 即時齒輪檔位（gearLevel: -1 低齒比, 0 中庸, +1 高齒比 → 玩家可在賽道上按 Z/X 切換）
@@ -2441,8 +2526,9 @@ function animate(){
     }
 
     const baseMax = lightspeedActive ? LIGHTSPEED_SPEED : (ud._speedBoost > 0 ? 140 : 90);
-    const MAX_SPEED = baseMax * mods.speedMul * gearSpeedMul * rangePenalty;
-    const ACCEL = (lightspeedActive ? 600 : 80) * mods.accelMul * gearAccelMul;
+    const batteryPenalty = noBattery ? 0.3 : 1.0;  // 沒電車速狂掉
+    const MAX_SPEED = baseMax * mods.speedMul * gearSpeedMul * rangePenalty * batteryPenalty;
+    const ACCEL = (lightspeedActive ? 600 : 80) * mods.accelMul * gearAccelMul * batteryPenalty;
     const BRAKE = 120;
 
     if(fwd > 0) ud._speed += ACCEL * dt;
@@ -2570,6 +2656,11 @@ function animate(){
             break;
           case 'coin':
             showPowerUpMsg('💰 客人小費 +' + type.score);
+            break;
+          case 'battery':
+            chargeBattery(30);
+            if(ud.powerMode === 2) showPowerUpMsg('⛽ 純油車不需要充電（但+10 分）');
+            else showPowerUpMsg('🔌 充電樁 +30% 電量！');
             break;
         }
 
