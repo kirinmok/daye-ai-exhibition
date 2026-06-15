@@ -403,13 +403,47 @@ canvas { display: block; }
 #garageScreen[data-tab="mission"] .garage-main-row {
   display: none;
 }
+/* === 戰情室排版：左半部任務 / 右半部假設，左右並排 === */
+.mission-hypo-row { display: block; }
+#garageScreen[data-tab="mission"] .mission-hypo-row {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  max-width: 1500px;
+  margin: 24px auto 8px;
+  padding: 0 16px;
+}
+#garageScreen[data-tab="mission"] .mission-hypo-row > .mission-band,
+#garageScreen[data-tab="mission"] .mission-hypo-row > .hypothesis-card {
+  flex: 1 1 0;
+  min-width: 0;          /* 關鍵：讓 flex 子元素可以收縮 */
+  margin: 0;
+  max-width: none;
+}
+
+/* 任務區內部：用 flex column 覆蓋預設 grid（避免標題被擠到中間欄斷字） */
 #garageScreen[data-tab="mission"] .mission-band {
-  margin: 24px 16px;
-  padding: 28px 32px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+#garageScreen[data-tab="mission"] .mission-band .mission-icon {
+  font-size: 22px;
+}
+#garageScreen[data-tab="mission"] .mission-band .mission-text {
+  width: 100%;
+}
+#garageScreen[data-tab="mission"] .mission-band .mission-chips {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-left: 0;
+  margin-top: 4px;
 }
 #garageScreen[data-tab="mission"] .mission-title {
-  font-size: 28px;
-  white-space: nowrap;          /* 不要把「暴雨運補 Alpha-03」拆行 */
+  font-size: 26px;
+  white-space: nowrap;     /* 不要把「暴雨運補 Alpha-03」拆行 */
   word-break: keep-all;
   letter-spacing: 3px;
 }
@@ -418,17 +452,19 @@ canvas { display: block; }
   line-height: 1.6;
   margin-top: 6px;
 }
+
+/* 假設區內部 */
 #garageScreen[data-tab="mission"] .hypothesis-card {
   display: block;
-  margin: 0;
-  max-width: none;
+  padding: 24px 28px;
 }
 
-/* 戰情室排版：任務橫條 + 假設橫條 上下排（都吃滿寬度） */
-.mission-hypo-row { display: block; }
-#garageScreen[data-tab="mission"] .mission-hypo-row > .hypothesis-card {
-  max-width: none;          /* 假設區拉開，跟任務橫條一樣寬 */
-  margin: 16px;
+/* 窄螢幕（平板/手機）回上下排版，避免擠成兩個小窄欄 */
+@media (max-width: 1100px) {
+  #garageScreen[data-tab="mission"] .mission-hypo-row {
+    flex-direction: column;
+    max-width: none;
+  }
 }
 .hypothesis-card {
   display: none;
