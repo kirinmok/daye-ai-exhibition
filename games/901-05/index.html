@@ -28,11 +28,11 @@
   }
   </script>
 
-  <!-- Babel Standalone 編譯 JSX（瀏覽器原生無法解析 JSX 語法） -->
-  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <!-- esm.sh/tsx：原生支援 importmap 的 JSX runtime（Babel Standalone 的 blob script 不繼承 importmap，這個會） -->
+  <script type="module" src="https://esm.sh/tsx"></script>
 
   <!-- 使用現代 ES Modules 載入所有依賴庫，保證高效與安全 -->
-  <script type="text/babel" data-type="module" data-presets="react">
+  <script type="text/babel">
     import React, { useState, useEffect, useRef, useCallback } from 'react';
     import ReactDOM from 'react-dom/client';
     import * as THREE from 'three';
