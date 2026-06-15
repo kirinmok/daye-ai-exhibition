@@ -2645,9 +2645,10 @@ function createUtilityPole(x, z){
 }
 
 // 🌊 蘭潭水庫風格：在水道外側鋪大片半透明深湖 + 山剪影 + 水底暗礁
-const obstacleRocks = []; // 路上石頭（碰到扣分）
-const rescueItems = [];   // 救援目標（撿到加分）
-const reefRocks = [];     // 水底暗礁（碰到車體受損）
+const obstacleRocks = [];    // 路上石頭（碰到扣分）
+const rescueItems = [];      // 救援目標（撿到加分）
+const reefRocks = [];        // 水底暗礁（碰到車體受損）
+const mountainBarriers = []; // 蘭潭對岸山體（永遠阻擋，撞到推回去）
 {
   const floodCenterD = (6.5 / 8) * L_TOTAL;
   const lakeCenter = getTrackPoint(floodCenterD, -(TW/2 + 60));
@@ -2686,12 +2687,13 @@ const reefRocks = [];     // 水底暗礁（碰到車體受損）
     scene.add(reef);
     reefRocks.push(reef);
   }
-  // 對岸山的剪影（暗綠色錐 + 暗藍遠山）
+  // 對岸山的剪影（暗綠色錐 + 暗藍遠山）— 山體阻擋去路，碰撞檢測
   for(let i = 0; i < 7; i++){
+    const mountainR = 15 + Math.random() * 8;     // 底半徑
     const mountainH = 18 + Math.random() * 14;
     const mountainColor = i % 2 === 0 ? 0x3a5a3a : 0x2a4458;
     const mt = new THREE.Mesh(
-      new THREE.ConeGeometry(15 + Math.random() * 8, mountainH, 5),
+      new THREE.ConeGeometry(mountainR, mountainH, 5),
       new THREE.MeshLambertMaterial({ color: mountainColor })
     );
     mt.position.set(
@@ -2700,7 +2702,9 @@ const reefRocks = [];     // 水底暗礁（碰到車體受損）
       lakeCenter.z - 60 - Math.random() * 8
     );
     mt.castShadow = true;
+    mt.userData = { collisionRadius: mountainR * 0.85 }; // 略小於底半徑（保留視覺餘裕）
     scene.add(mt);
+    mountainBarriers.push(mt);
   }
   // 湖中央立一個「蘭潭水庫」招牌
   const lakeSignPole = new THREE.Mesh(
@@ -6030,6 +6034,39 @@ function animate(){
           setTimeout(() => flash.classList.remove('flash'), 300);
         }
         showPowerUpMsg('💥 撞到水底暗礁！車體受損 -15 分');
+      }
+    });
+
+    // ── ⛰ MOUNTAIN BARRIERS（山體永遠阻擋，撞到推回去）──
+    mountainBarriers.forEach(mt => {
+      const r = (mt.userData && mt.userData.collisionRadius) || 12;
+      const dx = playerCar.position.x - mt.position.x;
+      const dz = playerCar.position.z - mt.position.z;
+      const d2 = dx*dx + dz*dz;
+      if(d2 < r * r){
+        // 把車推回去（沿著「山心 → 車」方向推到半徑外）
+        const d = Math.sqrt(d2) || 0.01;
+        const pushX = dx / d * (r - d + 0.5);
+        const pushZ = dz / d * (r - d + 0.5);
+        // 用 _dist 往回退一點點 + lateralOffset 往外側推（最穩的近似）
+        ud._dist -= Math.max(1.5, ud._speed * 0.02);
+        // 把車真的位移出去（保險）
+        playerCar.position.x += pushX;
+        playerCar.position.z += pushZ;
+        // 速度歸零（撞牆感）+ 紅閃 + toast（節流防爆）
+        ud._speed = 0;
+        if(!mt.userData._lastHit || (performance.now ? performance.now() : Date.now()) - mt.userData._lastHit > 1500){
+          mt.userData._lastHit = (performance.now ? performance.now() : Date.now());
+          ud.hits = (ud.hits || 0) + 1;
+          const el = document.getElementById('hitCnt');
+          if(el) el.textContent = ud.hits;
+          const flash = document.getElementById('crashFlash');
+          if(flash){
+            flash.classList.add('flash');
+            setTimeout(() => flash.classList.remove('flash'), 250);
+          }
+          showPowerUpMsg('⛰ 撞山了！山體無法穿越，繞道吧');
+        }
       }
     });
 
