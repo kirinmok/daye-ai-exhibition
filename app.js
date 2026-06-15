@@ -924,6 +924,17 @@ function renderRules() {
         </ol>
       </article>
 
+      ${SITE_CONFIG.lottery && SITE_CONFIG.lottery.enabled && SITE_CONFIG.lottery.formUrl
+        ? `<article class="panel lottery-panel">
+            <h2>🎁 抽獎登記（限在校學生）</h2>
+            <p>${escapeHtml(SITE_CONFIG.lottery.eligibility || "限大業實驗中學在校學生")}。</p>
+            <p class="muted">投票歡迎所有人，但抽獎資格限「2025–2026 學年度在校學生」。請於投票完成後另外填寫抽獎登記。${SITE_CONFIG.lottery.pickupNote ? escapeHtml(SITE_CONFIG.lottery.pickupNote) + "。" : ""}</p>
+            <div class="detail-actions" style="margin-top:14px;">
+              <a class="btn primary lottery-cta" href="${escapeAttr(SITE_CONFIG.lottery.formUrl)}" target="_blank" rel="noreferrer">📝 我要登記抽獎</a>
+            </div>
+          </article>`
+        : ""}
+
     </section>
 
     <div class="detail-actions">

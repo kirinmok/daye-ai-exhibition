@@ -308,6 +308,23 @@ a {
   letter-spacing: 1px;
   line-height: 1.7;
 }
+/* 規則頁的抽獎登記 panel */
+.panel.lottery-panel {
+  background: linear-gradient(135deg, rgba(255, 216, 102, 0.08), rgba(255, 153, 51, 0.04));
+  border: 1px solid rgba(255, 216, 102, 0.3);
+}
+.panel.lottery-panel h2 {
+  color: #ffd866;
+}
+.btn.primary.lottery-cta {
+  background: linear-gradient(135deg, #ffd866, #ff9933);
+  color: #1a0f00;
+  border-color: transparent;
+}
+.btn.primary.lottery-cta:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
 
 .btn:disabled,
 .btn[aria-disabled="true"] {
