@@ -12,8 +12,11 @@
   <!-- React 渲染的根節點 -->
   <div id="root" class="w-full h-full"></div>
 
+  <!-- Babel Standalone 編譯 JSX（瀏覽器原生無法解析 JSX 語法） -->
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
   <!-- 使用現代 ES Modules 載入所有依賴庫，保證高效與安全 -->
-  <script type="module">
+  <script type="text/babel" data-type="module" data-presets="react">
     import React, { useState, useEffect, useRef, useCallback } from 'https://esm.sh/react@18';
     import ReactDOM from 'https://esm.sh/react-dom@18/client';
     import * as THREE from 'https://esm.sh/three@0.128.0';
