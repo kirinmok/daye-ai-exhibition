@@ -3308,6 +3308,8 @@ function playBeep(freq, duration){
 }
 
 function startCountdown(){
+  // 🧹 恢復遊戲 HUD（結算頁時被 hideRaceHud 隱藏）
+  showRaceHud();
   // 🚧 reset 路況事件計時器
   hazardTimer = 0;
   hazardCooldown = 8; // 開賽 8 秒內不觸發
@@ -5664,7 +5666,26 @@ function buildExperimentReport(pud, rawTotal, adjustedTotal){
   );
 }
 
+// 🧹 結算頁清乾淨：隱藏所有遊戲 HUD / 浮動元素
+function hideRaceHud(){
+  const hudIds = ['batteryHud','sectorHud','rescueHud','balanceHud','gearHud',
+                  'sectorBanner','hazardToast','pauseOverlay','crashFlash','rainOverlay'];
+  hudIds.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+}
+function showRaceHud(){
+  // 開新局時恢復顯示
+  const hudIds = ['batteryHud','sectorHud','rescueHud','gearHud'];
+  hudIds.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = '';
+  });
+}
+
 function showResults(){
+  hideRaceHud(); // 結算頁不顯示遊戲 HUD
   const pud = playerCar.userData;
   const sorted = [...allCars].sort((a, b) => a.userData.rank - b.userData.rank);
   const ranksDiv = document.getElementById('resultRanks');
