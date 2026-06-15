@@ -13,7 +13,7 @@ const PROJECTS = [
   {
     id: "G01",
     title: "歡樂時光屋",
-    cover: "./assets/games/happy-house-3d/cover-4x3.png",
+    cover: "./assets/games/happy-house-3d/cover-4x3.jpg",
     genre: ["3D", "劇情探索"],
     tags: ["3D", "馬戲團", "劇情", "氛圍"],
     platform: "Web",
@@ -86,7 +86,7 @@ const PROJECTS = [
   {
     id: "G06",
     title: "八掌溪環保爭霸戰",
-    cover: "./assets/games/bazhang-eco-battle/cover-4x3.png",
+    cover: "./assets/games/bazhang-eco-battle/cover-4x3.jpg",
     boxCover: "./assets/games/bazhang-eco-battle/cover-2x3.jpg",
     genre: ["環境教育", "策略"],
     tags: ["八掌溪", "永續", "知識", "對戰"],
