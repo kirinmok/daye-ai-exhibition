@@ -8,8 +8,8 @@ window.SITE_CONFIG = {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSdqblGxiiy7UW7IIf3AdZto3Y3hdrxMYe356wz9tdtAHAZEaA/viewform",
     gameParamName: "",
     startDate: "2026-06-15",
-    endDate: "2026-06-26",
-    deadline: "6/26（五）23:59",
+    endDate: "2026-06-19",
+    deadline: "6/19（五）23:59",
     publishDate: "2026-06-29T08:00:00+08:00",
     publishLabel: "6/29（一）早上 8:00",
     prizeSummary: "5 個獎位（3 觀眾票 + 2 專業評選）",
@@ -133,16 +133,16 @@ window.SITE_CONFIG = {
   // ========================================
   rules: {
     purpose: "第一次來也沒關係。這裡把投票時間、參加方式與常見疑問一次說清楚。",
-    period: "2026/6/15（一）~ 6/26（五）23:59",
+    period: "2026/6/15（一）~ 6/19（五）23:59",
     publishAt: "2026/6/29（一）早上 8:00",
     faq: [
       {
         question: "何時截止？",
-        answer: "投票到 2026/6/26（五）23:59 截止。投票期跨過端午連假與月考週，讓觀眾、家長都有充裕時間慢慢試玩、慢慢投。",
+        answer: "投票到 2026/6/19（五）23:59 截止。投票期共 5 天，請把握時間試玩與投票。",
       },
       {
         question: "活動什麼時候開始？",
-        answer: "線上票選從 2026/6/15（一）開始，6/26（五）23:59 截止 — 整整 12 天。展期內都可以進作品頁試玩，再投給你最想支持的作品。",
+        answer: "線上票選從 2026/6/15（一）開始，6/19（五）23:59 截止 — 共 5 天。展期內都可以進作品頁試玩，再投給你最想支持的作品。",
       },
       {
         question: "我要怎麼投票？",
