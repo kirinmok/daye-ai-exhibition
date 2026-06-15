@@ -442,7 +442,7 @@ function renderHome() {
   const featured = homeFeaturedProjects(projects);
   const start = dateParts(EVENT_CONFIG.startDate || "6/15（一）");
   const deadline = dateParts(EVENT_CONFIG.deadline);
-  const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
+  const publish = dateParts(getVotingConfig().publishLabel || "6/29（一）早上 8:00");
   app.innerHTML = `
     <section class="hero">
       <div class="hero-copy">
@@ -719,7 +719,7 @@ function renderResults() {
   const votes = allVotes();
   const resultsConfig = getResultsConfig();
   const usingExternalResults = Boolean(resultsConfig.csvUrl);
-  const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
+  const publish = dateParts(getVotingConfig().publishLabel || "6/29（一）早上 8:00");
   const publishDetail = dateDetail(publish, "完成資料檢查後");
   if (!usingExternalResults && !resultsConfig.useMockVotes && votes.length === 0) {
     app.innerHTML = `
@@ -805,7 +805,7 @@ function renderApiResults() {
   const ended = isVotingEnded();
   const publicOpen = (window.SITE_CONFIG && window.SITE_CONFIG.results && window.SITE_CONFIG.results.publicRankingsOpen) || false;
   const showRanking = ended || publicOpen;
-  const publish = dateParts(getVotingConfig().publishLabel || "6/20（六）早上 9:00");
+  const publish = dateParts(getVotingConfig().publishLabel || "6/29（一）早上 8:00");
   const publishDetail = dateDetail(publish, "完成資料檢查後");
 
   // 投票期間：只顯示總票數、不顯示排行
@@ -998,7 +998,7 @@ function renderAwards() {
                   ` : published ? `
                     <p class="muted award-pending">本獎項從缺</p>
                   ` : `
-                    <p class="muted award-pending">⏳ 等待 6/20 公布</p>
+                    <p class="muted award-pending">⏳ 等待 6/29 公布</p>
                   `}
                 </article>
               `;
