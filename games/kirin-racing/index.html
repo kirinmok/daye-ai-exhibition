@@ -3386,20 +3386,22 @@ function headingToRotY(h){ return -h + Math.PI/2; }
 // 用 THREE.CatmullRomCurve3 把 13 節點串成平滑曲線
 // ⚠️ 此模組「先建造，不啟用」— 等 Step 3 切換邏輯與物件 spawn 完成才解鎖
 // ═══════════════════════════════════════════════
+// Stage 2 整體 z 平移 +400 遠離 Stage 1（橢圓賽道 z ∈ [-81, 81]），避免物件重疊
+const STAGE2_OFFSET_Z = 400;
 const STAGE2_NODES = [
-  { x: -200, z:  20, name: '火車站高樓商圈' },
-  { x: -150, z:   0, name: '北門平交道' },
-  { x: -100, z:  30, name: '文化路' },
-  { x:  -60, z: -10, name: '透天住宅巷弄' },
-  { x:  -10, z:  25, name: '噴水圓環' },
-  { x:   30, z: -10, name: '中山路低窪' },
-  { x:   60, z:  30, name: '秀泰地下道' },
-  { x:   95, z:  -5, name: '民生南路天橋' },
-  { x:  135, z:  35, name: '蘭潭環湖道路' },
-  { x:  165, z: -20, name: '水上偏遠聚落' },
-  { x:  190, z:  10, name: '農村四合院' },
-  { x:  220, z:  30, name: '高鐵大道荒涼段' },
-  { x:  255, z:   0, name: '避難點' },
+  { x: -200, z:  20 + STAGE2_OFFSET_Z, name: '火車站高樓商圈' },
+  { x: -150, z:   0 + STAGE2_OFFSET_Z, name: '北門平交道' },
+  { x: -100, z:  30 + STAGE2_OFFSET_Z, name: '文化路' },
+  { x:  -60, z: -10 + STAGE2_OFFSET_Z, name: '透天住宅巷弄' },
+  { x:  -10, z:  25 + STAGE2_OFFSET_Z, name: '噴水圓環' },
+  { x:   30, z: -10 + STAGE2_OFFSET_Z, name: '中山路低窪' },
+  { x:   60, z:  30 + STAGE2_OFFSET_Z, name: '秀泰地下道' },
+  { x:   95, z:  -5 + STAGE2_OFFSET_Z, name: '民生南路天橋' },
+  { x:  135, z:  35 + STAGE2_OFFSET_Z, name: '蘭潭環湖道路' },
+  { x:  165, z: -20 + STAGE2_OFFSET_Z, name: '水上偏遠聚落' },
+  { x:  190, z:  10 + STAGE2_OFFSET_Z, name: '農村四合院' },
+  { x:  220, z:  30 + STAGE2_OFFSET_Z, name: '高鐵大道荒涼段' },
+  { x:  255, z:   0 + STAGE2_OFFSET_Z, name: '避難點' },
 ];
 
 let STAGE2_CURVE = null;
@@ -3587,6 +3589,112 @@ scene.add(createOvalLine(TW/2, 0xffcc00));
 for(let i = 1; i < LANE_COUNT; i++){
   scene.add(createOvalLine(LANE_OFFSETS[i] - LANE_W/2, 0xffffff, true));
 }
+
+// ═══════════════════════════════════════════════
+// Stage 2: 嘉義市馬路路面 mesh + 邊線 + 大片地面 + 13 節點地標
+// 整體已 z+400 平移，與 stage 1 物件不重疊
+// ═══════════════════════════════════════════════
+function stage2PathPoints(lateralOffset, segments){
+  const pts = [];
+  segments = segments || 256;
+  if(L2_TOTAL <= 0) initStage2Path();
+  for(let i = 0; i <= segments; i++){
+    const d = (i / segments) * L2_TOTAL;
+    const p = getTrackPoint2(d, lateralOffset);
+    pts.push({ x: p.x, z: p.z });
+  }
+  return pts;
+}
+
+// Stage 2 大片地面（深灰，避免黑虛空）
+{
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x1a1a20, side: THREE.DoubleSide });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 220), groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.set(20, -0.1, STAGE2_OFFSET_Z);
+  scene.add(ground);
+}
+
+// Stage 2 路面 mesh（非閉合 ribbon — outer 走過去，inner 走回來，組成 polygon）
+{
+  const outer = stage2PathPoints(TW/2, 256);
+  const inner = stage2PathPoints(-TW/2, 256);
+  const shape = new THREE.Shape();
+  shape.moveTo(outer[0].x, outer[0].z);
+  for(let i = 1; i < outer.length; i++) shape.lineTo(outer[i].x, outer[i].z);
+  for(let i = inner.length - 1; i >= 0; i--) shape.lineTo(inner[i].x, inner[i].z);
+  shape.closePath();
+  const geo = new THREE.ShapeGeometry(shape);
+  const mat = new THREE.MeshLambertMaterial({ color: 0x2d2d35, side: THREE.DoubleSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = 0.06;
+  scene.add(mesh);
+}
+
+// Stage 2 邊線（黃）+ 車道虛線（白）
+function createStage2Line(lateralOffset, color, dashed){
+  const pts = stage2PathPoints(lateralOffset, 256);
+  const verts = pts.map(p => new THREE.Vector3(p.x, 0.08, p.z));
+  const geo = new THREE.BufferGeometry().setFromPoints(verts);
+  const mat = dashed
+    ? new THREE.LineDashedMaterial({ color, dashSize: 3, gapSize: 3 })
+    : new THREE.LineBasicMaterial({ color });
+  const line = new THREE.Line(geo, mat);
+  if(dashed) line.computeLineDistances();
+  return line;
+}
+scene.add(createStage2Line(-TW/2, 0xffcc00));
+scene.add(createStage2Line(TW/2, 0xffcc00));
+for(let i = 1; i < LANE_COUNT; i++){
+  scene.add(createStage2Line(LANE_OFFSETS[i] - LANE_W/2, 0xffffff, true));
+}
+
+// Stage 2 終點線（避難點 — L2_TOTAL 處）
+{
+  const finishStart = getTrackPoint2(L2_TOTAL - 0.5, -TW/2);
+  const finishEnd = getTrackPoint2(L2_TOTAL - 0.5, TW/2);
+  const finishGeo = new THREE.PlaneGeometry(
+    Math.hypot(finishEnd.x - finishStart.x, finishEnd.z - finishStart.z),
+    3
+  );
+  // 棋盤格紋（簡化版用一張純色）
+  const finishMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const finishMesh = new THREE.Mesh(finishGeo, finishMat);
+  const midX = (finishStart.x + finishEnd.x) / 2;
+  const midZ = (finishStart.z + finishEnd.z) / 2;
+  finishMesh.position.set(midX, 0.1, midZ);
+  finishMesh.rotation.x = -Math.PI / 2;
+  finishMesh.rotation.z = Math.atan2(finishEnd.z - finishStart.z, finishEnd.x - finishStart.x);
+  scene.add(finishMesh);
+}
+
+// Stage 2 13 個節點地標（路邊立柱 + 黃色頂）
+STAGE2_NODES.forEach((node, idx) => {
+  // 立柱
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.3, 6),
+    new THREE.MeshLambertMaterial({ color: 0x6b7280 })
+  );
+  pole.position.set(node.x, 3, node.z + 12);  // 路邊 12m 外
+  scene.add(pole);
+  // 黃色頂（路標）
+  const cap = new THREE.Mesh(
+    new THREE.BoxGeometry(2, 0.6, 2),
+    new THREE.MeshLambertMaterial({ color: 0xeab308 })
+  );
+  cap.position.set(node.x, 6.5, node.z + 12);
+  scene.add(cap);
+  // 起點額外加綠色標誌（節點 0 火車站）
+  if(idx === 0){
+    const startMark = new THREE.Mesh(
+      new THREE.SphereGeometry(1.5, 8, 8),
+      new THREE.MeshLambertMaterial({ color: 0x10b981 })
+    );
+    startMark.position.set(node.x, 8.5, node.z + 12);
+    scene.add(startMark);
+  }
+});
 
 // Start/Finish line at middle of bottom straight (dist = HL)
 // Line crosses the track perpendicular (along Z axis)
@@ -6330,8 +6438,6 @@ const MISSION_LEVELS = [
     kicker: 'MISSION 02',
     cardTitle: '嘉義市水淹',
     cardDesc: '不跑固定跑道，沿著城市馬路找可通行路線，把車改成能救援的樣子。',
-    locked: true,
-    lockReason: '城市馬路路網建造中・即將推出',
     title: '嘉義市水淹 Beta-02',
     sub: '城市馬路救援：找路、避開深水、判斷哪一段能衝、哪一段該繞',
     chips: [
