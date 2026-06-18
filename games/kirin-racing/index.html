@@ -228,7 +228,7 @@ canvas { display: block; }
   80% { transform: translate(6px, 3px); }
 }
 .splash-scene.shake { animation: shake 0.6s ease; }
-.splash-pbl-tag {
+.splash-rescue-tag {
   position: absolute; top: 24px; left: 24px;
   font-size: 12px; color: #5a8; letter-spacing: 3px;
   border: 1px solid #5a8; padding: 4px 10px; border-radius: 12px;
@@ -443,7 +443,7 @@ canvas { display: block; }
 }
 #garageScreen[data-tab="mission"] .mission-title {
   font-size: 26px;
-  white-space: nowrap;     /* 不要把「暴雨運補 Alpha-03」拆行 */
+  white-space: nowrap;     /* 任務標題不要拆行 */
   word-break: keep-all;
   letter-spacing: 3px;
 }
@@ -625,6 +625,146 @@ canvas { display: block; }
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.core-loop-rail {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(92px, 1fr));
+  gap: 6px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 8px auto 16px;
+  color: #6c7a93;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.loop-step {
+  position: relative;
+  padding: 8px 8px 8px 26px;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.loop-step::before {
+  content: attr(data-step);
+  position: absolute;
+  left: 8px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: 900;
+  background: rgba(108,122,147,.25);
+  color: #9db0cb;
+}
+.loop-step.active {
+  color: #edf5ff;
+  border-color: rgba(89,199,255,.55);
+  background: rgba(89,199,255,.12);
+  box-shadow: 0 0 18px rgba(89,199,255,.16);
+}
+.loop-step.done {
+  color: #77f7d0;
+  border-color: rgba(119,247,208,.24);
+}
+.loop-step.done::before {
+  content: '✓';
+  background: rgba(119,247,208,.18);
+  color: #77f7d0;
+}
+.loop-context-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 10px auto 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(89,199,255,.2);
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(89,199,255,.09), rgba(119,247,208,.035));
+  color: #9db0cb;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+#garageScreen[data-tab="mission"] .loop-context-strip {
+  display: none;
+}
+.loop-context-strip strong {
+  color: #ffd866;
+  font-weight: 900;
+}
+.garage-flow-cta,
+.garage-flow-actions button {
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.garage-flow-cta {
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px 18px;
+  background: linear-gradient(135deg, #59c7ff, #77f7d0);
+  color: #071015;
+  box-shadow: 0 10px 28px rgba(89,199,255,.22);
+}
+.garage-flow-cta:disabled,
+.garage-flow-actions button:disabled,
+.support-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.garage-flow-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: min(900px, calc(100% - 32px));
+  margin: 10px auto 0;
+  padding: 12px 12px 4px;
+  background: linear-gradient(180deg, rgba(26,26,26,0), rgba(26,26,26,.96) 36%);
+}
+.garage-flow-actions button {
+  min-height: 46px;
+  padding: 0 22px;
+  background: rgba(255,255,255,.06);
+  color: #9db0cb;
+  border: 1px solid rgba(255,255,255,.1);
+}
+.garage-flow-actions .primary {
+  min-width: 240px;
+  background: linear-gradient(135deg, #ff9933, #ffd866);
+  color: #16110a;
+  border: 0;
+  box-shadow: 0 10px 30px rgba(255,153,51,.28);
+}
+#garageStartBtn {
+  display: none !important;
+}
+.garage-flow-actions button:hover,
+.garage-flow-cta:hover {
+  transform: translateY(-1px);
+}
+@media (max-width: 900px) {
+  .core-loop-rail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .loop-step {
+    white-space: normal;
+  }
+  .garage-flow-actions {
+    flex-direction: column;
+  }
+  .garage-flow-actions .primary {
+    min-width: 0;
+  }
+}
 
 /* 工具 tab 內的支援卡片更大、更清楚 */
 #toolsTab { padding: 0 16px; max-width: 1100px; margin: 0 auto; }
@@ -693,9 +833,89 @@ canvas { display: block; }
   border-color: rgba(89,199,255,.4);
   color: #edf5ff;
 }
+.mission-level-grid {
+  width: min(1180px, calc(100% - 24px));
+  margin: 14px auto 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.mission-level-card {
+  min-height: 124px;
+  border: 1px solid rgba(160,196,255,.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(0,0,0,.24));
+  color: #edf5ff;
+  text-align: left;
+  padding: 18px 20px;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+.mission-level-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,184,74,.55);
+}
+.mission-level-card.active {
+  border-color: rgba(89,199,255,.75);
+  background: linear-gradient(135deg, rgba(89,199,255,.20), rgba(119,247,208,.08));
+  box-shadow: 0 0 0 1px rgba(89,199,255,.22), 0 14px 34px rgba(0,0,0,.30);
+}
+.mission-level-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  background: rgba(0,0,0,.32);
+  border: 1px solid rgba(255,255,255,.10);
+}
+.mission-level-kicker {
+  font-size: 12px;
+  color: #77f7d0;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+.mission-level-title {
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: 1px;
+  margin: 3px 0 5px;
+}
+.mission-level-desc {
+  color: #aebcd0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.mission-route-strip {
+  width: min(1180px, calc(100% - 24px));
+  margin: -6px auto 14px;
+  border: 1px solid rgba(255,184,74,.30);
+  border-radius: 8px;
+  background: rgba(255,184,74,.08);
+  padding: 12px 16px;
+  color: #ffd866;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 800;
+}
+.mission-route-strip.show { display: flex; }
+.mission-route-strip span {
+  color: #d9e8f7;
+  font-weight: 600;
+  font-size: 14px;
+}
 @media (max-width: 800px) {
   .mission-band { grid-template-columns: 1fr; text-align: center; }
   .mission-chips { justify-content: center; }
+  .mission-level-grid { grid-template-columns: 1fr; }
+  .mission-route-strip { align-items: flex-start; flex-direction: column; }
 }
 
 /* 🏎️ 預設車選擇（賽車遊戲風） */
@@ -1528,6 +1748,904 @@ canvas { display: block; }
   .experiment-report { grid-template-columns: 1fr; }
 }
 
+/* ═══ Kid-readable game UI pass：大字、圖像、少量高對比色 ═══ */
+#garageScreen {
+  background: linear-gradient(180deg, #101a20 0%, #151817 46%, #23190f 100%);
+  padding: 18px 24px 0;
+  font-size: 16px;
+}
+.garage-header { margin-bottom: 10px; }
+.garage-header h2 {
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.1;
+  letter-spacing: 2px;
+  color: #ffb84a;
+}
+.garage-header .sub {
+  margin-top: 8px;
+  font-size: 17px;
+  color: #c7d7e8;
+  letter-spacing: 1px;
+}
+.garage-tabs {
+  max-width: 980px;
+  gap: 10px;
+  margin: 14px auto 10px;
+}
+.garage-tab-btn {
+  min-width: 190px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  opacity: .72;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(199,215,232,.14);
+}
+.garage-tab-btn.active {
+  background: linear-gradient(180deg, rgba(89,199,255,.24), rgba(89,199,255,.09));
+  box-shadow: 0 0 0 2px rgba(89,199,255,.18), 0 14px 34px rgba(0,0,0,.28);
+}
+.garage-tab-btn .tab-icon {
+  font-size: 34px;
+  line-height: 1;
+}
+.garage-tab-btn .tab-label {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+.garage-tab-btn .tab-hint {
+  font-size: 14px;
+  color: #b9c6d7;
+  letter-spacing: 0;
+}
+.core-loop-rail {
+  width: min(1180px, calc(100% - 24px));
+  grid-template-columns: repeat(6, minmax(112px, 1fr));
+  gap: 8px;
+  font-size: 15px;
+  letter-spacing: 0;
+  margin: 8px auto 18px;
+}
+.loop-step {
+  padding: 12px 10px 12px 34px;
+  border-radius: 8px;
+  color: #aebed0;
+}
+.loop-step::before {
+  width: 20px;
+  height: 20px;
+  left: 9px;
+  font-size: 12px;
+}
+#garageScreen[data-tab="mission"] .mission-hypo-row {
+  max-width: 1180px;
+  gap: 18px;
+  margin-top: 16px;
+}
+#garageScreen[data-tab="mission"] .mission-band,
+#garageScreen[data-tab="mission"] .hypothesis-card {
+  padding: 28px;
+  border-radius: 8px;
+}
+#garageScreen[data-tab="mission"] .mission-band {
+  border-color: rgba(89,199,255,.42);
+  background: linear-gradient(135deg, rgba(89,199,255,.16), rgba(119,247,208,.08));
+}
+#garageScreen[data-tab="mission"] .mission-icon { font-size: 56px; }
+#garageScreen[data-tab="mission"] .mission-eyebrow {
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+#garageScreen[data-tab="mission"] .mission-title {
+  font-size: clamp(30px, 2.7vw, 42px);
+  letter-spacing: 1px;
+}
+#garageScreen[data-tab="mission"] .mission-sub {
+  font-size: 18px;
+  color: #d9e8f7;
+}
+.mission-chip {
+  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.hypothesis-card {
+  border-left-width: 7px;
+  background: linear-gradient(135deg, rgba(255,184,74,.14), rgba(0,0,0,.34));
+}
+.hypothesis-card .hypo-eyebrow {
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+.hypothesis-card h3 {
+  font-size: clamp(28px, 2.4vw, 36px);
+  letter-spacing: 1px;
+}
+.hypothesis-card .hypo-intro {
+  font-size: 17px;
+  color: #d1ddeb;
+}
+.hypo-row {
+  align-items: stretch;
+  gap: 12px;
+  margin: 14px 0;
+  font-size: 18px;
+}
+.hypo-row label {
+  min-width: 130px;
+  display: flex;
+  align-items: center;
+  color: #d9e8f7;
+}
+.hypo-row select {
+  min-height: 54px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 18px;
+  border-color: rgba(255,184,74,.45);
+  background: rgba(0,0,0,.52);
+}
+.hypothesis-card .hypo-hint,
+.hypothesis-card .hypo-status { font-size: 16px; }
+.garage-flow-cta,
+.garage-flow-actions button {
+  min-height: 56px;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.garage-flow-actions { padding-top: 18px; }
+.garage-flow-actions .primary { min-width: 300px; }
+.loop-context-strip {
+  width: min(1180px, calc(100% - 24px));
+  font-size: 16px;
+  padding: 14px 18px;
+  border-radius: 8px;
+}
+.preset-row {
+  gap: 10px;
+  margin: 4px auto 18px;
+  max-width: 1180px;
+}
+.preset-btn {
+  min-width: 190px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  opacity: .82;
+  background: rgba(255,255,255,.055);
+}
+.preset-btn .ps-name {
+  font-size: 18px;
+  letter-spacing: 0;
+}
+.preset-btn .ps-desc {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.garage-main-row {
+  max-width: 1440px;
+  gap: 22px;
+}
+.garage-left { flex-basis: 480px; }
+#garagePreviewWrap {
+  height: 320px;
+  border-radius: 8px;
+}
+.preview-overlay-tl { font-size: 14px; }
+.preview-info-card {
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.preview-info-card .pi-label,
+.preview-info-card .pi-hint { font-size: 14px; }
+.preview-info-card .pi-verdict {
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+.gear-zoom { display: none; }
+.garage-predict h3 { font-size: 20px; }
+.perf-bar .label,
+.perf-bar .val { font-size: 14px; }
+.garage-axes {
+  columns: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(340px, 1fr));
+  gap: 14px;
+}
+.garage-axes > .axis-card { margin: 0; }
+.axis-card {
+  padding: 16px;
+  border-radius: 8px;
+  opacity: 1;
+  background: rgba(255,255,255,.055);
+  border-color: rgba(199,215,232,.13);
+}
+.axis-head {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.axis-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 34px;
+  background: linear-gradient(135deg, rgba(89,199,255,.22), rgba(255,184,74,.14));
+  border: 1px solid rgba(255,255,255,.14);
+}
+.axis-card h3 {
+  margin: 0;
+  font-size: 23px;
+  color: #f2f7ff;
+  letter-spacing: 0;
+}
+.axis-hint,
+.axis-card:hover .axis-hint,
+.axis-card:focus-within .axis-hint {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #aebed0;
+}
+.axis-options { gap: 10px; }
+.opt-card {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 84px;
+  padding: 12px;
+  border-radius: 8px;
+  opacity: .86;
+  background: rgba(0,0,0,.25);
+  border-color: rgba(199,215,232,.14);
+}
+.opt-card:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.opt-card.selected {
+  background: linear-gradient(135deg, rgba(74,222,128,.20), rgba(89,199,255,.08));
+  border-color: rgba(74,222,128,.72);
+  box-shadow: 0 0 0 2px rgba(74,222,128,.12), 0 10px 26px rgba(0,0,0,.22);
+}
+.opt-card.selected::before {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  top: 10px;
+  right: 10px;
+  border-radius: 50%;
+  background: #4ade80;
+  color: #071015;
+  font-size: 18px;
+}
+.opt-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 31px;
+  background: rgba(255,255,255,.08);
+}
+.opt-card.selected .opt-icon {
+  animation: selectedIconPop .9s ease both;
+  background: rgba(74,222,128,.22);
+}
+@keyframes selectedIconPop {
+  0% { transform: scale(.86); }
+  45% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.opt-card .opt-name {
+  padding-right: 34px;
+  font-size: 18px;
+  line-height: 1.25;
+  color: #edf5ff;
+}
+.opt-card .opt-secret {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #b9c6d7;
+}
+.opt-figure { margin-top: 8px; }
+.task-eval-row,
+.task-eval-verdict { font-size: 16px; }
+#garageScreen[data-tab="tools"] .support-dock {
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  max-width: 1180px;
+  gap: 14px;
+}
+#garageScreen[data-tab="tools"] .wallet-card { grid-column: 1 / -1; }
+.support-card {
+  border-radius: 8px;
+  padding: 18px;
+  min-height: 190px;
+}
+.support-card h3 {
+  font-size: 24px;
+  letter-spacing: 0;
+}
+.support-card p,
+.support-card .support-current { font-size: 16px; }
+.support-btn {
+  min-height: 52px;
+  font-size: 17px;
+}
+.support-cost { font-size: 14px; }
+.wallet-money { font-size: 28px; }
+.material-shop {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 10px;
+}
+.material-btn {
+  min-height: 110px;
+  border-radius: 8px;
+  padding: 14px;
+}
+.material-btn .mat-name { font-size: 18px; }
+.material-btn .mat-desc,
+.material-btn .mat-cost { font-size: 14px; }
+#resultScreen {
+  overflow-y: auto;
+  justify-content: flex-start;
+  padding: 42px 20px;
+}
+#resultScreen h1 { font-size: clamp(34px, 4vw, 56px); }
+#resultScreen .stats {
+  width: min(1120px, 94vw);
+  font-size: 18px;
+}
+.fpp-section {
+  border-radius: 8px;
+  padding: 18px;
+}
+.fpp-section h4 {
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+.fpp-row {
+  grid-template-columns: 110px 1fr 1fr;
+  font-size: 17px;
+  gap: 12px;
+}
+.fpp-insight,
+.report-box .rb-val { font-size: 16px; }
+.report-box .rb-label { font-size: 13px; }
+@media (max-width: 1180px) {
+  .garage-main-row {
+    flex-direction: column;
+  }
+  .garage-left {
+    position: static;
+    flex: none;
+    width: 100%;
+  }
+  .garage-axes { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  #garageScreen { padding: 14px 12px 0; }
+  .garage-tabs,
+  .core-loop-rail { grid-template-columns: 1fr; }
+  .garage-tabs { display: grid; }
+  #garageScreen[data-tab="mission"] .mission-hypo-row { padding: 0; }
+  .hypo-row { flex-direction: column; }
+  .material-shop,
+  #garageScreen[data-tab="tools"] .support-dock,
+  .experiment-report,
+  .fpp-row { grid-template-columns: 1fr; }
+}
+
+/* ═══ Professional garage composition pass：遊戲工坊比例 ═══ */
+#garageScreen[data-tab="vehicle"] .garage-main-row {
+  display: grid;
+  grid-template-columns: minmax(380px, 34vw) minmax(620px, 1fr);
+  gap: 20px;
+  width: min(1480px, calc(100% - 24px));
+  max-width: none;
+  padding: 0;
+}
+#garageScreen[data-tab="vehicle"] .garage-left {
+  position: sticky;
+  top: 12px;
+  width: 100%;
+  min-width: 0;
+  max-height: none;
+}
+#garageScreen[data-tab="vehicle"] #garagePreviewWrap {
+  height: auto;
+  aspect-ratio: 16 / 10;
+  border: 1px solid rgba(255,184,74,.62);
+  background:
+    radial-gradient(circle at 50% 72%, rgba(255,184,74,.16), transparent 36%),
+    linear-gradient(180deg, #16202a 0%, #0c0f13 100%);
+}
+#garageScreen[data-tab="vehicle"] .preview-info-card,
+#garageScreen[data-tab="vehicle"] .garage-predict {
+  border-radius: 8px;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(199,215,232,.13);
+}
+#garageScreen[data-tab="vehicle"] .garage-right {
+  min-width: 0;
+}
+#garageScreen[data-tab="vehicle"] .garage-axes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+}
+.axis-category-rail {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(76px, 1fr));
+  gap: 8px;
+}
+.axis-category-btn {
+  min-height: 86px;
+  border: 1px solid rgba(199,215,232,.13);
+  border-radius: 8px;
+  background: rgba(255,255,255,.052);
+  color: #aebed0;
+  font-family: inherit;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+.axis-category-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,184,74,.46);
+}
+.axis-category-btn.active {
+  background: linear-gradient(180deg, rgba(89,199,255,.25), rgba(89,199,255,.08));
+  border-color: rgba(89,199,255,.72);
+  color: #f2f7ff;
+  box-shadow: inset 0 -3px 0 #59c7ff, 0 10px 24px rgba(0,0,0,.22);
+}
+.axis-category-btn .cat-icon {
+  font-size: 30px;
+  line-height: 1;
+}
+.axis-category-btn .cat-label {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+.axis-card-focused {
+  min-height: 430px;
+}
+.axis-card-focused .axis-head {
+  grid-template-columns: 72px 1fr;
+  margin-bottom: 16px;
+}
+.axis-card-focused .axis-icon {
+  width: 72px;
+  height: 72px;
+  font-size: 42px;
+}
+.axis-kicker {
+  color: #59c7ff;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+.axis-card-focused h3 {
+  font-size: clamp(28px, 2.2vw, 36px);
+}
+.axis-card-focused .axis-hint {
+  max-width: 720px;
+  font-size: 16px;
+}
+.axis-card-focused .axis-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+}
+.axis-card-focused .opt-card {
+  min-height: 250px;
+  aspect-ratio: 1 / 1.02;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 16px;
+}
+.axis-card-focused .opt-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 12px;
+  font-size: 38px;
+}
+.axis-card-focused .opt-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+.axis-card-focused .opt-name {
+  padding-right: 28px;
+  font-size: clamp(18px, 1.35vw, 22px);
+  line-height: 1.25;
+}
+.axis-card-focused .opt-secret {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.axis-card-focused .opt-figure {
+  order: 3;
+  margin-top: auto;
+  max-height: 86px;
+  overflow: hidden;
+}
+.axis-card-focused .drive-svg {
+  width: 100%;
+  max-height: 86px;
+}
+#garageScreen[data-tab="vehicle"] .task-eval-card {
+  min-height: auto;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+}
+.task-eval-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #59c7ff;
+  font-size: 20px;
+}
+#garageScreen[data-tab="vehicle"] .task-eval-card .axis-hint {
+  display: none;
+}
+#garageScreen[data-tab="vehicle"] .task-eval-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+#garageScreen[data-tab="vehicle"] .task-eval-row {
+  min-height: 46px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+#garageScreen[data-tab="vehicle"] .task-eval-verdict {
+  grid-column: 1 / -1;
+  font-size: 15px;
+  margin-top: 0;
+}
+#garageScreen[data-tab="vehicle"] .garage-flow-actions {
+  width: min(760px, calc(100% - 32px));
+}
+@media (max-width: 1220px) {
+  #garageScreen[data-tab="vehicle"] .garage-main-row {
+    grid-template-columns: 1fr;
+  }
+  #garageScreen[data-tab="vehicle"] .garage-left {
+    position: static;
+  }
+}
+@media (max-width: 900px) {
+  .axis-category-rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .axis-card-focused .axis-options {
+    grid-template-columns: 1fr;
+  }
+  .axis-card-focused .opt-card {
+    aspect-ratio: auto;
+    min-height: 150px;
+  }
+  #garageScreen[data-tab="vehicle"] .task-eval-card,
+  #garageScreen[data-tab="vehicle"] .task-eval-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══ Flow-first UX pass：只讓玩家看到下一步 ═══ */
+#garageScreen .garage-tabs,
+#garageScreen .preset-row {
+  display: none !important;
+}
+#garageScreen {
+  padding-top: 14px;
+}
+.garage-header {
+  margin-bottom: 8px;
+}
+.garage-header h2 {
+  font-size: clamp(26px, 2.3vw, 36px);
+}
+.garage-header .sub {
+  font-size: 15px;
+}
+.core-loop-rail {
+  width: min(1120px, calc(100% - 24px));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin: 10px auto 10px;
+}
+.loop-step {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  font-weight: 900;
+}
+.loop-step:not(.active):not(.done) {
+  opacity: .52;
+}
+.garage-stage-panel {
+  width: min(1120px, calc(100% - 24px));
+  margin: 0 auto 16px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid rgba(89,199,255,.3);
+  background:
+    linear-gradient(90deg, rgba(89,199,255,.16), rgba(255,184,74,.08)),
+    rgba(255,255,255,.04);
+  box-shadow: 0 18px 48px rgba(0,0,0,.22);
+}
+.stage-count {
+  min-width: 96px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  background: rgba(89,199,255,.16);
+  color: #8de4ff;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.stage-title {
+  font-size: clamp(24px, 2.2vw, 34px);
+  line-height: 1.1;
+  color: #f2f7ff;
+  font-weight: 900;
+}
+.stage-desc {
+  margin-top: 4px;
+  color: #c7d7e8;
+  font-size: 16px;
+  line-height: 1.45;
+}
+.stage-chip {
+  min-width: 128px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255,184,74,.16);
+  color: #ffd866;
+  font-size: 15px;
+  font-weight: 900;
+  text-align: center;
+}
+#garageScreen[data-tab="mission"] .mission-hypo-row {
+  margin-top: 8px;
+}
+#garageScreen[data-tab="vehicle"] .loop-context-strip,
+#garageScreen[data-tab="tools"] .loop-context-strip {
+  margin-top: -4px;
+}
+#garageScreen[data-tab="vehicle"] .garage-flow-actions,
+#garageScreen[data-tab="tools"] .garage-flow-actions,
+#garageScreen[data-tab="mission"] .garage-flow-actions {
+  width: min(820px, calc(100% - 32px));
+}
+.garage-flow-actions {
+  padding-bottom: 12px;
+}
+.garage-flow-actions button {
+  border-radius: 8px;
+}
+.garage-flow-actions .primary {
+  min-width: 340px;
+  min-height: 62px;
+  font-size: 21px;
+}
+#flowBackBtn {
+  max-width: 170px;
+}
+@media (max-width: 820px) {
+  .garage-stage-panel {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .stage-count,
+  .stage-chip {
+    width: fit-content;
+  }
+  .core-loop-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .garage-flow-actions .primary {
+    min-width: 0;
+  }
+}
+
+/* 補給站：三個清楚選擇，不做雜亂工具箱 */
+#garageScreen[data-tab="tools"] .support-dock {
+  grid-template-columns: minmax(220px, .9fr) minmax(220px, .9fr) minmax(320px, 1.35fr);
+  width: min(1180px, calc(100% - 24px));
+  max-width: none;
+  margin-top: 6px;
+  align-items: stretch;
+}
+#garageScreen[data-tab="tools"] .wallet-card {
+  grid-column: auto;
+}
+#garageScreen[data-tab="tools"] .support-card {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+#garageScreen[data-tab="tools"] .support-card h3 {
+  font-size: 26px;
+}
+#garageScreen[data-tab="tools"] .support-card p {
+  min-height: 72px;
+  color: #c7d7e8;
+}
+#garageScreen[data-tab="tools"] .support-current {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.28);
+  border: 1px solid rgba(199,215,232,.12);
+}
+#garageScreen[data-tab="tools"] .support-actions {
+  margin-top: 12px;
+}
+#garageScreen[data-tab="tools"] .wallet-top {
+  align-items: flex-start;
+}
+#garageScreen[data-tab="tools"] .wallet-money {
+  flex: 0 0 auto;
+}
+#garageScreen[data-tab="tools"] .material-shop {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: auto;
+}
+#garageScreen[data-tab="tools"] .material-btn {
+  min-height: 112px;
+}
+@media (max-width: 1100px) {
+  #garageScreen[data-tab="tools"] .support-dock {
+    grid-template-columns: 1fr;
+  }
+  #garageScreen[data-tab="tools"] .support-card {
+    min-height: auto;
+  }
+}
+
+/* 結算頁：證據回饋與再戰動機 */
+#resultScreen {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(89,199,255,.16), transparent 36%),
+    rgba(3,6,10,.94);
+}
+#resultScreen h1 {
+  color: #ffd866;
+  text-shadow: 0 0 22px rgba(255,216,102,.28);
+}
+#resultRanks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 980px;
+}
+#resultRanks .rank-line {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(199,215,232,.12);
+  font-size: 16px;
+}
+#resultRanks .rank-line.player {
+  border-color: rgba(255,216,102,.46);
+  background: rgba(255,216,102,.12);
+  font-size: 18px;
+}
+.result-hero-card {
+  margin: 14px auto 16px;
+  padding: 22px;
+  max-width: 760px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255,216,102,.16), rgba(89,199,255,.09));
+  border: 1px solid rgba(255,216,102,.36);
+  text-align: center;
+}
+.result-kicker {
+  color: #8de4ff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+.result-verdict {
+  margin-top: 6px;
+  color: #f2f7ff;
+  font-size: clamp(26px, 3vw, 42px);
+  font-weight: 900;
+  line-height: 1.15;
+}
+.result-score {
+  margin-top: 10px;
+  color: #ffd866;
+  font-size: clamp(48px, 6vw, 80px);
+  font-weight: 900;
+  line-height: 1;
+}
+.result-score span {
+  font-size: .32em;
+  color: #c7d7e8;
+}
+.result-next {
+  margin-top: 12px;
+  color: #c7d7e8;
+  font-size: 18px;
+}
+.result-axis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 12px auto;
+  max-width: 820px;
+}
+.result-axis {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(199,215,232,.12);
+}
+.result-axis span {
+  display: block;
+  color: #aebed0;
+  font-size: 14px;
+}
+.result-axis strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffd866;
+  font-size: 30px;
+}
+.result-support-line,
+.result-gap,
+.result-raw,
+.result-battery {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #aebed0;
+}
+.result-support-line {
+  color: #ffbb5c;
+}
+#restartBtn {
+  border-radius: 8px;
+  padding: 16px 34px;
+  font-size: 22px;
+  box-shadow: 0 14px 34px rgba(245,200,66,.24);
+}
+@media (max-width: 760px) {
+  .result-axis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* 🔋 電量 HUD（電力=生命值） */
 #batteryHud {
   position: absolute; top: 420px; right: 16px;
@@ -1663,7 +2781,7 @@ canvas { display: block; }
 #batteryHud .bat-health.warn { color: #ff9933; }
 #batteryHud .bat-health.bad { color: #ff3333; }
 
-/* 嘉義地標賽道區段 HUD */
+/* 任務區段 HUD */
 #sectorHud {
   position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
   background: rgba(0,0,0,0.7); border: 1px solid #ffd866;
@@ -1721,7 +2839,7 @@ canvas { display: block; }
 
 <!-- ═══ 開場徵召 splash ═══ -->
 <div id="openingSplash">
-  <div class="splash-pbl-tag">RESCUE HACK</div>
+  <div class="splash-rescue-tag">RESCUE HACK</div>
   <div class="splash-ps2-tag" id="splashPs2Tag">
     <span class="dot"></span>
     <span>🎮 PS2 手把・Pico W 連線</span>
@@ -1845,7 +2963,7 @@ canvas { display: block; }
     <button class="garage-tab-btn" data-tab="vehicle" onclick="switchGarageTab('vehicle')">
       <span class="tab-icon">🚗</span>
       <span class="tab-label">改裝庫</span>
-      <span class="tab-hint">改車・看取捨</span>
+      <span class="tab-hint">選解法・看代價</span>
     </button>
     <button class="garage-tab-btn" data-tab="tools" onclick="switchGarageTab('tools')">
       <span class="tab-icon">🛠️</span>
@@ -1854,20 +2972,44 @@ canvas { display: block; }
     </button>
   </div>
 
+  <div class="core-loop-rail" id="coreLoopRail" aria-label="任務流程">
+    <div class="loop-step active" data-loop-step="mission" data-step="1">押假設</div>
+    <div class="loop-step" data-loop-step="vehicle" data-step="2">選解法</div>
+    <div class="loop-step" data-loop-step="tools" data-step="3">可選支援</div>
+    <div class="loop-step" data-loop-step="launch" data-step="4">出車</div>
+    <div class="loop-step" data-loop-step="evidence" data-step="5">證據打臉</div>
+    <div class="loop-step" data-loop-step="rematch" data-step="6">再戰</div>
+  </div>
+
+  <div class="garage-stage-panel" id="garageStagePanel">
+    <div class="stage-count" id="stageCount">STEP 1 / 6</div>
+    <div>
+      <div class="stage-title" id="stageTitle">先押判斷</div>
+      <div class="stage-desc" id="stageDesc">先說你覺得會壞在哪裡，再去改車驗證。</div>
+    </div>
+    <div class="stage-chip" id="stageChip">現在：看任務</div>
+  </div>
+
+  <div class="mission-level-grid" id="missionLevelGrid" aria-label="選擇救援任務"></div>
+  <div class="mission-route-strip" id="missionRouteStrip">
+    <strong id="missionRouteTitle">城市道路節點</strong>
+    <span id="missionRouteText">讀取中</span>
+  </div>
+
   <!-- 戰情室：任務（左）+ 本輪假設（右）左右並排 -->
   <div class="mission-hypo-row">
   <div class="mission-band">
-    <div class="mission-icon">📋</div>
+    <div class="mission-icon" id="missionIcon">📋</div>
     <div class="mission-text">
       <div class="mission-eyebrow">Active Mission</div>
-      <div class="mission-title">暴雨運補 Alpha-03</div>
-      <div class="mission-sub">送醫療物資進入嘉義老街淹水區，撐過兩圈完整路線</div>
+      <div class="mission-title" id="missionTitle">原型車認證 K-01</div>
+      <div class="mission-sub" id="missionSub">先拿到上路資格：抓地、傳動、底盤、續航都要經得起測</div>
     </div>
-    <div class="mission-chips">
-      <span class="mission-chip warn">⚠️ 積水 45cm</span>
-      <span class="mission-chip active">⏱ 兩圈驗證</span>
-      <span class="mission-chip">💊 醫療箱 ×2</span>
-      <span class="mission-chip">🔋 低耗能優先</span>
+    <div class="mission-chips" id="missionChips">
+      <span class="mission-chip warn">⚠️ 原型車未認證</span>
+      <span class="mission-chip active">⏱ 兩輪檢定</span>
+      <span class="mission-chip">🛞 抓地測試</span>
+      <span class="mission-chip">⚙️ 傳動測試</span>
     </div>
   </div>
 
@@ -1875,7 +3017,7 @@ canvas { display: block; }
   <div class="hypothesis-card">
     <div class="hypo-eyebrow">⚙️ 本輪假設</div>
     <h3>動車前先押判斷</h3>
-    <div class="hypo-intro">不押判斷的改裝是亂槍打鳥。先說出你以為的，等下跑完才看誰對。</div>
+    <div class="hypo-intro">改裝不是裝帥，是為了解決問題。先說你要解哪個問題，等下跑完才知道這個解法有沒有用。</div>
     <div class="hypo-row">
       <label>我認為最大風險是</label>
       <select id="hypoRisk" onchange="updateHypothesis()">
@@ -1901,12 +3043,18 @@ canvas { display: block; }
         <option value="awd">⚙️ 改 AWD 四驅</option>
         <option value="lowchassis">🏎 改低底盤</option>
       </select>
-      <label>解決</label>
+      <label>處理</label>
     </div>
     <div class="hypo-hint">🔍 結算會對照你押的假設跟實際發生的事</div>
     <div class="hypo-status empty" id="hypoStatus">⏳ 還沒押判斷</div>
+    <button class="garage-flow-cta" id="hypoNextBtn" onclick="handleGarageFlowPrimary()" disabled>先押完整，再去選解法</button>
   </div>
   </div><!-- /.mission-hypo-row -->
+
+  <div class="loop-context-strip" id="loopContextStrip">
+    <div id="loopContextText">本輪還沒押完整假設。</div>
+    <strong id="loopContextMode">先看問題，再決定用什麼解</strong>
+  </div>
 
   <div class="preset-row">
     <button class="preset-btn" onclick="applyPreset('street')">
@@ -1940,7 +3088,7 @@ canvas { display: block; }
           <div class="pi-label">⚡ 當前原型</div>
           <div class="pi-verdict" id="previewVerdict">🔧 街頭中庸配置</div>
         </div>
-        <div class="pi-hint">每個選擇都可能救你，也可能害你</div>
+        <div class="pi-hint">每個改裝都要回答：它解決什麼，又犧牲什麼</div>
       </div>
       <!-- ⚙️ 齒輪嚙合特寫（獨立區塊，不擋車） -->
       <div class="gear-zoom" id="gearZoom">
@@ -1969,7 +3117,7 @@ canvas { display: block; }
           <p>抽到機會可能拿材料券；抽到命運可能遇到突發狀況。卡片會改變分數與錢包。</p>
           <div class="support-current" id="supportCardText">尚未抽卡。</div>
           <div class="support-actions">
-            <button class="support-btn" onclick="drawSupportCard()">抽一張</button>
+            <button class="support-btn" id="supportDrawBtn" onclick="drawSupportCard()">抽一張（-15 RC）</button>
           </div>
           <div class="support-cost" id="supportCost">支援代價：0 分</div>
         </div>
@@ -1978,7 +3126,7 @@ canvas { display: block; }
           <p>呼叫一次會得到模糊方向，不會給解法。支援越多，獨立破解分越低。</p>
           <div class="support-current" id="radioLastReply">尚未呼叫。</div>
           <div class="support-actions">
-            <button class="support-btn ai" onclick="callRadioSupport()">呼叫一次（-35 分）</button>
+            <button class="support-btn ai" id="radioSupportBtn" onclick="callRadioSupport()">呼叫一次（-35 分）</button>
           </div>
           <div class="support-cost">無線電只給方向，不給答案</div>
         </div>
@@ -2014,6 +3162,11 @@ canvas { display: block; }
       <div class="garage-axes" id="garageAxes"></div>
     </div>
   </div>
+
+  <div class="garage-flow-actions" id="garageFlowActions">
+    <button type="button" id="flowBackBtn" onclick="handleGarageFlowBack()">回上一步</button>
+    <button type="button" class="primary" id="flowPrimaryBtn" onclick="handleGarageFlowPrimary()">押好，去選解法</button>
+  </div>
 </div>
 
 <!-- 💥 撞擊閃紅 -->
@@ -2028,7 +3181,7 @@ canvas { display: block; }
 <!-- 📍 區段大字 banner（進入新關卡時 slide-in） -->
 <div id="sectorBanner">
   <div class="sb-tag" id="sbTag">📍 進入下一區</div>
-  <div class="sb-name" id="sbName">老街區</div>
+  <div class="sb-name" id="sbName">工程測試場</div>
   <div class="sb-sub" id="sbSub">注意路況 ・ 隨時可進站維修</div>
 </div>
 
@@ -2056,10 +3209,10 @@ canvas { display: block; }
   <div class="bat-health" id="batHealth">💚 健康 100%</div>
 </div>
 
-<!-- 嘉義地標賽道區段顯示 -->
+<!-- 任務區段顯示 -->
 <div id="sectorHud">
   <span class="sec-prefix">📍 現在位置</span>
-  <span id="sectorName">🏁 起跑線・噴水池圓環前</span>
+  <span id="sectorName">🏁 起跑線・工程測試場</span>
 </div>
 
 <!-- 🆘 救援+碰撞 HUD -->
@@ -2136,14 +3289,14 @@ canvas { display: block; }
   <h1>🏁 測試結算・證據回收</h1>
   <div id="resultRanks"></div>
   <div id="resultStats" class="stats"></div>
-  <button id="restartBtn" onclick="hideResults(); resetRace();">再來一場 (R)</button>
+  <button id="restartBtn" onclick="prepareRematch()">帶著證據再戰 (R)</button>
 </div>
 
 <script>
 // ═══════════════════════════════════════════════
 // OVAL TRACK CONFIG
 // ═══════════════════════════════════════════════
-const TOTAL_LAPS = 2;  // 從 3 圈縮成 2 圈（KIRIN 反饋無聊撐不住）
+const TOTAL_LAPS = 2;  // 第一關封閉測試場圈數；第二關另用任務目標控制
 const HL = 100;        // half-length of straight sections
 const TR = 55;         // turn radius (centerline)
 const TW = 52;         // total track width
@@ -2535,7 +3688,7 @@ function createUtilityPole(x, z){
   scene.add(waterMark);
 }
 
-// 在水道 sector（💧 秀泰百貨地下道，sector index 6/8）兩側 spawn 淹水場景
+// 在水道 sector 兩側 spawn 淹水測試場景
 {
   // 8 個 sector，水道是 index 6 → 中心距離 = 6.5/8 * L_TOTAL
   const floodCenterD = (6.5 / 8) * L_TOTAL;
@@ -2639,17 +3792,17 @@ function createUtilityPole(x, z){
   }
 }
 
-// 🚏 各 sector 街景招牌（兩側 spawn 不同主題的招牌柱，讓「風景變換」可見）
+// 🚏 各 sector 招牌（兩側 spawn 不同主題的招牌柱，讓「風景變換」可見）
 {
   const STREET_SCENES = [
-    { sec: 0, emoji: '🏁', label: '起跑線',   color: '#3b3b3b' },
-    { sec: 1, emoji: '⛲', label: '噴水池',   color: '#1e3a5f' },
-    { sec: 2, emoji: '🍜', label: '夜市',     color: '#7a2828' },
-    { sec: 3, emoji: '🐸', label: '青蛙公園', color: '#2d5a3a' },
-    { sec: 4, emoji: '⚾', label: 'KANO',     color: '#1a4d8c' },
-    { sec: 5, emoji: '🚂', label: '火車站',   color: '#4a2c1a' },
-    // sector 6 是水道區（已自帶屋頂滅頂）
-    { sec: 7, emoji: '⛰', label: '天橋上坡', color: '#5a3a1a' },
+    { sec: 0, emoji: '🏁', label: '啟動門',   color: '#3b3b3b' },
+    { sec: 1, emoji: '🛞', label: '抓地彎',   color: '#1e3a5f' },
+    { sec: 2, emoji: '⚡', label: '齒比線',   color: '#7a2828' },
+    { sec: 3, emoji: '🚧', label: '底盤門',   color: '#2d5a3a' },
+    { sec: 4, emoji: '📦', label: '配重彎',   color: '#1a4d8c' },
+    { sec: 5, emoji: '🔋', label: '耗電廊',   color: '#4a2c1a' },
+    // sector 6 是水道區
+    { sec: 7, emoji: '⛰', label: '扭力坡',   color: '#5a3a1a' },
   ];
   STREET_SCENES.forEach(s => {
     const center = (s.sec + 0.5) / 8 * L_TOTAL;
@@ -3081,10 +4234,10 @@ const keys = {};
 addEventListener('keydown', e => {
   keys[e.code] = true;
   if(e.code==='KeyV'){
-    if(resultShown) { hideResults(); resetRace(); }
+    if(resultShown) { prepareRematch(); }
     else cycleView();
   }
-  if(e.code==='KeyR') { hideResults(); resetRace(); }
+  if(e.code==='KeyR') { resultShown ? prepareRematch() : resetRace(); }
   // 即時換檔（Z 降檔到低齒比、X 升檔到高齒比）
   if(e.code==='KeyZ') changeGear(-1);
   if(e.code==='KeyX') changeGear(+1);
@@ -3146,7 +4299,7 @@ function connectPico(){
       if(newB && !pico.prevB){
         if(typeof splashFinished !== 'undefined' && !splashFinished) closeOpeningSplash();
         else if(alignActive) {} // 對齊卡顯示時忽略 Pico W 按鈕（避免誤觸）
-        else if(resultShown) { hideResults(); resetRace(); }
+        else if(resultShown) { prepareRematch(); }
         else cycleView();
       }
       pico.prevB = newB;
@@ -3236,7 +4389,7 @@ function checkCheckpoints(car){
         if(ud.bestLap === null || lapTime < ud.bestLap) ud.bestLap = lapTime;
       }
       ud.lapStart = raceTime;
-      if(ud.laps >= TOTAL_LAPS && !ud.finished){
+      if(ud.laps >= getMissionLapGoal() && !ud.finished){
         ud.finished = true;
         ud.finishTime = raceTime;
         ud.rank = allCars.filter(c => c.userData.finished).length;
@@ -3244,7 +4397,9 @@ function checkCheckpoints(car){
         if(ud.isPlayer){
           const posBonus = [500, 300, 150, 50][ud.rank - 1] || 0;
           addScore(posBonus);
-          showPowerUpMsg('🏁 第 ' + ud.rank + ' 名完賽！+' + posBonus);
+          showPowerUpMsg(activeMissionLevel === 1
+            ? '🏥 第 ' + ud.rank + ' 位送達避難點！+' + posBonus
+            : '🏁 原型車認證完成！+' + posBonus);
         }
       }
     }
@@ -3483,12 +4638,20 @@ function enterPitStop(){
   raceRunning = false;
   pitStopMode = true;
   document.getElementById('pauseOverlay').classList.remove('show');
+  renderGarage();
+  renderWallet();
   document.getElementById('garageScreen').classList.add('show');
+  switchGarageTab('vehicle');
   // 工坊內按鈕切換：藏「出車驗證」、顯「結束維修」
   document.getElementById('garageStartBtn').style.display = 'none';
   document.getElementById('pitResumeBtn').style.display = 'block';
   // 啟動 garage 3D 預覽
-  try { startGarageAnimate(); } catch(e) {}
+  try {
+    if(!garageRenderer) createGarageScene();
+    rebuildPreviewCar();
+    startGarageAnimate();
+  } catch(e) {}
+  updateGarageFlowUI();
   showPowerUpMsg('🔧 進站維修中・自由換裝');
 }
 
@@ -3555,8 +4718,9 @@ const ALIGN_SCENARIOS = [
 ];
 
 function triggerAlignCard(lapNum){
+  if(activeMissionLevel !== 1) return; // 街頭抉擇只屬於嘉義市水淹關
   if(alignedLaps.has(lapNum)) return;
-  if(lapNum >= TOTAL_LAPS) return;  // 最後一圈進結算，不觸發
+  if(lapNum >= getMissionLapGoal()) return;  // 最後一段進結算，不觸發
   alignedLaps.add(lapNum);
   const scenarioIdx = (lapNum - 1) % ALIGN_SCENARIOS.length;
   showAlignCard(scenarioIdx);
@@ -3639,7 +4803,7 @@ function resetAlignState(){
 const GARAGE_AXES = [
   {
     key: 'tire', icon: '🛞', name: '輪胎套裝（吋數+紋路+外傾角）',
-    hint: '懂車的祕密：光頭胎平地神但雨天滑倒；外八字過彎強但內側磨損快',
+    hint: '要解的是抓地問題：平地、濕地、彎道需要不同接地方式；抓地變好通常會犧牲速度或耗能',
     options: [
       { name: '16吋光頭胎・直立 0°',  secret: '平地速度神！但碰水道當場打滑',  d: { start: +1, top: +2, turn: -1, range: +1, climb: -1 }, slipWater: true },
       { name: '20吋多紋胎・外八 -3°', secret: '街頭中庸，雨天也穩—老闆首選',  d: { start: 0, top: 0, turn: +1, range: 0, climb: 0 }, slipWater: false },
@@ -3648,7 +4812,7 @@ const GARAGE_AXES = [
   },
   {
     key: 'wheelbase', icon: '📏', name: '軸距 + 車身比例（寬窄長短）',
-    hint: '寬胖重心低抗側翻、窄長直線神但過彎易翻車（遊覽車就是這樣）',
+    hint: '要解的是穩定問題：車身比例會影響重心、轉彎半徑、載重；直線強不代表彎道安全',
     options: [
       { name: '🚙 寬胖短軸（小型攤車）',  secret: '重心低、過彎神、抗側翻，但載貨少',  d: { start: +1, top:  -1, turn: +2, range: 0, climb: 0 } },
       { name: '🚐 中庸標配（街頭餐車）',  secret: '寬窄適中，街頭老闆首選',          d: { start:  0, top:  0, turn:  0, range: 0, climb: 0 } },
@@ -3657,7 +4821,7 @@ const GARAGE_AXES = [
   },
   {
     key: 'drive', icon: '⚙️', name: '驅動方式',
-    hint: '動力傳到哪個輪子，水裡/坡上表現完全不同',
+    hint: '要解的是動力分配問題：水中、坡道、轉彎需要不同輪子出力；更穩通常也更吃電',
     options: [
       {
         name: 'FF 前輪驅動',
@@ -3674,14 +4838,14 @@ const GARAGE_AXES = [
       {
         name: 'AWD 四輪驅動',
         figure: '<svg viewBox="0 0 110 50" class="drive-svg"><rect x="20" y="14" width="70" height="22" rx="3" fill="#3a3a3a" stroke="#666" stroke-width="0.6"/><circle cx="28" cy="11" r="4.5" fill="#181818" stroke="#444" stroke-width="0.6"/><circle cx="82" cy="11" r="4.5" fill="#181818" stroke="#444" stroke-width="0.6"/><circle cx="28" cy="39" r="4.5" fill="#181818" stroke="#444" stroke-width="0.6"/><circle cx="82" cy="39" r="4.5" fill="#181818" stroke="#444" stroke-width="0.6"/><rect x="48" y="18" width="14" height="14" rx="1" fill="#ffd866" stroke="#7a4f2b" stroke-width="0.6"/><text x="55" y="28" text-anchor="middle" font-size="8" fill="#7a4f2b" font-weight="900">M</text><path d="M44,18 L34,12 L38,12 L38,9 L44,9 Z" fill="#4ade80"/><path d="M44,32 L34,38 L38,38 L38,41 L44,41 Z" fill="#4ade80"/><path d="M66,18 L76,12 L72,12 L72,9 L66,9 Z" fill="#4ade80"/><path d="M66,32 L76,38 L72,38 L72,41 L66,41 Z" fill="#4ade80"/><text x="55" y="48" text-anchor="middle" font-size="6" fill="#888">四輪全驅</text></svg>',
-        secret: '引擎在中心同時帶四輪，全能但吃電—跑不完三圈',
+        secret: '引擎在中心同時帶四輪，全能但吃電—長距離容易撐不住',
         d: { start: +1, top: 0, turn: +1, range: -2, climb: +2 }
       },
     ],
   },
   {
     key: 'power', icon: '🔋', name: '動力配置（純電/油電/純油）',
-    hint: '電池容量決定生命值。油電混合最穩，純電最環保但要找充電樁',
+    hint: '要解的是能源問題：起步、續航、重量、補給方式互相牽制；馬力越大不一定越能完成任務',
     options: [
       { name: '🔋 純電・小馬力長續航',  secret: '電池滿格 100％，但起步弱', d: { start: -1, top: -1, turn: 0, range: +2, climb: -1 } },
       { name: '⚡ 油電混合・中庸',      secret: '油+電雙系統，最不會拋錨',  d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
@@ -3690,7 +4854,7 @@ const GARAGE_AXES = [
   },
   {
     key: 'gear', icon: '⚡', name: '齒輪比',
-    hint: '小齒輪馬達 + 大齒輪輪子 = 扭力大；反之 = 極速高',
+    hint: '要解的是扭力和速度取捨：爬坡需要力，直線需要速；同一組齒輪不可能兩邊都滿分',
     options: [
       { name: '低齒比（馬達小齒+輪子大齒）', secret: '起步神、爬坡王，但極速低',     d: { start: +2, top: -2, turn: 0, range: 0, climb: +2 } },
       { name: '中齒比（中庸搭配）',         secret: '腳踏車的標準擋',              d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
@@ -3699,7 +4863,7 @@ const GARAGE_AXES = [
   },
   {
     key: 'shell', icon: '🦴', name: '車殼系統',
-    hint: '封閉防水 vs 骨架越野 vs 載貨車斗，車身外觀完全不同',
+    hint: '要解的是保護與載物問題：防水、排水、載貨都會改變重量和重心，不是外觀選擇',
     options: [
       { name: '🚙 封閉車殼', secret: '流線、防水、適合街道',     d: { start: 0, top: +1, turn: 0, range: 0, climb: 0 } },
       { name: '🦴 骨架越野', secret: '輕、排水好但防水差',       d: { start: +1, top: 0, turn: +1, range: 0, climb: +1 } },
@@ -3708,7 +4872,7 @@ const GARAGE_AXES = [
   },
   {
     key: 'chassis', icon: '🦵', name: '底盤高度',
-    hint: '低底盤過彎神但路上石頭會卡、高底盤通過性強但過彎易翻',
+    hint: '要解的是通過性問題：低底盤穩但會卡，高底盤能越障但重心變高，問題換成另一個問題',
     options: [
       { name: '🏎 低底盤・貼地飛',  secret: '重心低、過彎神，但小心路上障礙物',  d: { start: 0, top: +1, turn: +2, range: 0, climb: -1 } },
       { name: '🚐 中底盤・標準',    secret: '街頭通用配置',                      d: { start: 0, top: 0, turn: 0, range: 0, climb: 0 } },
@@ -3731,6 +4895,7 @@ const PRESETS = {
   offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0, shell: 1, chassis: 2 }, // 越野：高底盤支架
   eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1, shell: 2, chassis: 1 }, // 環保：中底盤
 };
+let activeGarageAxisKey = 'tire';
 
 function applyPreset(key){
   const p = PRESETS[key];
@@ -3745,53 +4910,104 @@ function applyPreset(key){
   rebuildPreviewCar();
 }
 
+function shortAxisTitle(name){
+  return name.replace(/（.*?）/g, '').replace(/\s*\+.*$/, '').trim();
+}
+
+function splitOptionLabel(name, fallbackIcon){
+  const clean = name.trim();
+  const match = clean.match(/^(\p{Extended_Pictographic}|\p{Emoji_Presentation})\s*(.*)$/u);
+  if(match) return { icon: match[1], text: match[2].trim() || clean };
+  return { icon: fallbackIcon, text: clean };
+}
+
 function renderGarage(){
   const container = document.getElementById('garageAxes');
   container.innerHTML = '';
+  const activeAxis = GARAGE_AXES.find(axis => axis.key === activeGarageAxisKey) || GARAGE_AXES[0];
+  activeGarageAxisKey = activeAxis.key;
+
+  const rail = document.createElement('div');
+  rail.className = 'axis-category-rail';
   GARAGE_AXES.forEach(axis => {
-    const card = document.createElement('div');
-    card.className = 'axis-card';
-    card.innerHTML = '<h3>' + axis.icon + ' ' + axis.name + '</h3>' +
-                     '<div class="axis-hint">💡 ' + axis.hint + '</div>' +
-                     '<div class="axis-options" id="opts-' + axis.key + '"></div>';
-    container.appendChild(card);
-    // 軸數量是奇數時，最後一個軸後加一張任務檢核卡填滿格子
-    if(GARAGE_AXES.length % 2 === 1 &&
-       container.children.length === GARAGE_AXES.length){
-      const evalCard = document.createElement('div');
-      evalCard.className = 'axis-card task-eval-card';
-      evalCard.innerHTML =
-        '<h3>📋 任務檢核</h3>' +
-        '<div class="axis-hint">💡 看看你的車能不能撐過這趟任務</div>' +
-        '<div class="task-eval-list" id="taskEvalList">' +
-          '<div class="task-eval-row"><span>🌊 撐過 45cm 積水</span><span id="evTaskWater" class="ev-status">⏳</span></div>' +
-          '<div class="task-eval-row"><span>⏱ 限時 2 圈跑完</span><span id="evTaskTime" class="ev-status">⏳</span></div>' +
-          '<div class="task-eval-row"><span>💊 載運醫療物資</span><span id="evTaskCargo" class="ev-status">⏳</span></div>' +
-          '<div class="task-eval-row"><span>🔋 撐到終點不沒電</span><span id="evTaskBattery" class="ev-status">⏳</span></div>' +
-        '</div>' +
-        '<div class="task-eval-verdict" id="taskEvalVerdict">⚙️ 選擇你的配置看評估</div>';
-      container.appendChild(evalCard);
-    }
-    const optsDiv = card.querySelector('#opts-' + axis.key);
-    axis.options.forEach((opt, idx) => {
-      const o = document.createElement('div');
-      o.className = 'opt-card' + (garageChoice[axis.key] === idx ? ' selected' : '');
-      const figHtml = opt.figure ? '<div class="opt-figure">' + opt.figure + '</div>' : '';
-      o.innerHTML = '<div class="opt-name">' + opt.name + '</div>' +
-                    figHtml +
-                    '<div class="opt-secret">' + opt.secret + '</div>';
-      o.onclick = () => {
-        garageChoice[axis.key] = idx;
-        // 手動偏離 preset → 清 active 綠燈
-        document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
-        renderGarage();
-        updatePerfPrediction();
-        rebuildPreviewCar();   // 3D 預覽即時重組
-      };
-      optsDiv.appendChild(o);
-    });
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'axis-category-btn' + (axis.key === activeAxis.key ? ' active' : '');
+    b.innerHTML = '<span class="cat-icon">' + axis.icon + '</span><span class="cat-label">' + shortAxisTitle(axis.name) + '</span>';
+    b.onclick = () => selectGarageAxis(axis.key);
+    rail.appendChild(b);
   });
+  container.appendChild(rail);
+
+  const card = document.createElement('div');
+  card.className = 'axis-card axis-card-focused';
+  card.innerHTML = '<div class="axis-head">' +
+                     '<div class="axis-icon">' + activeAxis.icon + '</div>' +
+                     '<div class="axis-title-wrap">' +
+                       '<div class="axis-kicker">現在解這個問題</div>' +
+                       '<h3>' + shortAxisTitle(activeAxis.name) + '</h3>' +
+                       '<div class="axis-hint">💡 ' + activeAxis.hint + '</div>' +
+                     '</div>' +
+                   '</div>' +
+                   '<div class="axis-options" id="opts-' + activeAxis.key + '"></div>';
+  container.appendChild(card);
+
+  const optsDiv = card.querySelector('#opts-' + activeAxis.key);
+  activeAxis.options.forEach((opt, idx) => {
+    const o = document.createElement('div');
+    o.className = 'opt-card' + (garageChoice[activeAxis.key] === idx ? ' selected' : '');
+    const label = splitOptionLabel(opt.name, activeAxis.icon);
+    const figHtml = opt.figure ? '<div class="opt-figure">' + opt.figure + '</div>' : '';
+    o.innerHTML = '<div class="opt-icon" aria-hidden="true">' + label.icon + '</div>' +
+                  '<div class="opt-body">' +
+                    '<div class="opt-name">' + label.text + '</div>' +
+                    figHtml +
+                    '<div class="opt-secret">' + opt.secret + '</div>' +
+                  '</div>';
+    o.onclick = () => {
+      garageChoice[activeAxis.key] = idx;
+      // 手動偏離 preset → 清 active 綠燈
+      document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
+      renderGarage();
+      updatePerfPrediction();
+      rebuildPreviewCar();   // 3D 預覽即時重組
+    };
+    optsDiv.appendChild(o);
+  });
+
+  const evalCard = document.createElement('div');
+  const mission = getActiveMission();
+  const evalRows = mission.id === 'chiayi-flood-02'
+    ? [
+        '💧 地下道：馬達不能進水',
+        '⛰ 天橋：扭力要爬得上去',
+        '🏘 透天巷弄：車寬不能卡住',
+        '🏡 四合院：低速扭力要夠'
+      ]
+    : [
+        '🛞 抓地彎：不只輪胎會害你',
+        '⚙️ 扭力坡：齒比不是唯一答案',
+        '🦵 底盤門檻：高低都有代價',
+        '🔋 耗電長廊：耗電真兇要跑才知道'
+      ];
+  evalCard.className = 'axis-card task-eval-card';
+  evalCard.innerHTML =
+    '<div class="task-eval-head"><span>📋</span><strong>問題清單</strong></div>' +
+    '<div class="axis-hint">改裝要對準問題；跑完用證據判斷有沒有真的解決</div>' +
+    '<div class="task-eval-list" id="taskEvalList">' +
+      '<div class="task-eval-row"><span>' + evalRows[0] + '</span><span id="evTaskWater" class="ev-status">⏳</span></div>' +
+      '<div class="task-eval-row"><span>' + evalRows[1] + '</span><span id="evTaskTime" class="ev-status">⏳</span></div>' +
+      '<div class="task-eval-row"><span>' + evalRows[2] + '</span><span id="evTaskCargo" class="ev-status">⏳</span></div>' +
+      '<div class="task-eval-row"><span>' + evalRows[3] + '</span><span id="evTaskBattery" class="ev-status">⏳</span></div>' +
+    '</div>' +
+    '<div class="task-eval-verdict" id="taskEvalVerdict">⚙️ 先選一個解法，再看它解決了什麼</div>';
+  container.appendChild(evalCard);
   updatePerfPrediction();
+}
+
+function selectGarageAxis(key){
+  activeGarageAxisKey = key;
+  renderGarage();
 }
 
 const MATERIALS = [
@@ -3904,6 +5120,7 @@ function addSupportPenalty(points, label){
   supportUses.push(label);
   const el = document.getElementById('supportCost');
   if(el) el.textContent = '支援代價：-' + supportPenalty + ' 分';
+  syncSupportControls();
 }
 
 // 🎯 補給站冷卻系統（每輪限制，避免亂抽亂呼叫）
@@ -3916,10 +5133,12 @@ const MAX_RADIOS_PER_ROUND = 1;
 function drawSupportCard(){
   if(drawnThisRound >= MAX_DRAWS_PER_ROUND){
     showPowerUpMsg('🃏 本輪卡包已抽完，跑完一場才能再抽');
+    syncSupportControls();
     return;
   }
   if(rescueCoins < DRAW_COST_RC){
     showPowerUpMsg('💳 抽卡要 ' + DRAW_COST_RC + ' RC，現在不夠');
+    syncSupportControls();
     return;
   }
   rescueCoins -= DRAW_COST_RC;
@@ -3934,6 +5153,8 @@ function drawSupportCard(){
   const text = '【' + prefix + '】' + card.text + '（成本 -' + DRAW_COST_RC + ' RC）';
   const el = document.getElementById('supportCardText');
   if(el) el.textContent = text;
+  syncSupportControls();
+  updateGarageFlowUI();
   showPowerUpMsg('🃏 ' + prefix + '卡：' + card.type);
 }
 
@@ -3953,6 +5174,7 @@ function renderWallet(){
     btn.onclick = () => buyMaterial(mat.id);
     shop.appendChild(btn);
   });
+  syncSupportControls();
 }
 
 function buyMaterial(id){
@@ -3968,14 +5190,16 @@ function buyMaterial(id){
   renderWallet();
   updatePerfPrediction();
   rebuildPreviewCar();
+  updateGarageFlowUI();
   showPowerUpMsg('🧰 裝備：' + mat.name);
 }
 
-// PROMPT_TEMPLATES 已移除 — 學生用自己的 ChatGPT，遊戲不再接 AI 顧問
+// 遊戲內不提供答題機制
 
 function callRadioSupport(){
   if(radioThisRound >= MAX_RADIOS_PER_ROUND){
     showPowerUpMsg('📻 本輪無線電已用過，跑完一場才能再呼叫');
+    syncSupportControls();
     return;
   }
   radioThisRound++;
@@ -3984,7 +5208,25 @@ function callRadioSupport(){
   radioUses.push(line);
   const last = document.getElementById('radioLastReply');
   if(last) last.textContent = '「' + line + '」';
+  syncSupportControls();
+  updateGarageFlowUI();
   showPowerUpMsg('📻 收到模糊線索（-35 分）');
+}
+
+function syncSupportControls(){
+  const drawBtn = document.getElementById('supportDrawBtn');
+  if(drawBtn){
+    const used = drawnThisRound >= MAX_DRAWS_PER_ROUND;
+    const poor = rescueCoins < DRAW_COST_RC;
+    drawBtn.disabled = used || poor;
+    drawBtn.textContent = used ? '本輪已抽卡' : poor ? 'RC 不足' : '抽一張（-15 RC）';
+  }
+  const radioBtn = document.getElementById('radioSupportBtn');
+  if(radioBtn){
+    const used = radioThisRound >= MAX_RADIOS_PER_ROUND;
+    radioBtn.disabled = used;
+    radioBtn.textContent = used ? '本輪已呼叫' : '呼叫一次（-35 分）';
+  }
 }
 
 function resetSupportState(){
@@ -4002,6 +5244,7 @@ function resetSupportState(){
   if(radio) radio.textContent = '尚未呼叫。';
   if(cost) cost.textContent = '支援代價：0 分';
   renderWallet();
+  syncSupportControls();
 }
 
 function updatePerfPrediction(){
@@ -4028,9 +5271,12 @@ function updatePerfPrediction(){
 function showGarage(){
   renderGarage();
   renderWallet();
+  renderMissionLevelSelect();
+  applyMissionLevel();
   const screen = document.getElementById('garageScreen');
   screen.classList.add('show');
   switchGarageTab('mission');  // 預設戰情室：先看任務、押假設，再去改車
+  updateGarageFlowUI();
   // 啟動 3D 預覽（要等 DOM 顯示後才能 init canvas size）
   setTimeout(() => {
     if(!garageRenderer) createGarageScene();
@@ -4059,6 +5305,18 @@ const HYPO_SOLUTION_LABEL = {
   awd:         '⚙️ AWD 四驅',
   lowchassis:  '🏎 低底盤',
 };
+
+function hasCompleteHypothesis(){
+  return !!(currentHypothesis.risk && currentHypothesis.solution);
+}
+
+function hypothesisText(){
+  if(!currentHypothesis.risk && !currentHypothesis.solution) return '本輪還沒押完整假設。';
+  const risk = HYPO_RISK_LABEL[currentHypothesis.risk] || '未選風險';
+  const solution = HYPO_SOLUTION_LABEL[currentHypothesis.solution] || '未選解法';
+  return '本輪押注：' + risk + ' → ' + solution;
+}
+
 function updateHypothesis(){
   const r = document.getElementById('hypoRisk');
   const s = document.getElementById('hypoSolution');
@@ -4074,6 +5332,145 @@ function updateHypothesis(){
       status.textContent = '⏳ 還沒押判斷';
       status.classList.add('empty');
     }
+  }
+  updateGarageFlowUI();
+}
+
+function resetHypothesisState(){
+  currentHypothesis = { risk: '', solution: '' };
+  const r = document.getElementById('hypoRisk');
+  const s = document.getElementById('hypoSolution');
+  if(r) r.value = '';
+  if(s) s.value = '';
+  updateHypothesis();
+}
+
+function updateGarageFlowUI(){
+  const screen = document.getElementById('garageScreen');
+  const tab = screen ? (screen.dataset.tab || 'mission') : 'mission';
+  const ready = hasCompleteHypothesis();
+  const mission = getActiveMission();
+  document.querySelectorAll('.loop-step').forEach(step => {
+    const key = step.dataset.loopStep;
+    step.classList.toggle('active',
+      (tab === 'mission' && key === 'mission') ||
+      (tab === 'vehicle' && key === 'vehicle') ||
+      (tab === 'tools' && key === 'tools')
+    );
+    step.classList.toggle('done',
+      (key === 'mission' && ready) ||
+      (key === 'vehicle' && tab === 'tools') ||
+      (key === 'tools' && (drawnThisRound > 0 || radioThisRound > 0 || Object.keys(materialOwned).length > 0))
+    );
+  });
+
+  const context = document.getElementById('loopContextText');
+  if(context) context.innerHTML = ready
+    ? '<strong>' + hypothesisText() + '</strong>'
+    : hypothesisText();
+
+  const mode = document.getElementById('loopContextMode');
+  if(mode){
+    mode.textContent = tab === 'vehicle'
+      ? '選一個能解決問題的改法'
+      : tab === 'tools'
+        ? '支援可用，但會留下代價'
+        : '先看問題，再決定用什麼解';
+  }
+
+  const stageMap = {
+    mission: {
+      count: 'STEP 1 / 6',
+      title: '先押判斷',
+      desc: mission.id === 'chiayi-flood-02'
+        ? '這關不是固定跑道。先猜哪段街道會打臉你，再決定車子要怎麼活過水淹路段。'
+        : '先說你覺得會壞在哪裡，再選一個能處理它的改法。不要為了改裝而改裝。',
+      chip: ready ? '已押好' : '現在：看任務'
+    },
+    vehicle: {
+      count: 'STEP 2 / 6',
+      title: '選一個解法',
+      desc: '每個改法都應該對準一個問題。它可能解掉風險，也可能製造新的副作用。',
+      chip: '現在：選解法'
+    },
+    tools: {
+      count: 'STEP 3 / 6',
+      title: '要不要求助？',
+      desc: '可以抽卡、買材料或呼叫線索，但每次支援都會留下代價。',
+      chip: '可選：補給'
+    }
+  };
+  const stage = pitStopMode ? {
+    count: 'PIT STOP',
+    title: '進站維修',
+    desc: '只改最關鍵的一組零件。改完立刻回到賽道測試。',
+    chip: '現在：搶修'
+  } : (stageMap[tab] || stageMap.mission);
+  const stageCount = document.getElementById('stageCount');
+  const stageTitle = document.getElementById('stageTitle');
+  const stageDesc = document.getElementById('stageDesc');
+  const stageChip = document.getElementById('stageChip');
+  if(stageCount) stageCount.textContent = stage.count;
+  if(stageTitle) stageTitle.textContent = stage.title;
+  if(stageDesc) stageDesc.textContent = stage.desc;
+  if(stageChip) stageChip.textContent = stage.chip;
+
+  const hypoNext = document.getElementById('hypoNextBtn');
+  if(hypoNext){
+    hypoNext.disabled = !ready;
+    hypoNext.textContent = ready ? '下一步：選解法' : '先押完整，再去選解法';
+  }
+
+  const back = document.getElementById('flowBackBtn');
+  if(back){
+    back.disabled = pitStopMode || tab === 'mission';
+    back.textContent = pitStopMode ? '維修中' : tab === 'tools' ? '回改裝庫' : '回戰情室';
+  }
+
+  const primary = document.getElementById('flowPrimaryBtn');
+  if(primary){
+    if(pitStopMode){
+      primary.disabled = false;
+      primary.textContent = '完成維修，回賽道';
+    } else if(tab === 'mission'){
+      primary.disabled = !ready;
+      primary.textContent = ready ? '下一步：選解法' : '先押完整假設';
+    } else if(tab === 'vehicle'){
+      primary.disabled = false;
+      primary.textContent = '下一步：可選支援';
+    } else {
+      primary.disabled = false;
+      primary.textContent = '出車測試';
+    }
+  }
+}
+
+function handleGarageFlowBack(){
+  if(pitStopMode) return;
+  const screen = document.getElementById('garageScreen');
+  const tab = screen ? (screen.dataset.tab || 'mission') : 'mission';
+  if(tab === 'tools') switchGarageTab('vehicle');
+  else if(tab === 'vehicle') switchGarageTab('mission');
+}
+
+function handleGarageFlowPrimary(){
+  if(pitStopMode){
+    exitPitStopResume();
+    return;
+  }
+  const screen = document.getElementById('garageScreen');
+  const tab = screen ? (screen.dataset.tab || 'mission') : 'mission';
+  if(tab === 'mission'){
+    if(!hasCompleteHypothesis()){
+      showPowerUpMsg('🎯 先押完整假設，才知道等下要驗證什麼');
+      updateGarageFlowUI();
+      return;
+    }
+    switchGarageTab('vehicle');
+  } else if(tab === 'vehicle'){
+    switchGarageTab('tools');
+  } else {
+    closeGarage();
   }
 }
 
@@ -4100,6 +5497,7 @@ function switchGarageTab(name){
       }
     }, 50);
   }
+  updateGarageFlowUI();
 }
 
 function closeGarage(){
@@ -4119,6 +5517,7 @@ function actuallyStartRace(){
   } else {
     playerCar.userData.hypothesis = null;
   }
+  playerCar.userData.mission = { ...getActiveMission(), index: activeMissionLevel };
 
   stopGarageAnimate();
   document.getElementById('garageScreen').classList.remove('show');
@@ -4776,21 +6175,143 @@ function computePlayerMods(){
   };
 }
 
-// ═══ 嘉義地標賽道區段命名 + 水道/爬坡判定 ═══
-// 每區用 tag/name/sub 三層描述，配合 banner 大字提示
-const SECTORS = [
-  { tag: '🏁 第 1 關',  name: '噴水池起跑線',     sub: '中央噴水池前廣場・路面平整', class: 'normal' },
-  { tag: '⛲ 第 2 關',  name: '噴水池 U 彎道',     sub: '緊接連續轉彎・別衝太快',     class: 'normal' },
-  { tag: '🍜 第 3 關',  name: '文化路夜市直線',   sub: '路面油膩・打滑注意',          class: 'normal' },
-  { tag: '🐸 第 4 關',  name: '青蛙公園入口',     sub: '路面有坑洞・底盤太低小心',     class: 'normal' },
-  { tag: '⚾ 第 5 關',  name: 'KANO 銅像直道',     sub: '寬直線・全力衝刺',            class: 'normal' },
-  { tag: '🚂 第 6 關',  name: '嘉義火車站前彎',   sub: '人潮路口・對齊卡情境',         class: 'normal' },
-  { tag: '⚠️ 第 7 關', name: '秀泰地下道淹水區', sub: '前段淺水・中段屋頂滅頂', class: 'water' },
-  { tag: '⛰ 第 8 關',  name: '民生南路天橋上坡', sub: '爬坡高度差 18 公尺',          class: 'hill' },
+// ═══ 任務關卡：第一關測試場 / 第二關嘉義市水淹道路救援 ═══
+const MISSION_LEVELS = [
+  {
+    id: 'alpha-03',
+    icon: '🏁',
+    kicker: 'MISSION 01',
+    cardTitle: '原型車認證',
+    cardDesc: '每段地形都像在考某個零件，但真正兇手可能藏在別處。先押判斷，再讓結果打臉。',
+    title: '原型車認證 K-01',
+    sub: '情報只給方向，不給答案。看起來像輪胎問題，可能其實是配重或底盤在搞事',
+    chips: [
+      { text: '🕵️ 線索會誤導', tone: 'warn' },
+      { text: '🧪 跑完才算數', tone: 'active' },
+      { text: '🔁 同地形可重複', tone: '' },
+      { text: '⚠️ 真兇可能不同', tone: '' },
+    ],
+    routeTitle: '可疑地形序列',
+    routeText: '啟動門 → 抓地彎 → 齒比直線 → 底盤門檻 → 配重 S 彎 → 耗電長廊 → 防水槽 → 扭力坡',
+    progressLabel: '驗證',
+    progressMax: TOTAL_LAPS,
+  },
+  {
+    id: 'chiayi-flood-02',
+    icon: '🌊',
+    kicker: 'MISSION 02',
+    cardTitle: '嘉義市水淹',
+    cardDesc: '不跑固定跑道，沿著城市馬路找可通行路線，把車改成能救援的樣子。',
+    title: '嘉義市水淹 Beta-02',
+    sub: '城市馬路救援：找路、避開深水、判斷哪一段能衝、哪一段該繞',
+    chips: [
+      { text: '🌧 暴雨街區', tone: 'warn' },
+      { text: '🛣 道路節點', tone: 'active' },
+      { text: '🏙 高樓到透天', tone: '' },
+      { text: '🏡 農村四合院', tone: '' },
+    ],
+    routeTitle: '嘉義市道路節點',
+    routeText: '火車站高樓商圈 → 北門平交道 → 文化路 → 透天住宅巷弄 → 噴水圓環 → 中山路低窪 → 秀泰地下道 → 民生南路天橋 → 蘭潭環湖道路 → 水上偏遠聚落 → 農村四合院 → 高鐵大道荒涼段 → 避難點',
+    progressLabel: '節點',
+    progressMax: 13,
+  },
 ];
+let activeMissionLevel = 0;
+
+function getActiveMission(){
+  return MISSION_LEVELS[activeMissionLevel] || MISSION_LEVELS[0];
+}
+
+function getMissionLapGoal(){
+  return activeMissionLevel === 1 ? 1 : TOTAL_LAPS;
+}
+
+function renderMissionLevelSelect(){
+  const wrap = document.getElementById('missionLevelGrid');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  MISSION_LEVELS.forEach((mission, idx) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mission-level-card' + (idx === activeMissionLevel ? ' active' : '');
+    btn.onclick = () => selectMissionLevel(idx);
+    btn.innerHTML =
+      '<div class="mission-level-icon">' + mission.icon + '</div>' +
+      '<div>' +
+        '<div class="mission-level-kicker">' + mission.kicker + '</div>' +
+        '<div class="mission-level-title">' + mission.cardTitle + '</div>' +
+        '<div class="mission-level-desc">' + mission.cardDesc + '</div>' +
+      '</div>';
+    wrap.appendChild(btn);
+  });
+}
+
+function selectMissionLevel(idx){
+  activeMissionLevel = Math.max(0, Math.min(MISSION_LEVELS.length - 1, idx));
+  renderMissionLevelSelect();
+  applyMissionLevel();
+  updateGarageFlowUI();
+}
+
+function applyMissionLevel(){
+  const mission = getActiveMission();
+  const icon = document.getElementById('missionIcon');
+  const title = document.getElementById('missionTitle');
+  const sub = document.getElementById('missionSub');
+  const chips = document.getElementById('missionChips');
+  const route = document.getElementById('missionRouteStrip');
+  const routeTitle = document.getElementById('missionRouteTitle');
+  const routeText = document.getElementById('missionRouteText');
+  if(icon) icon.textContent = mission.icon;
+  if(title) title.textContent = mission.title;
+  if(sub) sub.textContent = mission.sub;
+  if(chips){
+    chips.innerHTML = mission.chips.map(chip =>
+      '<span class="mission-chip ' + (chip.tone || '') + '">' + chip.text + '</span>'
+    ).join('');
+  }
+  if(route){
+    const hasRoute = !!mission.routeText;
+    route.classList.toggle('show', hasRoute);
+    if(routeTitle) routeTitle.textContent = mission.routeTitle;
+    if(routeText) routeText.textContent = mission.routeText;
+  }
+}
+
+// ═══ 任務區段命名 + 水道/爬坡判定 ═══
+// 每區用 tag/name/sub 三層描述，配合 banner 大字提示
+const OVAL_SECTORS = [
+  { tag: '🏁 認證 1', name: '啟動門',       sub: '表面像起步測試；真正卡住的可能是重量、齒比或馬達負載', class: 'normal' },
+  { tag: '🛞 認證 2', name: '抓地彎',       sub: '看起來像輪胎問題；其實車寬、重心、外傾角都可能是兇手', class: 'normal' },
+  { tag: '⚡ 認證 3', name: '齒比直線',     sub: '直線會誘惑你追極速；下一段可能立刻懲罰高齒比', class: 'normal' },
+  { tag: '🚧 認證 4', name: '底盤門檻',     sub: '表面是高度問題；太高造成晃動，也可能比太低更糟', class: 'normal' },
+  { tag: '📦 認證 5', name: '配重 S 彎',    sub: '像是轉向考題；真正打臉的常常是載重位置和車身比例', class: 'normal' },
+  { tag: '🔋 認證 6', name: '耗電長廊',     sub: '不是只有電池大小，四驅、重量、輪胎阻力都會偷走電量', class: 'normal' },
+  { tag: '💧 認證 7', name: '防水槽',       sub: '像是防水考題；光頭胎、低底盤、後驅也可能一起出事', class: 'water' },
+  { tag: '⛰ 認證 8', name: '扭力坡',       sub: '像是齒比考題；但配重、驅動方式、車重會一起決定結果', class: 'hill' },
+];
+const CITY_SECTORS = [
+  { tag: '🏙 節點 1', name: '火車站高樓商圈', sub: '高樓大廈旁人車密集，視線遮蔽多，起步太衝反而容易撞', class: 'normal' },
+  { tag: '🚧 節點 2', name: '北門平交道',     sub: '鐵軌高低差會打底盤，也會考停止後再起步的扭力', class: 'normal' },
+  { tag: '🍜 節點 3', name: '文化路窄街',     sub: '路面濕滑又有攤位・轉向穩定很關鍵', class: 'normal' },
+  { tag: '🏘 節點 4', name: '透天住宅巷弄',   sub: '從高樓切進矮平房透天，巷子突然變窄，車寬和低速轉向開始被考', class: 'normal' },
+  { tag: '⛲ 節點 5', name: '中央噴水圓環',   sub: '連續轉向・高重心和窄車身容易翻', class: 'normal' },
+  { tag: '💧 節點 6', name: '中山路低窪段',   sub: '水深開始變化・低底盤會先被打臉', class: 'water' },
+  { tag: '⚠️ 節點 7', name: '秀泰地下道深水', sub: '馬達可能進水・傳動軸和防水座開始有價值', class: 'water' },
+  { tag: '⛰ 節點 8', name: '民生南路天橋',   sub: '地下道過了不代表成功・這段改考齒比、扭力與配重', class: 'hill' },
+  { tag: '🌊 節點 9', name: '蘭潭環湖道路',   sub: '湖邊連續彎又濕滑，輪胎、車寬、重心和續航一起被考', class: 'normal' },
+  { tag: '🌾 節點 10', name: '水上偏遠聚落', sub: '補給少、路況破碎，續航、耐震和高底盤會變得很重要', class: 'normal' },
+  { tag: '🏡 節點 11', name: '農村四合院',     sub: '院落入口窄、地面不平又可能積水，低速扭力和底盤通過性比極速重要', class: 'normal' },
+  { tag: '🛣 節點 12', name: '高鐵大道荒涼段', sub: '空曠長直路很誘惑，但拋錨就沒人救；耗能和穩定要一起顧', class: 'normal' },
+  { tag: '🏥 節點 13', name: '避難點入口',    sub: '最後確認物資、電量與車體狀態，能到才算真的解決', class: 'normal' },
+];
+function getActiveSectors(){
+  return activeMissionLevel === 1 ? CITY_SECTORS : OVAL_SECTORS;
+}
 function getSector(dist){
   const t = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
-  return Math.floor(t / L_TOTAL * SECTORS.length);
+  const sectors = getActiveSectors();
+  return Math.min(sectors.length - 1, Math.floor(t / L_TOTAL * sectors.length));
 }
 function updateSectorHud(sec){
   // 小 HUD
@@ -4900,12 +6421,14 @@ function chargeBattery(amount){
 // ═══════════════════════════════════════════════
 // RESET
 // ═══════════════════════════════════════════════
-function resetRace(){
+function resetRace(openGarageAfter = false){
   raceRunning = false;
   raceTime = 0;
   resultShown = false;
   playerScore = 0;
+  activeGarageAxisKey = 'tire';
   resetSupportState();
+  resetHypothesisState();
   lightspeedActive = false;
   lightspeedTimer = 0;
   powerUpSpawnTimer = 0;
@@ -4997,7 +6520,16 @@ function resetRace(){
 
   // Spawn fresh power-ups
   spawnInitialPowerUps();
-  setTimeout(startCountdown, 300);
+  if(openGarageAfter){
+    setTimeout(showGarage, 300);
+  } else {
+    setTimeout(startCountdown, 300);
+  }
+}
+
+function prepareRematch(){
+  hideResults();
+  resetRace(true);
 }
 
 // ═══════════════════════════════════════════════
@@ -5625,6 +7157,7 @@ function buildFppSection(pud, totalAxis){
 function buildExperimentReport(pud, rawTotal, adjustedTotal){
   const mods = pud.mods || { tot: {} };
   const tot = mods.tot || {};
+  const mission = pud.mission || getActiveMission();
   const supportList = (pud.supportUses || []).join('、') || '無';
   const radioCount = (pud.radioUses || []).length;
   const materialCount = (pud.materialOwned || []).length;
@@ -5651,12 +7184,13 @@ function buildExperimentReport(pud, rawTotal, adjustedTotal){
     '<div class="fpp-section">' +
       '<h4>🧪 測試場證據</h4>' +
       '<div class="experiment-report">' +
+        '<div class="report-box"><div class="rb-label">任務</div><div class="rb-val">' + mission.title + '</div></div>' +
         '<div class="report-box"><div class="rb-label">觀察</div><div class="rb-val">' + observation + '</div></div>' +
         '<div class="report-box"><div class="rb-label">副作用</div><div class="rb-val">' + sideEffect + '</div></div>' +
         '<div class="report-box"><div class="rb-label">支援</div><div class="rb-val">' + supportVerdict + '</div></div>' +
-        '<div class="report-box"><div class="rb-label">錢包/材料</div><div class="rb-val">剩 ' + (pud.rescueCoins || 0) + ' RC ｜ 材料 ' + materialCount + ' 件</div></div>' +
       '</div>' +
       '<div class="experiment-report" style="margin-top:8px;">' +
+        '<div class="report-box"><div class="rb-label">錢包/材料</div><div class="rb-val">剩 ' + (pud.rescueCoins || 0) + ' RC ｜ 材料 ' + materialCount + ' 件</div></div>' +
         '<div class="report-box"><div class="rb-label">電力證據</div><div class="rb-val">剩餘 ' + battery + '% ｜ 健康 ' + soh + '%</div></div>' +
         '<div class="report-box"><div class="rb-label">裝備材料</div><div class="rb-val">' + ((pud.materialOwned || []).join('、') || '無') + '</div></div>' +
       '</div>' +
@@ -5710,25 +7244,38 @@ function showResults(){
   const LEGEND_TARGET = 200;
   const gapToLegend = Math.max(0, LEGEND_TARGET - totalAxis);
   let verdict = '';
-  if(totalAxis >= LEGEND_TARGET) verdict = '🌟 你就是嘉義街頭傳奇老闆！';
+  const mission = pud.mission || getActiveMission();
+  if(totalAxis >= LEGEND_TARGET) verdict = mission.id === 'chiayi-flood-02'
+    ? '🌟 你就是嘉義街頭救援傳奇！'
+    : '🌟 你把這台原型車測到極限了！';
   else if(totalAxis >= 140) verdict = '👍 再多練幾次，傳奇就在不遠處';
   else if(totalAxis >= 80) verdict = '🌱 還在學徒階段，每一個取捨都算數';
   else verdict = '💭 重玩看看，這次學到了什麼？';
+  const nextTarget = gapToLegend > 0
+    ? '下一輪只改一個零件，先把差距縮小 ' + Math.min(gapToLegend, 40) + ' 分。'
+    : '下一輪挑戰少用一次支援，保住破解榮譽。';
+  const supportLine = (pud.supportPenalty || 0) > 0
+    ? '支援代價 -' + pud.supportPenalty + ' ｜ 原始合計 ' + rawTotalAxis
+    : '無支援扣分 ｜ 破解榮譽保留';
 
   statsDiv.innerHTML =
-    '<div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;">' +
-      '<div>⏱ <b style="color:#ffd866">時間 ' + timeAxis + '</b></div>' +
-      '<div>💬 <b style="color:#ffd866">口碑 ' + repAxis + '</b></div>' +
-      '<div>🏘 <b style="color:#ffd866">在地 ' + locAxis + '</b></div>' +
-      '<div>🎯 <b style="color:#ffd866">取捨 ' + choiceCount + '</b></div>' +
+    '<div class="result-hero-card">' +
+      '<div class="result-kicker">測試完成</div>' +
+      '<div class="result-verdict">' + verdict + '</div>' +
+      '<div class="result-score">' + totalAxis + '<span> / ' + LEGEND_TARGET + '</span></div>' +
+      '<div class="result-next">' + nextTarget + '</div>' +
     '</div>' +
-    '<div style="font-size:18px; color:#ffd866; margin:8px 0;">合計 ' + totalAxis + ' / ' + LEGEND_TARGET + '</div>' +
-    ((pud.supportPenalty || 0) > 0 ? '<div style="font-size:12px; color:#ffbb5c; margin-top:4px;">支援代價 -' + pud.supportPenalty + ' ｜ 原始合計 ' + rawTotalAxis + '</div>' : '') +
-    '<div style="font-size:15px; color:#ccc;">' + verdict + '</div>' +
-    (gapToLegend > 0 ? '<div style="font-size:12px; color:#888; margin-top:6px;">離傳奇老闆還差 ' + gapToLegend + ' 分</div>' : '') +
-    '<div style="font-size:11px; color:#666; margin-top:14px;">原始分數: ' + playerScore + ' ｜ 總時間: ' + raceTime.toFixed(1) + 's</div>' +
+    '<div class="result-axis-grid">' +
+      '<div class="result-axis"><span>⏱ 時間</span><strong>' + timeAxis + '</strong></div>' +
+      '<div class="result-axis"><span>💬 口碑</span><strong>' + repAxis + '</strong></div>' +
+      '<div class="result-axis"><span>🏘 在地</span><strong>' + locAxis + '</strong></div>' +
+      '<div class="result-axis"><span>🎯 取捨</span><strong>' + choiceCount + '</strong></div>' +
+    '</div>' +
+    '<div class="result-support-line">' + supportLine + '</div>' +
+    (gapToLegend > 0 ? '<div class="result-gap">離傳奇還差 ' + gapToLegend + ' 分</div>' : '') +
+    '<div class="result-raw">原始分數: ' + playerScore + ' ｜ 總時間: ' + raceTime.toFixed(1) + 's</div>' +
     (pud.powerMode !== 2 ? (
-      '<div style="font-size:12px; color:' + (pud.batteryHealth < 60 ? '#ff3333' : pud.batteryHealth < 85 ? '#ff9933' : '#4ade80') + '; margin-top:6px;">' +
+      '<div class="result-battery" style="color:' + (pud.batteryHealth < 60 ? '#ff3333' : pud.batteryHealth < 85 ? '#ff9933' : '#4ade80') + ';">' +
         '🔬 鋰電池健康度 SOH: ' + Math.round(pud.batteryHealth || 100) + '%　' +
         (pud.batteryHealth >= 85 ? '✅ 你懂保養！80% 安全充電法則' :
          pud.batteryHealth >= 60 ? '⚠️ 電池被你榨太兇，下次別充太滿/用太空' :
@@ -5805,7 +7352,7 @@ function animate(){
     // Legendary: only spawns in first 2 laps, not near finish
     const playerLaps = playerCar.userData.laps || 0;
     legendarySpawnTimer += dt;
-    if(legendarySpawnTimer > 10 && playerLaps < TOTAL_LAPS - 1){
+    if(legendarySpawnTimer > 10 && playerLaps < getMissionLapGoal() - 1){
       const hasLegendary = powerUpItems.some(i => i.userData.isLegendary);
       if(!hasLegendary && Math.random() < 0.12){
         spawnPowerUp(true);
@@ -5887,7 +7434,7 @@ function animate(){
     const gearAccelMul = 1 - gearLevel * 0.20;   // 高齒比 -20% 起步加速（互相 trade-off）
     // 續航：第 3 圈最後 30% 距離後 + rangeMul<1 → 減速
     let rangePenalty = 1;
-    if(ud.laps >= TOTAL_LAPS - 1 && mods.rangeMul < 1){
+    if(ud.laps >= getMissionLapGoal() - 1 && mods.rangeMul < 1){
       const lapProgress = (ud._dist / L_TOTAL) % 1;
       if(lapProgress > 0.7) rangePenalty = 0.65;  // 沒電了
     }
@@ -6143,7 +7690,7 @@ function animate(){
           case 'oil':
             // Drop oil slick behind player
             dropOilSlick(ud._dist - 20, ud._lateralOffset);
-            showPowerUpMsg('🌊 嘉義積水區！後車小心');
+            showPowerUpMsg(activeMissionLevel === 1 ? '🌊 街區積水！後車小心' : '🌊 測試水痕！後車小心');
             break;
           case 'lightspeed':
             lightspeedActive = true;
@@ -6249,7 +7796,9 @@ function animate(){
     // Lap completion bonus
     if(ud.laps > (ud._prevLapCount || 0)){
       addScore(200);
-      showPowerUpMsg('🏁 完成第 ' + ud.laps + ' 圈！+200');
+      showPowerUpMsg(activeMissionLevel === 1
+        ? '🏥 救援路線送達！+200'
+        : '📊 第 ' + ud.laps + ' 輪數據回收！+200');
       ud._prevLapCount = ud.laps;
       // 對齊卡情境事件（第 1、2 圈完成後觸發）
       setTimeout(() => triggerAlignCard(ud.laps), 1200);
@@ -6266,19 +7815,23 @@ function animate(){
       }
     }
 
-    // ═══ 嘉義地標賽道區段判定 + 水道/爬坡 effect ═══
+    // ═══ 任務區段判定 + 水道/爬坡 effect ═══
     const curSector = getSector(ud._dist);
     if(curSector !== ud._lastSector){
       ud._lastSector = curSector;
-      const sec = SECTORS[curSector];
+      const sec = getActiveSectors()[curSector];
       updateSectorHud(sec);
       // 水道：依改裝判定打滑（第 2 圈水位上升再加強）+ 重心配重
       if(sec.class === 'water'){
         let slipMul = 1.0;
         const lapNum = (ud.laps || 0) + 1;
-        let msg = lapNum >= 2
-          ? '⚠️ 第二輪・水位再升！屋頂全沒了 '
-          : '💧 進入秀泰地下道淹水區！前段淺水・中段屋頂滅頂 ';
+        let msg = activeMissionLevel === 1
+          ? (lapNum >= 2
+              ? '⚠️ 城市深水區・水位再升！'
+              : '💧 進入 ' + sec.name + '！先判斷能不能硬闖 ')
+          : (lapNum >= 2
+              ? '⚠️ 第二輪・淺水槽水位提高！'
+              : '💧 進入 ' + sec.name + '！先看輪胎與防水反應 ');
         if(mods.slipWater) { slipMul *= 0.45; msg += '🛞 光頭胎當場打滑！'; }
         if(!mods.waterproof) { slipMul *= 0.65; msg += '💀 馬達進水減速！'; }
         if(mods.driveIdx === 1) { slipMul *= 0.85; msg += 'FR 後驅尾搖！'; }
@@ -6321,13 +7874,13 @@ function animate(){
       else if(sec.class === 'hill'){
         if(mods.tot && mods.tot.climb <= -2){
           ud._speed *= 0.35;
-          showPowerUpMsg('⛰ 民生南路天橋上坡！高齒比+小馬力爬不上去 🐢');
+          showPowerUpMsg('⛰ ' + sec.name + '！高齒比+小馬力爬不上去 🐢');
         } else if(mods.tot && mods.tot.climb >= 2){
           ud._speed *= 1.15;
-          showPowerUpMsg('⛰ 天橋上坡 / 低齒比+四驅輕鬆上 🚀');
+          showPowerUpMsg('⛰ ' + sec.name + ' / 低齒比+四驅輕鬆上 🚀');
         } else {
           ud._speed *= 0.80;
-          showPowerUpMsg('⛰ 民生南路天橋上坡，車速稍降');
+          showPowerUpMsg('⛰ ' + sec.name + '，車速稍降');
         }
       }
     }
@@ -6570,8 +8123,23 @@ function animate(){
     return b.userData.cpIdx - a.userData.cpIdx;
   });
   document.getElementById('hRank').textContent = (sorted.indexOf(playerCar) + 1) + ' / ' + allCars.length;
-  document.getElementById('lapCur').textContent = Math.min(ud.laps, TOTAL_LAPS);
-  document.getElementById('lapMax').textContent = TOTAL_LAPS;
+  const mission = getActiveMission();
+  const lapInfo = document.getElementById('lapInfo');
+  if(lapInfo && lapInfo.dataset.missionId !== mission.id){
+    lapInfo.dataset.missionId = mission.id;
+    lapInfo.innerHTML = mission.progressLabel + ' <span id="lapCur">0</span> / <span id="lapMax">' + mission.progressMax + '</span>';
+  }
+  if(mission.id === 'chiayi-flood-02'){
+    const nodeProgress = Math.min(
+      mission.progressMax,
+      (ud.laps || 0) * mission.progressMax + Math.floor((((ud._dist % L_TOTAL) + L_TOTAL) % L_TOTAL) / L_TOTAL * mission.progressMax)
+    );
+    document.getElementById('lapCur').textContent = nodeProgress;
+    document.getElementById('lapMax').textContent = mission.progressMax;
+  } else {
+    document.getElementById('lapCur').textContent = Math.min(ud.laps, getMissionLapGoal());
+    document.getElementById('lapMax').textContent = getMissionLapGoal();
+  }
   // Update confetti
   updateConfetti(dt);
 
