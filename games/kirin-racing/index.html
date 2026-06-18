@@ -4279,93 +4279,254 @@ function createUtilityPole(x, z){
   });
 }
 
-// 🌊 蘭潭水庫風格：在水道外側鋪大片半透明深湖 + 山剪影 + 水底暗礁
+// 🏟 大業實驗中學操場（K-01 原型車封閉測試場）
+// 中廊地標：鯨魚雕塑 + 地球雕塑，學生看到立刻認得是大業
 const obstacleRocks = [];    // 路上石頭（碰到扣分）
 const rescueItems = [];      // 救援目標（撿到加分）
-const reefRocks = [];        // 水底暗礁（碰到車體受損）
-const mountainBarriers = []; // 蘭潭對岸山體（永遠阻擋，撞到推回去）
+const reefRocks = [];        // 保留變數（空陣列，移除蘭潭暗礁）
+const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
 {
-  const floodCenterD = (6.5 / 8) * L_TOTAL;
-  const lakeCenter = getTrackPoint(floodCenterD, -(TW/2 + 60));
-  // 大湖面板（半透明深藍綠）
-  const lakeMat = new THREE.MeshBasicMaterial({
-    color: 0x3a7d8c, transparent: true, opacity: 0.7, depthWrite: false,
-  });
-  const lakeBed = new THREE.Mesh(new THREE.PlaneGeometry(180, 110), lakeMat);
-  lakeBed.rotation.x = -Math.PI / 2;
-  lakeBed.position.set(lakeCenter.x, 0.3, lakeCenter.z);
-  scene.add(lakeBed);
-  // 湖面亮波紋
-  for(let i = 0; i < 14; i++){
-    const rip = new THREE.Mesh(
-      new THREE.BoxGeometry(2 + Math.random()*5, 0.06, 0.4),
-      new THREE.MeshBasicMaterial({ color: 0xb5dff0, transparent: true, opacity: 0.6 })
-    );
-    rip.position.set(
-      lakeCenter.x + (Math.random() - 0.5) * 150,
-      0.45,
-      lakeCenter.z + (Math.random() - 0.5) * 80
-    );
-    rip.rotation.y = Math.random() * Math.PI;
-    scene.add(rip);
-  }
-  // 水底暗礁（6 顆，玩家若衝進湖會撞到）
-  for(let i = 0; i < 6; i++){
-    const rx = lakeCenter.x + (Math.random() - 0.5) * 140;
-    const rz = lakeCenter.z + (Math.random() - 0.5) * 90;
-    const reef = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(1.6 + Math.random() * 1.4, 0),
-      new THREE.MeshLambertMaterial({ color: 0x2a3a4a, transparent: true, opacity: 0.85 })
-    );
-    reef.position.set(rx, 0.2, rz);
-    reef.rotation.y = Math.random() * Math.PI;
-    scene.add(reef);
-    reefRocks.push(reef);
-  }
-  // 對岸山的剪影（暗綠色錐 + 暗藍遠山）— 山體阻擋去路，碰撞檢測
-  for(let i = 0; i < 7; i++){
-    const mountainR = 15 + Math.random() * 8;     // 底半徑
-    const mountainH = 18 + Math.random() * 14;
-    const mountainColor = i % 2 === 0 ? 0x3a5a3a : 0x2a4458;
-    const mt = new THREE.Mesh(
-      new THREE.ConeGeometry(mountainR, mountainH, 5),
-      new THREE.MeshLambertMaterial({ color: mountainColor })
-    );
-    mt.position.set(
-      lakeCenter.x + (i - 3) * 28 + (Math.random() - 0.5) * 8,
-      mountainH * 0.5 - 1,
-      lakeCenter.z - 60 - Math.random() * 8
-    );
-    mt.castShadow = true;
-    mt.userData = { collisionRadius: mountainR * 0.85 }; // 略小於底半徑（保留視覺餘裕）
-    scene.add(mt);
-    mountainBarriers.push(mt);
-  }
-  // 湖中央立一個「蘭潭水庫」招牌
-  const lakeSignPole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15, 0.18, 4, 6),
-    new THREE.MeshLambertMaterial({ color: 0x4a3a2a })
+  // 內場綠色草地（橢圓中央，覆蓋原蘭潭區域）
+  const innerField = new THREE.Mesh(
+    new THREE.PlaneGeometry(190, 105),
+    new THREE.MeshLambertMaterial({ color: 0x4a8c3e })
   );
-  lakeSignPole.position.set(lakeCenter.x, 2, lakeCenter.z + 5);
-  scene.add(lakeSignPole);
+  innerField.rotation.x = -Math.PI / 2;
+  innerField.position.set(0, 0.05, 0);
+  scene.add(innerField);
+
+  // 看台（兩排白色，賽道外側左右各一）
+  [
+    { cx:  135, cz: 0, len: 35 },
+    { cx: -135, cz: 0, len: 35 },
+  ].forEach(s => {
+    for(let row = 0; row < 4; row++){
+      const seat = new THREE.Mesh(
+        new THREE.BoxGeometry(s.len, 0.7, 1.6),
+        new THREE.MeshLambertMaterial({ color: row % 2 === 0 ? 0xf1f5f9 : 0xcbd5e1 })
+      );
+      seat.position.set(s.cx + (s.cx > 0 ? row * 0.8 : -row * 0.8), 0.35 + row * 0.7, s.cz);
+      seat.castShadow = true;
+      scene.add(seat);
+    }
+    // 看台屋頂條（藍色遮陽）
+    const canopy = new THREE.Mesh(
+      new THREE.BoxGeometry(s.len + 4, 0.3, 6),
+      new THREE.MeshLambertMaterial({ color: 0x2563eb })
+    );
+    canopy.position.set(s.cx + (s.cx > 0 ? 3 : -3), 4.5, s.cz);
+    scene.add(canopy);
+  });
+
+  // 起跑門（賽道 sector 0 起點上方）
+  {
+    const startP = getTrackPoint(0, 0);
+    const gateGrp = new THREE.Group();
+    const colors = [0xfbbf24, 0xef4444];  // 大業配色：黃柱 + 紅樑
+    // 左右柱
+    [-TW/2 - 1, TW/2 + 1].forEach(dx => {
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.4, 0.4, 8),
+        new THREE.MeshLambertMaterial({ color: colors[0] })
+      );
+      pole.position.set(dx, 4, 0);
+      gateGrp.add(pole);
+    });
+    // 橫樑
+    const beam = new THREE.Mesh(
+      new THREE.BoxGeometry(TW + 4, 1.4, 0.8),
+      new THREE.MeshLambertMaterial({ color: colors[1] })
+    );
+    beam.position.set(0, 7.5, 0);
+    gateGrp.add(beam);
+    // 起跑門上的「START」字樣（canvas texture）
+    const gv = document.createElement('canvas');
+    gv.width = 384; gv.height = 64;
+    const gx = gv.getContext('2d');
+    gx.fillStyle = 'rgba(0,0,0,0)'; gx.fillRect(0, 0, 384, 64);
+    gx.fillStyle = '#fff'; gx.font = 'bold 44px "Inter", sans-serif';
+    gx.textAlign = 'center'; gx.textBaseline = 'middle';
+    gx.fillText('🏁 START / FINISH', 192, 32);
+    const gtex = new THREE.CanvasTexture(gv);
+    const gtxt = new THREE.Mesh(
+      new THREE.PlaneGeometry(TW, 1.2),
+      new THREE.MeshBasicMaterial({ map: gtex, transparent: true, side: THREE.DoubleSide })
+    );
+    gtxt.position.set(0, 7.5, 0.5);
+    gateGrp.add(gtxt);
+    gateGrp.position.set(startP.x, 0, startP.z);
+    gateGrp.rotation.y = startP.heading;
+    scene.add(gateGrp);
+  }
+
+  // 🐳 鯨魚雕塑（中廊地標）—— 內場左側
+  {
+    const wx = 38, wz = -8;
+    // 白色圓形底座
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(4.5, 5, 1.2, 24),
+      new THREE.MeshLambertMaterial({ color: 0xf1f5f9 })
+    );
+    base.position.set(wx, 0.6, wz);
+    base.castShadow = true;
+    scene.add(base);
+    // 鯨魚身體（藍灰拉長橢球）
+    const body = new THREE.Mesh(
+      new THREE.SphereGeometry(3.2, 20, 14),
+      new THREE.MeshLambertMaterial({ color: 0x4a7a9e })
+    );
+    body.scale.set(2.4, 1.1, 1.1);
+    body.position.set(wx, 4.5, wz);
+    body.castShadow = true;
+    scene.add(body);
+    // 肚白（淺色 sphere 疊在下方）
+    const belly = new THREE.Mesh(
+      new THREE.SphereGeometry(2.4, 16, 10),
+      new THREE.MeshLambertMaterial({ color: 0xcbd5e1 })
+    );
+    belly.scale.set(2.2, 0.6, 0.9);
+    belly.position.set(wx, 3.5, wz + 0.4);
+    scene.add(belly);
+    // 尾鰭（兩片三角，V 字形）
+    [-Math.PI / 6, Math.PI / 6].forEach(ang => {
+      const fluke = new THREE.Mesh(
+        new THREE.ConeGeometry(1.8, 2.8, 4),
+        new THREE.MeshLambertMaterial({ color: 0x4a7a9e })
+      );
+      fluke.rotation.z = Math.PI / 2 + ang;
+      fluke.position.set(wx - 7.5, 5 + Math.sin(ang) * 1.5, wz);
+      scene.add(fluke);
+    });
+    // 胸鰭
+    const pec = new THREE.Mesh(
+      new THREE.ConeGeometry(1.2, 2.5, 3),
+      new THREE.MeshLambertMaterial({ color: 0x4a7a9e })
+    );
+    pec.rotation.set(0, 0, -Math.PI / 3);
+    pec.position.set(wx + 2, 3, wz + 3.5);
+    scene.add(pec);
+    // 眼睛（小黑點）
+    const eye = new THREE.Mesh(
+      new THREE.SphereGeometry(0.25, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0x0a0a0a })
+    );
+    eye.position.set(wx + 5.5, 4.8, wz + 1.2);
+    scene.add(eye);
+    // 噴水柱（從頭頂噴出）
+    const spout = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.25, 0.7, 2.5),
+      new THREE.MeshBasicMaterial({ color: 0xb5dff0, transparent: true, opacity: 0.7 })
+    );
+    spout.position.set(wx + 4, 7, wz);
+    scene.add(spout);
+  }
+
+  // 🌍 地球雕塑（中廊地標）—— 內場右側
+  {
+    const ex = -38, ez = -8;
+    // 白色底座
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.5, 4, 2, 24),
+      new THREE.MeshLambertMaterial({ color: 0xf1f5f9 })
+    );
+    base.position.set(ex, 1, ez);
+    base.castShadow = true;
+    scene.add(base);
+    // 地球主體（藍色海洋）
+    const earth = new THREE.Mesh(
+      new THREE.SphereGeometry(3.8, 28, 20),
+      new THREE.MeshLambertMaterial({ color: 0x2a6cb0 })
+    );
+    earth.position.set(ex, 6, ez);
+    earth.castShadow = true;
+    scene.add(earth);
+    // 經線（4 條 Torus）
+    for(let i = 0; i < 4; i++){
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(3.85, 0.06, 6, 36),
+        new THREE.MeshBasicMaterial({ color: 0x0f2540 })
+      );
+      ring.position.set(ex, 6, ez);
+      ring.rotation.y = (i / 4) * Math.PI;
+      scene.add(ring);
+    }
+    // 赤道（水平環，較粗）
+    const equator = new THREE.Mesh(
+      new THREE.TorusGeometry(3.85, 0.1, 6, 36),
+      new THREE.MeshBasicMaterial({ color: 0x0f2540 })
+    );
+    equator.position.set(ex, 6, ez);
+    equator.rotation.x = Math.PI / 2;
+    scene.add(equator);
+    // 陸塊裝飾（綠色圓盤點綴，6 塊散在球面）
+    const landSpots = [
+      { lat:  0.3, lon: 0.5, r: 1.4 },  // 亞洲
+      { lat:  0.5, lon: 2.8, r: 1.0 },  // 北美
+      { lat: -0.4, lon: 1.0, r: 0.9 },  // 澳洲
+      { lat: -0.3, lon: 3.5, r: 1.2 },  // 南美
+      { lat:  0.1, lon: 4.5, r: 0.8 },  // 非洲
+      { lat:  0.7, lon: 1.8, r: 0.7 },  // 北極島
+    ];
+    landSpots.forEach(s => {
+      const land = new THREE.Mesh(
+        new THREE.CircleGeometry(s.r, 12),
+        new THREE.MeshBasicMaterial({ color: 0x4a8c3e, side: THREE.DoubleSide })
+      );
+      const r = 3.9;
+      const lx = ex + r * Math.cos(s.lat) * Math.cos(s.lon);
+      const ly = 6 + r * Math.sin(s.lat);
+      const lz = ez + r * Math.cos(s.lat) * Math.sin(s.lon);
+      land.position.set(lx, ly, lz);
+      land.lookAt(ex, 6, ez);
+      land.translateZ(-0.01);
+      scene.add(land);
+    });
+  }
+
+  // 操場兩棵樹（內場兩側）
+  [{ x: 65, z: 30 }, { x: -65, z: 30 }, { x: 0, z: 38 }].forEach(t => {
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.7, 3),
+      new THREE.MeshLambertMaterial({ color: 0x6b4226 })
+    );
+    trunk.position.set(t.x, 1.5, t.z);
+    scene.add(trunk);
+    const crown = new THREE.Mesh(
+      new THREE.ConeGeometry(2.5, 5, 8),
+      new THREE.MeshLambertMaterial({ color: 0x2d5a3a })
+    );
+    crown.position.set(t.x, 5.5, t.z);
+    crown.castShadow = true;
+    scene.add(crown);
+  });
+
+  // 操場名牌（替代原蘭潭招牌）
+  const signPole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.15, 0.18, 4, 6),
+    new THREE.MeshLambertMaterial({ color: 0x6b7280 })
+  );
+  signPole.position.set(0, 2, -38);
+  scene.add(signPole);
   const cv = document.createElement('canvas');
-  cv.width = 256; cv.height = 96;
+  cv.width = 320; cv.height = 110;
   const ctx = cv.getContext('2d');
-  ctx.fillStyle = '#0a2a3e'; ctx.fillRect(0, 0, 256, 96);
-  ctx.strokeStyle = '#59c7ff'; ctx.lineWidth = 4;
-  ctx.strokeRect(8, 8, 240, 80);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 32px "PingFang TC", sans-serif';
+  ctx.fillStyle = '#1a3a5a'; ctx.fillRect(0, 0, 320, 110);
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 4;
+  ctx.strokeRect(8, 8, 304, 94);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 28px "PingFang TC", sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('🌊 蘭潭水庫', 128, 38);
-  ctx.font = '18px "PingFang TC", sans-serif'; ctx.fillStyle = '#94a3b8';
-  ctx.fillText('暗礁區・勿衝水中', 128, 68);
+  ctx.fillText('🏟 大業操場', 160, 38);
+  ctx.font = '15px "PingFang TC", sans-serif'; ctx.fillStyle = '#94a3b8';
+  ctx.fillText('K-01 原型車封閉測試場', 160, 70);
+  ctx.font = '12px "PingFang TC", sans-serif'; ctx.fillStyle = '#fbbf24';
+  ctx.fillText('🐳 鯨魚雕塑 ・ 🌍 地球雕塑', 160, 92);
   const tex = new THREE.CanvasTexture(cv);
-  const lakeSign = new THREE.Mesh(
-    new THREE.PlaneGeometry(5, 1.9),
+  const sign = new THREE.Mesh(
+    new THREE.PlaneGeometry(6, 2.1),
     new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
   );
-  lakeSign.position.set(lakeCenter.x, 4.5, lakeCenter.z + 5);
-  scene.add(lakeSign);
+  sign.position.set(0, 4.5, -38);
+  scene.add(sign);
 }
 
 // 🪨 路上石頭障礙物（撞到減速 + 扣分 + 低底盤掉零件）
