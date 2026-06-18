@@ -3382,6 +3382,78 @@ function getTrackPoint(dist, lateralOffset){
 function headingToRotY(h){ return -h + Math.PI/2; }
 
 // ═══════════════════════════════════════════════
+// Stage 2: 嘉義市馬路路網（折線單程，非橢圓繞圈）
+// 用 THREE.CatmullRomCurve3 把 13 節點串成平滑曲線
+// ⚠️ 此模組「先建造，不啟用」— 等 Step 3 切換邏輯與物件 spawn 完成才解鎖
+// ═══════════════════════════════════════════════
+const STAGE2_NODES = [
+  { x: -200, z:  20, name: '火車站高樓商圈' },
+  { x: -150, z:   0, name: '北門平交道' },
+  { x: -100, z:  30, name: '文化路' },
+  { x:  -60, z: -10, name: '透天住宅巷弄' },
+  { x:  -10, z:  25, name: '噴水圓環' },
+  { x:   30, z: -10, name: '中山路低窪' },
+  { x:   60, z:  30, name: '秀泰地下道' },
+  { x:   95, z:  -5, name: '民生南路天橋' },
+  { x:  135, z:  35, name: '蘭潭環湖道路' },
+  { x:  165, z: -20, name: '水上偏遠聚落' },
+  { x:  190, z:  10, name: '農村四合院' },
+  { x:  220, z:  30, name: '高鐵大道荒涼段' },
+  { x:  255, z:   0, name: '避難點' },
+];
+
+let STAGE2_CURVE = null;
+let L2_TOTAL = 0;
+let STAGE2_NODE_DISTS = []; // 每個節點在曲線上的累積距離（給 sector 偵測用）
+
+function initStage2Path(){
+  if(STAGE2_CURVE) return;
+  if(typeof THREE === 'undefined') return;
+  const pts = STAGE2_NODES.map(n => new THREE.Vector3(n.x, 0, n.z));
+  STAGE2_CURVE = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+  L2_TOTAL = STAGE2_CURVE.getLength();
+  // 計算每個節點在曲線上的累積距離（13 節點 = 12 段）
+  // getLengths(divisions) 回傳長度為 divisions+1 的陣列，0 ~ totalLength
+  STAGE2_NODE_DISTS = STAGE2_CURVE.getLengths(STAGE2_NODES.length - 1).slice();
+}
+initStage2Path();
+
+// 同樣接口 (dist, lateralOffset) → { x, z, heading }，但走折線路徑
+// dist 範圍 [0, L2_TOTAL]，超出兩端會 clamp（單程，不繞圈）
+function getTrackPoint2(dist, lateralOffset){
+  if(!STAGE2_CURVE) initStage2Path();
+  if(!STAGE2_CURVE || L2_TOTAL <= 0) return { x: 0, z: 0, heading: 0 };
+  const lo = lateralOffset || 0;
+  const t = Math.max(0, Math.min(1, dist / L2_TOTAL));
+  const p = STAGE2_CURVE.getPointAt(t);
+  const tan = STAGE2_CURVE.getTangentAt(t);
+  // heading 對齊橢圓賽道定義：heading=0 沿 +X，heading=π/2 沿 +Z
+  const heading = Math.atan2(tan.z, tan.x);
+  // 左側（lateral 為正）對齊賽道慣例：tan=(1,0,0) 時 lo>0 → +Z
+  // 左側向量 = (-tan.z, 0, +tan.x)
+  return {
+    x: p.x - tan.z * lo,
+    z: p.z + tan.x * lo,
+    heading: heading
+  };
+}
+
+// 根據節點 index 拿到該節點所在的曲線距離（給 sector / checkpoint 判定用）
+function getStage2NodeDist(nodeIdx){
+  if(!STAGE2_NODE_DISTS.length) initStage2Path();
+  if(nodeIdx < 0 || nodeIdx >= STAGE2_NODE_DISTS.length) return 0;
+  return STAGE2_NODE_DISTS[nodeIdx];
+}
+// 根據 dist 反推目前在第幾個節點段（0 ~ 12）
+function getStage2NodeIndex(dist){
+  if(!STAGE2_NODE_DISTS.length) initStage2Path();
+  for(let i = STAGE2_NODE_DISTS.length - 1; i >= 0; i--){
+    if(dist >= STAGE2_NODE_DISTS[i]) return i;
+  }
+  return 0;
+}
+
+// ═══════════════════════════════════════════════
 // THREE.JS SCENE
 // ═══════════════════════════════════════════════
 const scene = new THREE.Scene();
