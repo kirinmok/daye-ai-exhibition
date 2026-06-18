@@ -5138,7 +5138,7 @@ function startOpeningSplash(){
   if(splashStarted) return;
   splashStarted = true;
   const scenes = document.querySelectorAll('#openingSplash .splash-scene');
-  const sceneDuration = 7500; // 每場景 7.5 秒（KIRIN 反饋還是太快，再加長）
+  const sceneDuration = 2500; // 每場景 2.5 秒（KIRIN：學生沒耐心看 splash，整體 49 秒砍到 18 秒）
   let idx = 0;
   function showScene(i){
     scenes.forEach(s => s.classList.remove('active', 'shake'));
@@ -5174,7 +5174,7 @@ function closeOpeningSplash(){
         rv.style.display = 'none';
         showGarage();
       }, 600); // fade out
-    }, 2400); // reveal 停留 2.4 秒
+    }, 1200); // reveal 停留 1.2 秒（KIRIN：學生沒耐心，砍半）
   }, 850);
 }
 // ESC 跳過 splash / 暫停比賽 / P 暫停
