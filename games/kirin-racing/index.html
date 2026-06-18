@@ -3673,32 +3673,242 @@ for(let i = 1; i < LANE_COUNT; i++){
   scene.add(finishMesh);
 }
 
-// Stage 2 13 個節點地標（路邊立柱 + 黃色頂）
+// Stage 2 13 個節點：基礎路標（每個節點都有）
 STAGE2_NODES.forEach((node, idx) => {
-  // 立柱
+  // 路邊立柱 + 黃色頂 — 給玩家「節點在這裡」的方向感
   const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.3, 0.3, 6),
+    new THREE.CylinderGeometry(0.25, 0.25, 5),
     new THREE.MeshLambertMaterial({ color: 0x6b7280 })
   );
-  pole.position.set(node.x, 3, node.z + 12);  // 路邊 12m 外
+  pole.position.set(node.x, 2.5, node.z + 14);
   scene.add(pole);
-  // 黃色頂（路標）
   const cap = new THREE.Mesh(
-    new THREE.BoxGeometry(2, 0.6, 2),
+    new THREE.BoxGeometry(1.8, 0.5, 1.8),
     new THREE.MeshLambertMaterial({ color: 0xeab308 })
   );
-  cap.position.set(node.x, 6.5, node.z + 12);
+  cap.position.set(node.x, 5.5, node.z + 14);
   scene.add(cap);
-  // 起點額外加綠色標誌（節點 0 火車站）
-  if(idx === 0){
-    const startMark = new THREE.Mesh(
-      new THREE.SphereGeometry(1.5, 8, 8),
-      new THREE.MeshLambertMaterial({ color: 0x10b981 })
-    );
-    startMark.position.set(node.x, 8.5, node.z + 12);
-    scene.add(startMark);
-  }
 });
+
+// ═══════════════════════════════════════════════
+// Stage 2 Hero Landmark：6 個關鍵節點放有特色的景色物件
+// 跑過去就能認出「啊這是嘉義火車站／蘭潭／避難點⋯」
+// ═══════════════════════════════════════════════
+function spawnStage2Hero(node, idx){
+  // 嘉義火車站（起點）：紅磚老建築 + 月台燈 + 林鐵旗
+  if(idx === 0){
+    // 紅磚主體
+    const main = new THREE.Mesh(
+      new THREE.BoxGeometry(14, 8, 9),
+      new THREE.MeshLambertMaterial({ color: 0x8B3A1F })
+    );
+    main.position.set(node.x - 22, 4, node.z + 5);
+    main.castShadow = true;
+    scene.add(main);
+    // 暗灰屋頂
+    const roof = new THREE.Mesh(
+      new THREE.BoxGeometry(15, 0.6, 10),
+      new THREE.MeshLambertMaterial({ color: 0x2d2d2d })
+    );
+    roof.position.set(node.x - 22, 8.3, node.z + 5);
+    scene.add(roof);
+    // 窗戶（黃色發光）
+    [-4, 0, 4].forEach(dx => {
+      const win = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 2, 0.2),
+        new THREE.MeshBasicMaterial({ color: 0xfde047 })
+      );
+      win.position.set(node.x - 22 + dx, 4, node.z + 9.6);
+      scene.add(win);
+    });
+    // 月台燈柱
+    const lampPole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 6),
+      new THREE.MeshLambertMaterial({ color: 0x2a2a2a })
+    );
+    lampPole.position.set(node.x - 14, 3, node.z + 6);
+    scene.add(lampPole);
+    const lampBall = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xfde047 })
+    );
+    lampBall.position.set(node.x - 14, 6, node.z + 6);
+    scene.add(lampBall);
+  }
+  // 北門平交道：鐵軌 + 紅綠警示燈 + 黃黑柵欄
+  if(idx === 1){
+    // 兩條鐵軌（橫越路徑）
+    for(let i = 0; i < 2; i++){
+      const rail = new THREE.Mesh(
+        new THREE.BoxGeometry(20, 0.15, 0.25),
+        new THREE.MeshLambertMaterial({ color: 0x8a8a8a })
+      );
+      rail.position.set(node.x, 0.15, node.z + (i === 0 ? -3 : 3));
+      scene.add(rail);
+    }
+    // 警示燈柱
+    const sigPole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.2, 6),
+      new THREE.MeshLambertMaterial({ color: 0x000000 })
+    );
+    sigPole.position.set(node.x + 12, 3, node.z + 8);
+    scene.add(sigPole);
+    // 紅燈球
+    const red = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xef4444 })
+    );
+    red.position.set(node.x + 12, 6.5, node.z + 8);
+    scene.add(red);
+    // 黃黑斜紋柵欄
+    const barrier = new THREE.Mesh(
+      new THREE.BoxGeometry(8, 0.4, 0.4),
+      new THREE.MeshLambertMaterial({ color: 0xfacc15 })
+    );
+    barrier.position.set(node.x + 8, 2, node.z + 8);
+    scene.add(barrier);
+  }
+  // 噴水圓環：中央噴水池 + KANO 棒球員雕像
+  if(idx === 4){
+    // 圓盤底座
+    const disk = new THREE.Mesh(
+      new THREE.CylinderGeometry(7, 7, 0.5, 32),
+      new THREE.MeshLambertMaterial({ color: 0xa1a1aa })
+    );
+    disk.position.set(node.x, 0.25, node.z + 18);
+    scene.add(disk);
+    // 中央水柱（藍色半透明）
+    const water = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8, 1.5, 6, 12),
+      new THREE.MeshBasicMaterial({ color: 0x59c7ff, transparent: true, opacity: 0.6 })
+    );
+    water.position.set(node.x, 3.5, node.z + 18);
+    scene.add(water);
+    // 銅像（KANO 棒球員）
+    const statue = new THREE.Mesh(
+      new THREE.BoxGeometry(1.2, 4, 1.2),
+      new THREE.MeshLambertMaterial({ color: 0xb45309 })
+    );
+    statue.position.set(node.x, 2.5, node.z + 18);
+    scene.add(statue);
+  }
+  // 秀泰地下道：暗黑入口 + 後面商業大樓
+  if(idx === 6){
+    // 商業大樓
+    const tower = new THREE.Mesh(
+      new THREE.BoxGeometry(10, 16, 10),
+      new THREE.MeshLambertMaterial({ color: 0x3b4252 })
+    );
+    tower.position.set(node.x - 14, 8, node.z + 18);
+    tower.castShadow = true;
+    scene.add(tower);
+    // 大樓窗戶亮燈（多排）
+    for(let r = 0; r < 4; r++){
+      for(let c = 0; c < 3; c++){
+        const win = new THREE.Mesh(
+          new THREE.BoxGeometry(1.2, 1.2, 0.1),
+          new THREE.MeshBasicMaterial({ color: 0xfde047 })
+        );
+        win.position.set(node.x - 14 + (c - 1) * 3, 4 + r * 3, node.z + 23.1);
+        scene.add(win);
+      }
+    }
+    // 地下道入口（黑色凹門）
+    const tunnel = new THREE.Mesh(
+      new THREE.BoxGeometry(6, 4, 1),
+      new THREE.MeshBasicMaterial({ color: 0x0a0a0a })
+    );
+    tunnel.position.set(node.x, 2, node.z + 12);
+    scene.add(tunnel);
+    // 黃黑警告錐
+    [-3, 3].forEach(dx => {
+      const cone = new THREE.Mesh(
+        new THREE.ConeGeometry(0.6, 1.8, 8),
+        new THREE.MeshLambertMaterial({ color: 0xfbbf24 })
+      );
+      cone.position.set(node.x + dx, 0.9, node.z + 11);
+      scene.add(cone);
+    });
+  }
+  // 蘭潭水庫：大湖面 + 山剪影
+  if(idx === 8){
+    // 大水面（藍綠半透明）
+    const lake = new THREE.Mesh(
+      new THREE.PlaneGeometry(50, 35),
+      new THREE.MeshLambertMaterial({ color: 0x3a7d8c, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
+    );
+    lake.rotation.x = -Math.PI / 2;
+    lake.position.set(node.x + 25, 0.05, node.z + 20);
+    scene.add(lake);
+    // 三座山剪影（暗綠色錐）
+    [-15, 0, 18].forEach(dx => {
+      const mt = new THREE.Mesh(
+        new THREE.ConeGeometry(8 + Math.random() * 4, 14 + Math.random() * 4, 6),
+        new THREE.MeshLambertMaterial({ color: 0x2d4a3a })
+      );
+      mt.position.set(node.x + 25 + dx, 7, node.z + 40);
+      mt.castShadow = true;
+      scene.add(mt);
+    });
+    // 環湖路欄杆
+    for(let i = -3; i <= 3; i++){
+      const post = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1, 0.1, 1.2),
+        new THREE.MeshLambertMaterial({ color: 0xe5e7eb })
+      );
+      post.position.set(node.x + i * 4, 0.6, node.z + 8);
+      scene.add(post);
+    }
+  }
+  // 避難點：藍白建築 + 紅十字 + 急救標誌
+  if(idx === 12){
+    // 主建築（白色）
+    const main = new THREE.Mesh(
+      new THREE.BoxGeometry(10, 5, 8),
+      new THREE.MeshLambertMaterial({ color: 0xf1f5f9 })
+    );
+    main.position.set(node.x, 2.5, node.z + 18);
+    main.castShadow = true;
+    scene.add(main);
+    // 藍色屋頂（三角）
+    const roofGeo = new THREE.ConeGeometry(7, 2.5, 4);
+    const roof = new THREE.Mesh(
+      roofGeo,
+      new THREE.MeshLambertMaterial({ color: 0x3b82f6 })
+    );
+    roof.rotation.y = Math.PI / 4;
+    roof.position.set(node.x, 6.3, node.z + 18);
+    scene.add(roof);
+    // 紅十字標
+    const crossH = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 0.6, 0.2),
+      new THREE.MeshBasicMaterial({ color: 0xef4444 })
+    );
+    crossH.position.set(node.x, 3.5, node.z + 14.1);
+    scene.add(crossH);
+    const crossV = new THREE.Mesh(
+      new THREE.BoxGeometry(0.6, 2.4, 0.2),
+      new THREE.MeshBasicMaterial({ color: 0xef4444 })
+    );
+    crossV.position.set(node.x, 3.5, node.z + 14.1);
+    scene.add(crossV);
+    // 旗桿
+    const flagPole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 8),
+      new THREE.MeshLambertMaterial({ color: 0xe5e7eb })
+    );
+    flagPole.position.set(node.x + 7, 4, node.z + 14);
+    scene.add(flagPole);
+    // 旗子
+    const flag = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.5, 1.5),
+      new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide })
+    );
+    flag.position.set(node.x + 8.3, 7, node.z + 14);
+    scene.add(flag);
+  }
+}
+STAGE2_NODES.forEach((node, idx) => spawnStage2Hero(node, idx));
 
 // Start/Finish line at middle of bottom straight (dist = HL)
 // Line crosses the track perpendicular (along Z axis)
