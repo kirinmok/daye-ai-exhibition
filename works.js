@@ -49,7 +49,7 @@ const PROJECTS = [
     platform: "Web",
     shortPitch: "夕照很美，但你沒有時間欣賞。",
     description: "以八掌溪為靈感的第一人稱跑酷挑戰，玩家要在速度、視角與障礙中維持節奏。",
-    playUrl: "https://archie108310-stack.github.io/3/",
+    playUrl: "https://archie108310-stack.github.io/4/",
     theme: "sunset",
     featured: true,
     createdAt: "2026-05-13",
