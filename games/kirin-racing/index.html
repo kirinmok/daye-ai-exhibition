@@ -3454,6 +3454,32 @@ function getStage2NodeIndex(dist){
 }
 
 // ═══════════════════════════════════════════════
+// Stage 切換 helper（runtime 走哪個路徑）
+// 預設 currentStage=1，第二關仍鎖著，行為跟以前一樣
+// 等 Step 4 物件 spawn 完成後才會 unlock 設 currentStage=2
+// ═══════════════════════════════════════════════
+let currentStage = 1;
+
+function getRunningTrackPoint(dist, lateralOffset){
+  return currentStage === 2
+    ? getTrackPoint2(dist, lateralOffset)
+    : getTrackPoint(dist, lateralOffset);
+}
+
+function getRunningTrackTotal(){
+  return currentStage === 2 ? L2_TOTAL : L_TOTAL;
+}
+
+function checkRaceFinished(ud){
+  if(currentStage === 2){
+    // Stage 2: 單程，跑到避難點（dist >= L2_TOTAL）就算完賽
+    return (ud._dist || 0) >= L2_TOTAL;
+  }
+  // Stage 1: 維持原本 lap 制（getMissionLapGoal 已處理任務目標）
+  return (ud.laps || 0) >= getMissionLapGoal();
+}
+
+// ═══════════════════════════════════════════════
 // THREE.JS SCENE
 // ═══════════════════════════════════════════════
 const scene = new THREE.Scene();
@@ -4487,7 +4513,7 @@ function checkCheckpoints(car){
         if(ud.bestLap === null || lapTime < ud.bestLap) ud.bestLap = lapTime;
       }
       ud.lapStart = raceTime;
-      if(ud.laps >= getMissionLapGoal() && !ud.finished){
+      if(checkRaceFinished(ud) && !ud.finished){
         ud.finished = true;
         ud.finishTime = raceTime;
         ud.rank = allCars.filter(c => c.userData.finished).length;
@@ -5616,6 +5642,10 @@ function actuallyStartRace(){
     playerCar.userData.hypothesis = null;
   }
   playerCar.userData.mission = { ...getActiveMission(), index: activeMissionLevel };
+
+  // ⚙️ Stage 切換：activeMissionLevel 0 = stage 1（橢圓賽道）, 1 = stage 2（折線馬路）
+  // 目前 stage 2 仍鎖著（第二關 locked），所以實際只會走到 stage 1
+  currentStage = (activeMissionLevel === 1) ? 2 : 1;
 
   stopGarageAnimate();
   document.getElementById('garageScreen').classList.remove('show');
@@ -7835,8 +7865,8 @@ function animate(){
       }
     }
 
-    // Position car on track
-    const p = getTrackPoint(ud._dist, ud._lateralOffset);
+    // Position car on track（runtime: stage 1 走橢圓、stage 2 走折線）
+    const p = getRunningTrackPoint(ud._dist, ud._lateralOffset);
     playerCar.position.set(p.x, 0, p.z);
 
     const baseRot = headingToRotY(p.heading);
@@ -8114,7 +8144,7 @@ function animate(){
 
     cud.aiDist += effectiveSpeed * dt;
     const lo = LANE_OFFSETS[cud.aiLane];
-    const p = getTrackPoint(cud.aiDist, lo);
+    const p = getRunningTrackPoint(cud.aiDist, lo);
     car.position.set(p.x, 0, p.z);
     car.rotation.y = headingToRotY(p.heading);
     cud.speed = effectiveSpeed;
@@ -8187,7 +8217,7 @@ function animate(){
   if(currentCamera === chaseCamera){
     const camDist = lightspeedActive ? 25 : 15;
     const camH = lightspeedActive ? 6 : 10;
-    const p = getTrackPoint(ud._dist - camDist, ud._lateralOffset);
+    const p = getRunningTrackPoint(ud._dist - camDist, ud._lateralOffset);
     const target = new THREE.Vector3(p.x, camH, p.z);
     chaseCamera.position.lerp(target, lightspeedActive ? 0.12 : 0.06);
     chaseCamera.lookAt(playerCar.position.x, 2, playerCar.position.z);
