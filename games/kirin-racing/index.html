@@ -864,6 +864,32 @@ canvas { display: block; }
   background: linear-gradient(135deg, rgba(89,199,255,.20), rgba(119,247,208,.08));
   box-shadow: 0 0 0 1px rgba(89,199,255,.22), 0 14px 34px rgba(0,0,0,.30);
 }
+.mission-level-card.locked {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.4);
+  position: relative;
+}
+.mission-level-card.locked:hover {
+  transform: none;
+  border-color: rgba(255,255,255,.08);
+  background: rgba(20,20,28,.6);
+}
+.mission-level-lock {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255,153,51,.92);
+  color: #1a0f00;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  pointer-events: none;
+  z-index: 2;
+}
 .mission-level-icon {
   width: 54px;
   height: 54px;
@@ -6202,6 +6228,8 @@ const MISSION_LEVELS = [
     kicker: 'MISSION 02',
     cardTitle: '嘉義市水淹',
     cardDesc: '不跑固定跑道，沿著城市馬路找可通行路線，把車改成能救援的樣子。',
+    locked: true,
+    lockReason: '城市馬路路網建造中・即將推出',
     title: '嘉義市水淹 Beta-02',
     sub: '城市馬路救援：找路、避開深水、判斷哪一段能衝、哪一段該繞',
     chips: [
@@ -6233,9 +6261,17 @@ function renderMissionLevelSelect(){
   MISSION_LEVELS.forEach((mission, idx) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'mission-level-card' + (idx === activeMissionLevel ? ' active' : '');
+    const isLocked = !!mission.locked;
+    btn.className = 'mission-level-card'
+      + (idx === activeMissionLevel ? ' active' : '')
+      + (isLocked ? ' locked' : '');
+    btn.disabled = isLocked;
     btn.onclick = () => selectMissionLevel(idx);
+    const lockOverlay = isLocked
+      ? '<div class="mission-level-lock">🔒 ' + (mission.lockReason || '即將推出') + '</div>'
+      : '';
     btn.innerHTML =
+      lockOverlay +
       '<div class="mission-level-icon">' + mission.icon + '</div>' +
       '<div>' +
         '<div class="mission-level-kicker">' + mission.kicker + '</div>' +
@@ -6247,6 +6283,14 @@ function renderMissionLevelSelect(){
 }
 
 function selectMissionLevel(idx){
+  const target = MISSION_LEVELS[idx];
+  if(target && target.locked){
+    // 鎖住的關卡不能選，給個提示就好
+    if(typeof showPowerUpMsg === 'function'){
+      showPowerUpMsg('🔒 ' + (target.lockReason || '此關卡開發中'));
+    }
+    return;
+  }
   activeMissionLevel = Math.max(0, Math.min(MISSION_LEVELS.length - 1, idx));
   renderMissionLevelSelect();
   applyMissionLevel();
