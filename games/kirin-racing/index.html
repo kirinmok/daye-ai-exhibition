@@ -3388,20 +3388,24 @@ function headingToRotY(h){ return -h + Math.PI/2; }
 // ═══════════════════════════════════════════════
 // Stage 2 整體 z 平移 +400 遠離 Stage 1（橢圓賽道 z ∈ [-81, 81]），避免物件重疊
 const STAGE2_OFFSET_Z = 400;
+// 真實嘉義市地理座標（以嘉義火車站當 (0,0) 原點，+X=東、+Z=南）
+// 比例非嚴格 km 對應，但相對方位符合真實地理：
+// 火車站在西、噴水池在市中心、文化路夜市在中心偏南、秀泰/民生南路天橋在南、
+// 蘭潭水庫在遠東北、水上鄉在南、高鐵嘉義站在西邊太保、避難點設在市區
 const STAGE2_NODES = [
-  { x: -200, z:  20 + STAGE2_OFFSET_Z, name: '火車站高樓商圈' },
-  { x: -150, z:   0 + STAGE2_OFFSET_Z, name: '北門平交道' },
-  { x: -100, z:  30 + STAGE2_OFFSET_Z, name: '文化路' },
-  { x:  -60, z: -10 + STAGE2_OFFSET_Z, name: '透天住宅巷弄' },
-  { x:  -10, z:  25 + STAGE2_OFFSET_Z, name: '噴水圓環' },
-  { x:   30, z: -10 + STAGE2_OFFSET_Z, name: '中山路低窪' },
-  { x:   60, z:  30 + STAGE2_OFFSET_Z, name: '秀泰地下道' },
-  { x:   95, z:  -5 + STAGE2_OFFSET_Z, name: '民生南路天橋' },
-  { x:  135, z:  35 + STAGE2_OFFSET_Z, name: '蘭潭環湖道路' },
-  { x:  165, z: -20 + STAGE2_OFFSET_Z, name: '水上偏遠聚落' },
-  { x:  190, z:  10 + STAGE2_OFFSET_Z, name: '農村四合院' },
-  { x:  220, z:  30 + STAGE2_OFFSET_Z, name: '高鐵大道荒涼段' },
-  { x:  255, z:   0 + STAGE2_OFFSET_Z, name: '避難點' },
+  { x:    0, z:    0 + STAGE2_OFFSET_Z, name: '嘉義火車站',           realPlace: '嘉義市西區・火車站前廣場（起點）' },
+  { x:   50, z:  -20 + STAGE2_OFFSET_Z, name: '北門平交道',           realPlace: '東北・阿里山林鐵北門車站旁' },
+  { x:   35, z:   15 + STAGE2_OFFSET_Z, name: '文化路夜市',           realPlace: '市中心偏南・文化路夜市' },
+  { x:   70, z:   30 + STAGE2_OFFSET_Z, name: '透天住宅巷弄',         realPlace: '東南郊・住宅區巷弄' },
+  { x:   45, z:    0 + STAGE2_OFFSET_Z, name: '噴水圓環',             realPlace: '市中心・中央噴水池' },
+  { x:   20, z:    0 + STAGE2_OFFSET_Z, name: '中山路低窪',           realPlace: '中山路東段・低窪易積水' },
+  { x:   15, z:   30 + STAGE2_OFFSET_Z, name: '秀泰地下道',           realPlace: '南・垂楊路秀泰百貨地下道' },
+  { x:   25, z:   50 + STAGE2_OFFSET_Z, name: '民生南路天橋',         realPlace: '南・民生南路陸橋（上坡）' },
+  { x:  120, z:  -50 + STAGE2_OFFSET_Z, name: '蘭潭水庫環湖道路',     realPlace: '遠東北・蘭潭水庫山仔頂' },
+  { x:   80, z:   80 + STAGE2_OFFSET_Z, name: '農村四合院',           realPlace: '南郊・傳統三合院聚落' },
+  { x:   50, z:  110 + STAGE2_OFFSET_Z, name: '水上偏遠聚落',         realPlace: '南遠・水上鄉偏遠社區' },
+  { x:  -90, z:   80 + STAGE2_OFFSET_Z, name: '高鐵大道荒涼段',       realPlace: '西郊・台 82 線往高鐵嘉義站（太保）' },
+  { x:  -30, z:   30 + STAGE2_OFFSET_Z, name: '避難點入口',           realPlace: '西區・避難收容中心' },
 ];
 
 let STAGE2_CURVE = null;
@@ -6561,8 +6565,13 @@ function getActiveSectors(){
   return activeMissionLevel === 1 ? CITY_SECTORS : OVAL_SECTORS;
 }
 function getSector(dist){
-  const t = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
   const sectors = getActiveSectors();
+  // Stage 2 是單程折線馬路（13 節點）— 用 getStage2NodeIndex 直接對應節點 idx
+  if(currentStage === 2 && L2_TOTAL > 0){
+    return Math.min(sectors.length - 1, Math.max(0, getStage2NodeIndex(dist)));
+  }
+  // Stage 1 橢圓賽道：dist 取模，依比例分到 sectors
+  const t = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
   return Math.min(sectors.length - 1, Math.floor(t / L_TOTAL * sectors.length));
 }
 function updateSectorHud(sec){
