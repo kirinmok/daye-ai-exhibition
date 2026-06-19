@@ -5672,6 +5672,102 @@ function startQuickRescueRun(){
   const hud = document.getElementById('quickRescueHud');
   if(hud) hud.style.display = 'block';
   updateQuickRescueHud();
+  // 第七十三波：車身改裝視覺化（KIRIN 親口「裝浮筒就真的兩個大浮筒」）
+  if(typeof playerCar !== 'undefined' && playerCar){
+    applyQuickRescueUpgrades(playerCar);
+  }
+}
+
+// 第七十三波：解鎖改裝視覺配件 — 玩家「看得到改裝」
+function applyQuickRescueUpgrades(car){
+  if(!QUICK_RESCUE_MODE || !car) return;
+  // 先清掉舊配件
+  const oldAttachments = [];
+  car.traverse(c => { if(c.userData && c.userData.isQuickUpgrade) oldAttachments.push(c); });
+  oldAttachments.forEach(o => car.remove(o));
+
+  // 🔋 大容量電池：車尾加綠色電池盒 + 螢光綠光（解鎖大容量電池可見）
+  if(quickRescueState.unlockedBattery){
+    const battery = new THREE.Mesh(
+      new THREE.BoxGeometry(1.4, 0.9, 1.8),
+      new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        emissive: 0x10b981,
+        emissiveIntensity: 0.5,
+        roughness: 0.4,
+        metalness: 0.3,
+      })
+    );
+    battery.position.set(0, 1.1, -2.0);
+    battery.userData.isQuickUpgrade = true;
+    battery.castShadow = true;
+    car.add(battery);
+    // 電池上小指示燈
+    [-0.4, 0, 0.4].forEach(x => {
+      const led = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 8, 8),
+        new THREE.MeshBasicMaterial({ color: 0x4ade80 })
+      );
+      led.position.set(x, 1.6, -2.0);
+      led.userData.isQuickUpgrade = true;
+      car.add(led);
+    });
+    // 充電圖示（黃色閃電 box）
+    const bolt = new THREE.Mesh(
+      new THREE.BoxGeometry(0.3, 0.5, 0.05),
+      new THREE.MeshBasicMaterial({ color: 0xfde047 })
+    );
+    bolt.position.set(0, 1.3, -1.05);
+    bolt.userData.isQuickUpgrade = true;
+    car.add(bolt);
+  }
+
+  // 🟠 大浮筒：車兩側真的多兩個橘色大圓柱（KIRIN 親口指定）
+  if(quickRescueState.unlockedTires){  // 沿用 flag，視覺改成更直觀的浮筒
+    [-1.6, 1.6].forEach(x => {
+      // 主圓柱浮筒
+      const floater = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.55, 0.55, 4.0, 16),
+        new THREE.MeshStandardMaterial({
+          color: 0xfb923c,
+          roughness: 0.7,
+          metalness: 0.1,
+        })
+      );
+      floater.rotation.z = Math.PI / 2;
+      floater.position.set(x, 0.6, 0);
+      floater.userData.isQuickUpgrade = true;
+      floater.castShadow = true;
+      car.add(floater);
+      // 兩端球帽
+      [-2.0, 2.0].forEach(z => {
+        const cap = new THREE.Mesh(
+          new THREE.SphereGeometry(0.55, 16, 12),
+          new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.6 })
+        );
+        cap.position.set(x, 0.6, z);
+        cap.userData.isQuickUpgrade = true;
+        car.add(cap);
+      });
+      // 浮筒上反光條（黃黑警示）
+      const stripe = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.18, 2.6),
+        new THREE.MeshBasicMaterial({ color: 0xfde047 })
+      );
+      stripe.position.set(x + (x > 0 ? 0.6 : -0.6), 0.6, 0);
+      stripe.userData.isQuickUpgrade = true;
+      car.add(stripe);
+      // 浮筒支架（連到車身）
+      const strut = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.08, 1.0, 8),
+        new THREE.MeshStandardMaterial({ color: 0x4b5563 })
+      );
+      strut.rotation.z = Math.PI / 2;
+      strut.position.set(x * 0.55, 0.7, 0);
+      strut.userData.isQuickUpgrade = true;
+      car.add(strut);
+    });
+  }
 }
 
 function updateQuickRescueHud(){
