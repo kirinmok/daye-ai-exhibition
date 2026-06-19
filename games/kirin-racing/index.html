@@ -5622,19 +5622,18 @@ function startOpeningSplash(){
   if(splashStarted) return;
   splashStarted = true;
   const scenes = document.querySelectorAll('#openingSplash .splash-scene');
-  const sceneDuration = 2500; // 每場景 2.5 秒（KIRIN：學生沒耐心看 splash，整體 49 秒砍到 18 秒）
-  let idx = 0;
+  // KIRIN 6/19 deep cut：7 場景 → 3 場景（情境/任務/出動），整體 17.5 秒砍到 ~6 秒
+  const sceneOrder = [0, 2, 6]; // 對應 data-scene 1, 3, 7
+  const sceneDuration = 2000;
   function showScene(i){
     scenes.forEach(s => s.classList.remove('active', 'shake'));
-    if(i >= scenes.length) return;
-    const cur = scenes[i];
+    if(i >= sceneOrder.length) return;
+    const cur = scenes[sceneOrder[i]];
     cur.classList.add('active');
-    if(parseInt(cur.dataset.scene) === 5) cur.classList.add('shake');
     if(parseInt(cur.dataset.scene) === 7){
-      // 最後一場景：顯示開始按鈕，等使用者按
       setTimeout(() => {
         document.getElementById('splashStart').classList.add('show');
-      }, 600);
+      }, 300);
       return;
     }
     setTimeout(() => showScene(i + 1), sceneDuration);
@@ -5657,8 +5656,17 @@ function closeOpeningSplash(){
       setTimeout(() => {
         rv.style.display = 'none';
         showGarage();
-      }, 600); // fade out
-    }, 1200); // reveal 停留 1.2 秒（KIRIN：學生沒耐心，砍半）
+        // KIRIN 6/19 deep cut：第一次玩，工坊閃過去直接出動（progressive disclosure）
+        const isFirstPlay = !localStorage.getItem('kirinRacingPlayed');
+        if(isFirstPlay){
+          setTimeout(() => {
+            const startBtn = document.getElementById('garageStartBtn');
+            if(startBtn) startBtn.click();
+            localStorage.setItem('kirinRacingPlayed', '1');
+          }, 250);
+        }
+      }, 600);
+    }, 1200);
   }, 850);
 }
 // ESC 跳過 splash / 暫停比賽 / P 暫停
