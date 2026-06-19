@@ -4663,7 +4663,7 @@ const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
     trunk.rotation.set(0, t.dir, Math.PI / 2 - 0.15);
     trunk.castShadow = true;
     scene.add(trunk);
-    // 翻起的樹根
+    // 翻起的樹根（同時是障礙物，撞到扣分）
     const root = new THREE.Mesh(
       new THREE.DodecahedronGeometry(1.6, 0),
       new THREE.MeshLambertMaterial({ color: 0x3a2a1a })
@@ -4673,7 +4673,53 @@ const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
       1.2,
       t.z - Math.sin(t.dir) * 4.5
     );
+    root.userData = { isObstacle: true, label: '倒塌樹根' };
     scene.add(root);
+    obstacleRocks.push(root);
+    // 樹幹中段 collision（透明 sphere，玩家撞到視為撞到樹幹）
+    const trunkColl = new THREE.Mesh(
+      new THREE.SphereGeometry(1.2, 8, 8),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    trunkColl.position.set(t.x, 1.0, t.z);
+    trunkColl.userData = { isObstacle: true, label: '倒塌樹幹' };
+    scene.add(trunkColl);
+    obstacleRocks.push(trunkColl);
+    // 樹幹遠端 collision
+    const trunkColl2 = new THREE.Mesh(
+      new THREE.SphereGeometry(1.2, 8, 8),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    trunkColl2.position.set(
+      t.x + Math.cos(t.dir) * 3.5,
+      1.0,
+      t.z + Math.sin(t.dir) * 3.5
+    );
+    trunkColl2.userData = { isObstacle: true, label: '倒塌樹幹' };
+    scene.add(trunkColl2);
+    obstacleRocks.push(trunkColl2);
+    // 警告錐（黃黑條紋）擺在倒樹近端
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(0.5, 1.4, 8),
+      new THREE.MeshLambertMaterial({ color: 0xfbbf24 })
+    );
+    cone.position.set(
+      t.x - Math.cos(t.dir) * 6,
+      0.7,
+      t.z - Math.sin(t.dir) * 6
+    );
+    scene.add(cone);
+    // 黑條
+    const coneStripe = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.42, 0.42, 0.25, 8),
+      new THREE.MeshBasicMaterial({ color: 0x0a0a0a })
+    );
+    coneStripe.position.set(
+      t.x - Math.cos(t.dir) * 6,
+      0.5,
+      t.z - Math.sin(t.dir) * 6
+    );
+    scene.add(coneStripe);
     // 散落樹冠（深綠橢球）
     for(let i = 0; i < 3; i++){
       const leafCluster = new THREE.Mesh(
@@ -4748,6 +4794,15 @@ const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
     hoop.rotation.set(Math.PI / 2 + Math.PI * 0.35, 0, 0);
     hoop.position.set(bx + 3.5, 3.5, bz);
     scene.add(hoop);
+    // 籃球架柱底碰撞 sphere
+    const bColl = new THREE.Mesh(
+      new THREE.SphereGeometry(1.3, 8, 8),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    bColl.position.set(bx, 1.5, bz);
+    bColl.userData = { isObstacle: true, label: '倒下籃球架' };
+    scene.add(bColl);
+    obstacleRocks.push(bColl);
   }
 
   // 🪀 漂浮體育器材（呼拉圈 3 個 + 翻倒桌椅 2 組）
@@ -4861,6 +4916,73 @@ const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
     exDot.position.set(d.x + 0.3, d.y + 1.15, d.z);
     scene.add(exDot);
   });
+
+  // 👷 受困勘災員（也許真的有人不小心受困）— 1 個橘色救難員揮手求救
+  {
+    const rx = 70, ry = 0, rz = -38;
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.4, 0.5, 1.5, 8),
+      new THREE.MeshLambertMaterial({ color: 0xea580c })
+    );
+    body.position.set(rx, ry + 0.75, rz);
+    body.castShadow = true;
+    scene.add(body);
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.35, 12, 12),
+      new THREE.MeshLambertMaterial({ color: 0xfbbf24 })
+    );
+    head.position.set(rx, ry + 1.7, rz);
+    scene.add(head);
+    // 黃色安全帽
+    const helmet = new THREE.Mesh(
+      new THREE.SphereGeometry(0.4, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshLambertMaterial({ color: 0xfde047 })
+    );
+    helmet.position.set(rx, ry + 1.95, rz);
+    scene.add(helmet);
+    // 揮起的右手
+    const arm = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 1.2),
+      new THREE.MeshLambertMaterial({ color: 0xea580c })
+    );
+    arm.rotation.set(0, 0, -Math.PI * 0.4);
+    arm.position.set(rx + 0.7, ry + 1.6, rz);
+    scene.add(arm);
+    const hand = new THREE.Mesh(
+      new THREE.SphereGeometry(0.15, 8, 8),
+      new THREE.MeshLambertMaterial({ color: 0xfbbf24 })
+    );
+    hand.position.set(rx + 1.2, ry + 2.1, rz);
+    scene.add(hand);
+    // 腿（深藍色長褲）
+    [-1, 1].forEach(side => {
+      const leg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.12, 0.8),
+        new THREE.MeshLambertMaterial({ color: 0x1e3a8a })
+      );
+      leg.position.set(rx + side * 0.15, ry + 0.4, rz);
+      scene.add(leg);
+    });
+    // 「救我」泡泡
+    const bubble = new THREE.Mesh(
+      new THREE.SphereGeometry(0.55, 12, 10),
+      new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.9 })
+    );
+    bubble.position.set(rx, ry + 3, rz);
+    scene.add(bubble);
+    const exM = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.07, 0.07, 0.5),
+      new THREE.MeshBasicMaterial({ color: 0xdc2626 })
+    );
+    exM.position.set(rx, ry + 3.05, rz);
+    scene.add(exM);
+    const exDotM = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xdc2626 })
+    );
+    exDotM.position.set(rx, ry + 2.65, rz);
+    scene.add(exDotM);
+  }
 
   // 名牌：改成「校園淹水區・災情巡視」
   const signPole = new THREE.Mesh(
