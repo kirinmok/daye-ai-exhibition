@@ -5699,6 +5699,24 @@ function startQuickRescueRun(){
   const hud = document.getElementById('quickRescueHud');
   if(hud) hud.style.display = 'block';
   updateQuickRescueHud();
+  // 第七十五波：藏掉 Quick Rescue 不需要的 HUD（KIRIN 6/19「訊息都遮住車子了」）
+  const hidingIds = [
+    'hud',           // RESCUE RUN 速度/名次/狀態/得分 綠框
+    'lapInfo',       // 驗證圈數
+    'tripleHud',     // 三軸（時間/口碑/在地/取捨）
+    'sectorBanner',  // 啟動門大字 banner
+    'sectorName',    // 小 sector hud
+    'batteryHud',    // 電量 31% 框（先藏，下波做沒電壓力時再開）
+    'gearZoom',      // 即時齒輪
+    'balanceHud',    // 配重
+    'historyBoard',  // 歷史排行
+    'speedGauge',    // 速度錶
+    'minimap',       // 小地圖
+  ];
+  hidingIds.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
   // 第七十三波：車身改裝視覺化（KIRIN 親口「裝浮筒就真的兩個大浮筒」）
   if(typeof playerCar !== 'undefined' && playerCar){
     applyQuickRescueUpgrades(playerCar);
@@ -7711,6 +7729,11 @@ function updateSectorHud(sec){
   // 大字 banner（slide-in）
   const banner = document.getElementById('sectorBanner');
   if(!banner) return;
+  // 第七十五波：Quick Rescue Mode 不顯示 sector banner（KIRIN 6/19「訊息都遮住車子了」）
+  if(typeof QUICK_RESCUE_MODE !== 'undefined' && QUICK_RESCUE_MODE){
+    banner.classList.remove('show');
+    return;
+  }
   document.getElementById('sbTag').textContent  = sec.tag;
   document.getElementById('sbName').textContent = sec.name;
   document.getElementById('sbSub').textContent  = sec.sub;
