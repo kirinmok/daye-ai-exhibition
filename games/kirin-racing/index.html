@@ -4648,29 +4648,226 @@ const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
   */ /* END OLD 舊版鯨魚 + 地球分開 block 註解結束 */
   } /* 關閉新「鯨魚馱地球」block scope */
 
-  // 操場兩棵樹（內場兩側，地球水池在中心，樹往邊放）
-  [{ x: 65, z: 30 }, { x: -65, z: 30 }, { x: 0, z: 38 }].forEach(t => {
+  // 🌲 颱風刮倒的校樹（橫躺地上 + 翻起的樹根 + 散落樹冠）
+  [
+    { x: 65, z: 30, dir: 1.2 },
+    { x: -65, z: 30, dir: -0.4 },
+    { x: 0, z: 42, dir: 2.1 },
+  ].forEach(t => {
+    // 橫躺樹幹
     const trunk = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.7, 3),
+      new THREE.CylinderGeometry(0.6, 0.8, 9),
       new THREE.MeshLambertMaterial({ color: 0x6b4226 })
     );
-    trunk.position.set(t.x, 1.5, t.z);
+    trunk.position.set(t.x, 0.8, t.z);
+    trunk.rotation.set(0, t.dir, Math.PI / 2 - 0.15);
+    trunk.castShadow = true;
     scene.add(trunk);
-    const crown = new THREE.Mesh(
-      new THREE.ConeGeometry(2.5, 5, 8),
-      new THREE.MeshLambertMaterial({ color: 0x2d5a3a })
+    // 翻起的樹根
+    const root = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(1.6, 0),
+      new THREE.MeshLambertMaterial({ color: 0x3a2a1a })
     );
-    crown.position.set(t.x, 5.5, t.z);
-    crown.castShadow = true;
-    scene.add(crown);
+    root.position.set(
+      t.x - Math.cos(t.dir) * 4.5,
+      1.2,
+      t.z - Math.sin(t.dir) * 4.5
+    );
+    scene.add(root);
+    // 散落樹冠（深綠橢球）
+    for(let i = 0; i < 3; i++){
+      const leafCluster = new THREE.Mesh(
+        new THREE.SphereGeometry(1.3, 10, 8),
+        new THREE.MeshLambertMaterial({ color: 0x2d5a3a })
+      );
+      leafCluster.position.set(
+        t.x + Math.cos(t.dir) * (3 + i * 1.2),
+        1.2 + (i % 2) * 0.3,
+        t.z + Math.sin(t.dir) * (3 + i * 1.2)
+      );
+      scene.add(leafCluster);
+    }
+    // 斷裂枝幹（4 根散落）
+    for(let i = 0; i < 4; i++){
+      const branch = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.15, 0.2, 2),
+        new THREE.MeshLambertMaterial({ color: 0x4a3a2a })
+      );
+      const ang = (i / 4) * Math.PI * 2 + Math.random();
+      branch.position.set(
+        t.x + Math.cos(ang) * (2 + Math.random() * 3),
+        0.5,
+        t.z + Math.sin(ang) * (2 + Math.random() * 3)
+      );
+      branch.rotation.set(Math.PI / 2, ang, Math.random() * 0.5);
+      scene.add(branch);
+    }
   });
 
-  // 操場名牌（替代原蘭潭招牌）
+  // 🍂 滿地落葉（漂在水面，60 片橘黃綠色塊）
+  const leafColors = [0xea580c, 0xf59e0b, 0xeab308, 0x84cc16, 0x65a30d];
+  for(let i = 0; i < 60; i++){
+    const leaf = new THREE.Mesh(
+      new THREE.CircleGeometry(0.22 + Math.random() * 0.28, 6),
+      new THREE.MeshBasicMaterial({
+        color: leafColors[Math.floor(Math.random() * leafColors.length)],
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85
+      })
+    );
+    const r = 28 + Math.random() * 72;
+    const ang = Math.random() * Math.PI * 2;
+    leaf.position.set(Math.cos(ang) * r, 0.5, Math.sin(ang) * r);
+    leaf.rotation.set(-Math.PI / 2, 0, Math.random() * Math.PI);
+    scene.add(leaf);
+  }
+
+  // 🏀 倒下的籃球架（歪一邊）
+  {
+    const bx = -55, bz = -15;
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.25, 5),
+      new THREE.MeshLambertMaterial({ color: 0xc0c0c0 })
+    );
+    pole.rotation.set(0, 0, Math.PI * 0.35);
+    pole.position.set(bx, 2.5, bz);
+    pole.castShadow = true;
+    scene.add(pole);
+    const board = new THREE.Mesh(
+      new THREE.BoxGeometry(2.4, 1.8, 0.15),
+      new THREE.MeshLambertMaterial({ color: 0xf1f5f9 })
+    );
+    board.rotation.set(0, 0, Math.PI * 0.35);
+    board.position.set(bx + 3, 4.5, bz);
+    scene.add(board);
+    const hoop = new THREE.Mesh(
+      new THREE.TorusGeometry(0.45, 0.08, 6, 16),
+      new THREE.MeshLambertMaterial({ color: 0xea580c })
+    );
+    hoop.rotation.set(Math.PI / 2 + Math.PI * 0.35, 0, 0);
+    hoop.position.set(bx + 3.5, 3.5, bz);
+    scene.add(hoop);
+  }
+
+  // 🪀 漂浮體育器材（呼拉圈 3 個 + 翻倒桌椅 2 組）
+  [
+    { x: 30, z: -30, color: 0xef4444 },
+    { x: -30, z: -30, color: 0xeab308 },
+    { x: 40, z: 25, color: 0x3b82f6 },
+  ].forEach(h => {
+    const hoop = new THREE.Mesh(
+      new THREE.TorusGeometry(0.9, 0.12, 8, 20),
+      new THREE.MeshLambertMaterial({ color: h.color })
+    );
+    hoop.rotation.x = Math.PI / 2;
+    hoop.position.set(h.x, 0.7, h.z);
+    scene.add(hoop);
+  });
+  [
+    { x: -45, z: 25 },
+    { x: 50, z: -25 },
+  ].forEach(f => {
+    const top = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.1, 1.2),
+      new THREE.MeshLambertMaterial({ color: 0xd6cfb8 })
+    );
+    top.rotation.set(Math.PI / 4, Math.random() * Math.PI, 0);
+    top.position.set(f.x, 0.6, f.z);
+    scene.add(top);
+    for(let i = 0; i < 4; i++){
+      const leg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.06, 1.0),
+        new THREE.MeshLambertMaterial({ color: 0x4a3a2a })
+      );
+      const ang = (i / 4) * Math.PI * 2;
+      leg.position.set(
+        f.x + Math.cos(ang) * 0.5,
+        0.4 + Math.random() * 0.3,
+        f.z + Math.sin(ang) * 0.5
+      );
+      leg.rotation.set(Math.random() * 0.5, ang, Math.random() * 0.5);
+      scene.add(leg);
+    }
+  });
+
+  // 🐕 受困小狗（3 隻蹲在高處等救援，頭上「!」求救泡泡）
+  const dogSpots = [
+    { x: 0, y: 1.8, z: -45, withStage: true },   // 司令台上
+    { x: 65, y: 1.6, z: 30, withStage: false },  // 倒樹幹上
+    { x: -52, y: 0.9, z: -12, withStage: false } // 籃球架旁
+  ];
+  dogSpots.forEach(d => {
+    // 司令台（給狗 1 一個高台）
+    if(d.withStage){
+      const stage = new THREE.Mesh(
+        new THREE.BoxGeometry(6, 1.5, 4),
+        new THREE.MeshLambertMaterial({ color: 0xd6cfb8 })
+      );
+      stage.position.set(d.x, 0.75, d.z);
+      stage.castShadow = true;
+      scene.add(stage);
+    }
+    // 身體
+    const body = new THREE.Mesh(
+      new THREE.SphereGeometry(0.35, 12, 10),
+      new THREE.MeshLambertMaterial({ color: 0xb45309 })
+    );
+    body.scale.set(1.4, 0.9, 0.85);
+    body.position.set(d.x, d.y, d.z);
+    body.castShadow = true;
+    scene.add(body);
+    // 頭
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.25, 10, 10),
+      new THREE.MeshLambertMaterial({ color: 0xb45309 })
+    );
+    head.position.set(d.x + 0.4, d.y + 0.2, d.z);
+    scene.add(head);
+    // 立耳
+    [-1, 1].forEach(side => {
+      const ear = new THREE.Mesh(
+        new THREE.ConeGeometry(0.1, 0.25, 4),
+        new THREE.MeshLambertMaterial({ color: 0x7c2d12 })
+      );
+      ear.position.set(d.x + 0.45, d.y + 0.45, d.z + side * 0.15);
+      scene.add(ear);
+    });
+    // 尾巴
+    const tail = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.04, 0.4),
+      new THREE.MeshLambertMaterial({ color: 0xb45309 })
+    );
+    tail.rotation.set(0, 0, Math.PI / 3);
+    tail.position.set(d.x - 0.5, d.y + 0.2, d.z);
+    scene.add(tail);
+    // 「!」求救泡泡
+    const bubble = new THREE.Mesh(
+      new THREE.SphereGeometry(0.4, 12, 10),
+      new THREE.MeshBasicMaterial({ color: 0xfde047, transparent: true, opacity: 0.9 })
+    );
+    bubble.position.set(d.x + 0.3, d.y + 1.4, d.z);
+    scene.add(bubble);
+    const exclam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 0.4),
+      new THREE.MeshBasicMaterial({ color: 0xdc2626 })
+    );
+    exclam.position.set(d.x + 0.3, d.y + 1.45, d.z);
+    scene.add(exclam);
+    const exDot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.06, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xdc2626 })
+    );
+    exDot.position.set(d.x + 0.3, d.y + 1.15, d.z);
+    scene.add(exDot);
+  });
+
+  // 名牌：改成「校園淹水區・災情巡視」
   const signPole = new THREE.Mesh(
     new THREE.CylinderGeometry(0.15, 0.18, 4, 6),
     new THREE.MeshLambertMaterial({ color: 0x6b7280 })
   );
-  signPole.position.set(0, 2, -38);
+  signPole.position.set(0, 2, -55);
   scene.add(signPole);
   const cv = document.createElement('canvas');
   cv.width = 320; cv.height = 110;
@@ -4678,19 +4875,19 @@ const mountainBarriers = []; // 保留變數（空陣列，移除蘭潭山）
   ctx.fillStyle = '#1a3a5a'; ctx.fillRect(0, 0, 320, 110);
   ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 4;
   ctx.strokeRect(8, 8, 304, 94);
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 28px "PingFang TC", sans-serif';
+  ctx.fillStyle = '#fde047'; ctx.font = 'bold 26px "PingFang TC", sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('🏟 大業操場', 160, 38);
+  ctx.fillText('⚠ 校園淹水區', 160, 36);
   ctx.font = '15px "PingFang TC", sans-serif'; ctx.fillStyle = '#94a3b8';
-  ctx.fillText('K-01 原型車封閉測試場', 160, 70);
-  ctx.font = '12px "PingFang TC", sans-serif'; ctx.fillStyle = '#fbbf24';
-  ctx.fillText('🐳🌍 鯨魚馱地球（中廊地標）', 160, 92);
+  ctx.fillText('K-01 災情巡視中', 160, 66);
+  ctx.font = '13px "PingFang TC", sans-serif'; ctx.fillStyle = '#fbbf24';
+  ctx.fillText('🐕 順手救援受困小狗', 160, 92);
   const tex = new THREE.CanvasTexture(cv);
   const sign = new THREE.Mesh(
     new THREE.PlaneGeometry(6, 2.1),
     new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
   );
-  sign.position.set(0, 4.5, -38);
+  sign.position.set(0, 4.5, -55);
   scene.add(sign);
 }
 
