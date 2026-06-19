@@ -2862,6 +2862,18 @@ canvas { display: block; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+<!-- ═══════════════════════════════════════════════
+     第七十二波：Quick Rescue Mode HUD（綜合藍圖實作）
+     L1 校園暴雨：90 秒救 3 隻小狗 → localStorage 解鎖大容量電池
+     ?engineer=1 進原工程模式
+     ═══════════════════════════════════════════════ -->
+<div id="quickRescueHud" style="position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(10,15,30,0.92);border:2px solid #fde047;color:#fff;padding:10px 22px;border-radius:14px;font-family:'PingFang TC',-apple-system,sans-serif;font-weight:900;z-index:50;display:none;box-shadow:0 6px 24px rgba(253,224,71,0.3);">
+  <span style="font-size:22px;color:#fde047;">🐶 <span id="quickRescueCount">0/3</span></span>
+  <span style="opacity:0.6;margin:0 12px;">｜</span>
+  <span style="font-size:22px;color:#fb923c;">⏱ <span id="quickRescueTimer">90</span>s</span>
+  <div id="quickRescueHint" style="margin-top:6px;font-size:12px;color:#fde047;opacity:0.9;text-align:center;font-weight:600;">再救 3 隻解鎖大容量電池</div>
+</div>
+
 
 <!-- ═══ 開場徵召 splash ═══ -->
 <div id="openingSplash">
@@ -5616,6 +5628,133 @@ function startCountdown(){
 }
 
 // ═══ 開場徵召 splash ═══
+// ═══════════════════════════════════════════════
+// 第七十二波：Quick Rescue Mode 核心模組（綜合藍圖第 12 章 prompt 實作）
+// 採法：ChatGPT 90 秒局 + Claude.ai 水位反派 + Gemini 在地細節
+// 完整工程模式用 ?engineer=1 進入
+// ═══════════════════════════════════════════════
+const QUICK_RESCUE_MODE = !new URLSearchParams(location.search).get('engineer');
+const QUICK_RESCUE_KEY = 'kirinRacingProgress_v1';
+
+function loadQuickRescueState(){
+  try { return JSON.parse(localStorage.getItem(QUICK_RESCUE_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveQuickRescueState(){
+  try {
+    localStorage.setItem(QUICK_RESCUE_KEY, JSON.stringify({
+      totalDogsRescued: quickRescueState.totalDogsRescued || 0,
+      unlockedBattery: quickRescueState.unlockedBattery || false,
+      unlockedTires: quickRescueState.unlockedTires || false,
+      bestRescueCount: quickRescueState.bestRescueCount || 0,
+    }));
+  } catch(e) {}
+}
+
+const quickRescueState = Object.assign({
+  dogsRescuedThisRun: 0,
+  totalDogsRescued: 0,
+  unlockedBattery: false,
+  unlockedTires: false,
+  bestRescueCount: 0,
+  timeLeft: 90,
+}, loadQuickRescueState());
+
+let quickRescueTimerActive = false;
+let quickRescueEnded = false;
+
+function startQuickRescueRun(){
+  if(!QUICK_RESCUE_MODE) return;
+  quickRescueState.dogsRescuedThisRun = 0;
+  quickRescueState.timeLeft = 90;
+  quickRescueTimerActive = true;
+  quickRescueEnded = false;
+  const hud = document.getElementById('quickRescueHud');
+  if(hud) hud.style.display = 'block';
+  updateQuickRescueHud();
+}
+
+function updateQuickRescueHud(){
+  const cnt = document.getElementById('quickRescueCount');
+  if(cnt) cnt.textContent = quickRescueState.dogsRescuedThisRun + '/3';
+  const tim = document.getElementById('quickRescueTimer');
+  if(tim) tim.textContent = Math.ceil(quickRescueState.timeLeft);
+  const hint = document.getElementById('quickRescueHint');
+  if(hint){
+    if(quickRescueState.unlockedBattery){
+      const need = 6 - quickRescueState.totalDogsRescued;
+      hint.textContent = need > 0 ? `再救 ${need} 隻解鎖雨天多紋胎` : '⚡ 大容量電池 + 雨天多紋胎已裝上';
+    } else {
+      const need = 3 - quickRescueState.totalDogsRescued;
+      hint.textContent = need > 0 ? `再救 ${need} 隻解鎖大容量電池` : '⚡ 大容量電池已解鎖';
+    }
+  }
+}
+
+let lastQuickRescueTickTime = null;
+function tickQuickRescueTimer(){
+  if(!quickRescueTimerActive || quickRescueEnded) return;
+  const now = performance.now();
+  if(lastQuickRescueTickTime === null){ lastQuickRescueTickTime = now; return; }
+  const delta = (now - lastQuickRescueTickTime) / 1000;
+  lastQuickRescueTickTime = now;
+  if(delta > 0.5) return; // tab inactive 略過大跳
+  quickRescueState.timeLeft = Math.max(0, quickRescueState.timeLeft - delta);
+  updateQuickRescueHud();
+  if(quickRescueState.timeLeft <= 0) quickRescueEnd();
+}
+
+function quickRescueOnPickup(kind){
+  if(!QUICK_RESCUE_MODE || !quickRescueTimerActive) return;
+  if(kind && kind.id === 'gem') return;
+  quickRescueState.dogsRescuedThisRun++;
+  quickRescueState.totalDogsRescued++;
+  quickRescueState.timeLeft += 10;
+  // 解鎖判斷
+  if(!quickRescueState.unlockedBattery && quickRescueState.totalDogsRescued >= 3){
+    quickRescueState.unlockedBattery = true;
+    if(typeof showPowerUpMsg === 'function') showPowerUpMsg('🎉 解鎖：大容量電池！續航 +25%');
+  } else if(!quickRescueState.unlockedTires && quickRescueState.totalDogsRescued >= 6){
+    quickRescueState.unlockedTires = true;
+    if(typeof showPowerUpMsg === 'function') showPowerUpMsg('🎉 解鎖：雨天多紋胎！積水不打滑');
+  }
+  saveQuickRescueState();
+  updateQuickRescueHud();
+  // 救到 3 隻當局也算成功（保留時間繼續救）
+  if(quickRescueState.dogsRescuedThisRun >= 3){
+    setTimeout(quickRescueEnd, 1500);
+  }
+}
+
+function quickRescueEnd(){
+  if(quickRescueEnded) return;
+  quickRescueEnded = true;
+  quickRescueTimerActive = false;
+  if(quickRescueState.dogsRescuedThisRun > (quickRescueState.bestRescueCount || 0)){
+    quickRescueState.bestRescueCount = quickRescueState.dogsRescuedThisRun;
+  }
+  saveQuickRescueState();
+  // 簡化結算頁
+  const overlay = document.createElement('div');
+  overlay.id = 'quickRescueResult';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,10,25,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;font-family:"PingFang TC",sans-serif;backdrop-filter:blur(8px);';
+  const success = quickRescueState.dogsRescuedThisRun >= 3;
+  overlay.innerHTML = `
+    <div style="text-align:center;padding:48px 40px;border:2px solid ${success?'#10b981':'#fde047'};border-radius:20px;max-width:520px;background:rgba(10,15,30,0.95);box-shadow:0 12px 48px rgba(253,224,71,0.2);">
+      <div style="font-size:72px;margin-bottom:8px;">${success?'🐶✨':'🐶'}</div>
+      <div style="font-size:14px;color:${success?'#10b981':'#fbbf24'};letter-spacing:3px;margin-bottom:4px;">${success?'救援成功':'本局結束'}</div>
+      <div style="font-size:32px;font-weight:900;margin-bottom:6px;">救了 ${quickRescueState.dogsRescuedThisRun} 隻小狗</div>
+      <div style="font-size:14px;color:#aaa;margin-bottom:20px;">累積 ${quickRescueState.totalDogsRescued} ・ 最佳 ${quickRescueState.bestRescueCount}</div>
+      ${quickRescueState.unlockedBattery ? '<div style="background:rgba(253,224,71,0.15);border:1px solid #fde047;color:#fde047;padding:10px 16px;border-radius:8px;margin-bottom:8px;font-size:15px;">⚡ 大容量電池已裝上 ・續航 +25%</div>' : ''}
+      ${quickRescueState.unlockedTires ? '<div style="background:rgba(96,165,250,0.15);border:1px solid #60a5fa;color:#60a5fa;padding:10px 16px;border-radius:8px;margin-bottom:8px;font-size:15px;">🛞 雨天多紋胎已裝上 ・積水不打滑</div>' : ''}
+      ${!quickRescueState.unlockedBattery ? '<div style="color:#aaa;font-size:13px;margin-bottom:20px;">再救 ' + (3 - quickRescueState.totalDogsRescued) + ' 隻解鎖大容量電池</div>' : (!quickRescueState.unlockedTires ? '<div style="color:#aaa;font-size:13px;margin-bottom:20px;">再救 ' + (6 - quickRescueState.totalDogsRescued) + ' 隻解鎖雨天多紋胎</div>' : '<div style="margin-bottom:20px;"></div>')}
+      <button onclick="location.reload()" style="background:linear-gradient(135deg,#fde047,#fbbf24);color:#0a0a0a;border:none;padding:18px 40px;font-size:20px;font-weight:900;border-radius:12px;cursor:pointer;box-shadow:0 6px 20px rgba(253,224,71,0.4);margin-bottom:12px;display:block;width:100%;">▶ 裝上，立即再救一次</button>
+      <button onclick="this.parentElement.parentElement.remove()" style="background:transparent;color:#666;border:1px solid #333;padding:8px 18px;font-size:13px;border-radius:6px;cursor:pointer;">繼續看場景</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
 let splashStarted = false;
 let splashFinished = false;
 function startOpeningSplash(){
@@ -6636,6 +6775,8 @@ function actuallyStartRace(){
   playerCar.userData.gearLevel = garageChoice.gear - 1;
   updateGearHud();
   initBattery();
+  // 第七十二波：Quick Rescue Mode 啟動（非 engineer 模式才跑）
+  if(typeof startQuickRescueRun === 'function') startQuickRescueRun();
   startCountdown();
 }
 
@@ -8664,6 +8805,9 @@ function animate(){
     // Update distance along track
     ud._dist += ud._speed * dt;
 
+    // 第七十二波：Quick Rescue Mode timer tick（performance.now() 自防重複扣時間）
+    if(typeof tickQuickRescueTimer === 'function') tickQuickRescueTimer();
+
     // ── 🆘 RESCUE TARGETS（小狗/長輩/物資/泳圈/寶物）──
     rescueItems.forEach(it => {
       if(it.picked) return;
@@ -8695,6 +8839,8 @@ function animate(){
           const el = document.getElementById('rescuedCnt');
           if(el) el.textContent = ud.rescued;
           showPowerUpMsg(k.emoji + ' 救出' + k.label + ' +' + k.score + ' 分');
+          // 第七十二波：Quick Rescue Mode hook
+          if(typeof quickRescueOnPickup === 'function') quickRescueOnPickup(k);
           // 載運貨架顯示
           const stack = document.getElementById('cargoStack');
           if(stack){
