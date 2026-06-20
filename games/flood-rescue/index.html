@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>洪流救援 FLOOD RESCUE｜大業實驗中學 AI ╳ STEAM</title>
+<meta name="description" content="八掌溪洪流救援 — 駕駛水陸兩用車救出受困民眾，認識浮力與載重物理。大業實驗中學 AI 繪圖社 STEAM 教學遊戲。">
+<style>
+  :root{
+    --water:#0E3A45; --water2:#0B2A33; --sky1:#1a2730; --sky2:#2d4a52;
+    --rescue:#FF6B2C; --amber:#FFC23D; --danger:#E23B3B; --foam:#DCEEF2;
+    --safe:#3DD68C; --ink:#EAF4F6;
+    --mono:"SFMono-Regular",ui-monospace,"Consolas",monospace;
+    --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#06141a;overflow:hidden;font-family:var(--sans);color:var(--ink)}
+  #stage{position:fixed;inset:0;display:grid;place-items:center}
+  #wrap{position:relative;box-shadow:0 0 80px rgba(0,0,0,.6)}
+  canvas{display:block;background:#06141a}
+
+  /* 跑馬燈：AI 即時災情快報 */
+  #ticker{position:absolute;top:0;left:0;right:0;height:34px;display:flex;align-items:center;
+    background:linear-gradient(90deg,#3a0d0d,#5a1414);border-bottom:2px solid var(--danger);
+    font-family:var(--mono);font-size:14px;overflow:hidden;z-index:5}
+  #tickTag{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:0 12px;height:100%;
+    background:var(--danger);font-weight:700;letter-spacing:.5px;white-space:nowrap}
+  #tickTag .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:blink 1s steps(2,end) infinite}
+  @keyframes blink{50%{opacity:.15}}
+  #tickWin{flex:1;overflow:hidden;position:relative;height:100%}
+  #tickText{position:absolute;white-space:nowrap;top:50%;transform:translateY(-50%);
+    will-change:left;color:#ffe3d6}
+
+  /* HUD */
+  #hud{position:absolute;left:0;right:0;top:34px;display:flex;justify-content:space-between;
+    align-items:flex-start;padding:14px 16px;pointer-events:none;z-index:4}
+  .stat{background:rgba(6,20,26,.55);border:1px solid rgba(255,255,255,.08);border-radius:10px;
+    padding:7px 12px;backdrop-filter:blur(3px)}
+  .stat .k{font-size:11px;letter-spacing:1px;color:#9fc2cc;font-family:var(--mono)}
+  .stat .v{font-size:26px;font-weight:800;line-height:1.05}
+  #rescued .v{color:var(--safe)}
+  #clock .v{font-family:var(--mono);color:var(--amber)}
+  #score .v{color:var(--ink)}
+
+  /* 浮力 / 載重 儀表 */
+  #gauge{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+    width:260px;z-index:4;text-align:center;pointer-events:none}
+  #gauge .lab{font-family:var(--mono);font-size:12px;letter-spacing:1px;margin-bottom:5px;color:#bcd}
+  #gbar{height:18px;border-radius:9px;background:rgba(0,0,0,.4);
+    border:1px solid rgba(255,255,255,.15);overflow:hidden;position:relative}
+  #gfill{height:100%;width:0%;transition:width .12s linear;
+    background:linear-gradient(90deg,var(--safe),var(--amber))}
+  #gmark{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;opacity:.7}
+  #gauge.over #gfill{background:linear-gradient(90deg,var(--danger),#ff8a3d);animation:pulse .4s infinite}
+  @keyframes pulse{50%{filter:brightness(1.5)}}
+  #overlbl{margin-top:6px;font-weight:800;color:var(--danger);font-size:15px;letter-spacing:2px;
+    visibility:hidden}
+  #gauge.over #overlbl{visibility:visible;animation:pulse .4s infinite}
+
+  /* 覆蓋畫面：開始 / 結束 */
+  #ov{position:absolute;inset:0;z-index:10;display:grid;place-items:center;text-align:center;
+    background:radial-gradient(ellipse at 50% 35%,rgba(14,58,69,.5),rgba(6,20,26,.92));
+    padding:24px}
+  #ov.hidden{display:none}
+  #ov .card{max-width:560px}
+  #ov h1{font-size:clamp(34px,6vw,64px);font-weight:900;letter-spacing:2px;line-height:1;
+    background:linear-gradient(180deg,#fff,var(--amber));-webkit-background-clip:text;background-clip:text;
+    color:transparent;text-shadow:0 0 40px rgba(255,194,61,.25)}
+  #ov .en{font-family:var(--mono);letter-spacing:8px;color:var(--rescue);font-size:14px;margin:8px 0 18px}
+  #ov p{color:#c7dde3;line-height:1.7;font-size:16px;margin:0 auto 8px;max-width:460px}
+  #ov .keys{margin:18px 0 6px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  #ov .key{font-family:var(--mono);font-size:13px;border:1px solid rgba(255,255,255,.2);
+    border-radius:8px;padding:6px 12px;color:#bcd}
+  #ov .go{margin-top:18px;font-size:18px;font-weight:800;color:#06141a;background:var(--rescue);
+    display:inline-block;padding:13px 30px;border-radius:30px;letter-spacing:1px;
+    box-shadow:0 8px 30px rgba(255,107,44,.4);animation:bob 1.4s ease-in-out infinite;cursor:pointer}
+  @keyframes bob{50%{transform:translateY(-5px)}}
+  #ov .verdict{font-size:20px;font-weight:800;margin-bottom:6px}
+  #ov .ai{font-style:normal;color:var(--amber);font-family:var(--mono);font-size:14px;
+    border-top:1px dashed rgba(255,255,255,.18);padding-top:14px;margin-top:16px;line-height:1.6}
+  #ov .stats{display:flex;gap:26px;justify-content:center;margin:18px 0 4px}
+  #ov .stats div{font-size:13px;color:#9fc2cc;font-family:var(--mono)}
+  #ov .stats b{display:block;font-size:34px;color:#fff;font-family:var(--sans);margin-top:2px}
+  #credit{position:absolute;bottom:14px;right:16px;font-family:var(--mono);font-size:12px;
+    color:#6f939d;z-index:11;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div id="stage"><div id="wrap">
+  <canvas id="c"></canvas>
+
+  <div id="ticker">
+    <div id="tickTag"><span class="dot"></span>LIVE ・ AI 災情快報</div>
+    <div id="tickWin"><div id="tickText"></div></div>
+  </div>
+
+  <div id="hud">
+    <div style="display:flex;gap:10px">
+      <div class="stat" id="rescued"><div class="k">已救援</div><div class="v">0</div></div>
+      <div class="stat" id="score"><div class="k">SCORE</div><div class="v">0</div></div>
+    </div>
+    <div class="stat" id="clock"><div class="k">剩餘時間</div><div class="v">90</div></div>
+  </div>
+
+  <div id="gauge">
+    <div class="lab">載重 / 浮力</div>
+    <div id="gbar"><div id="gfill"></div><div id="gmark"></div></div>
+    <div id="overlbl">⚠ 超載！快回安全區，否則沉船</div>
+  </div>
+
+  <div id="ov"><div class="card" id="ovCard"></div></div>
+  <div id="credit">設計 KIRIN ｜ 大業實驗中學 AI × STEAM</div>
+</div></div>
+
+<script>
+(()=>{
+"use strict";
+const LW=1280, LH=720;            // 邏輯解析度
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+let scale=1, dpr=Math.min(window.devicePixelRatio||1,2);
+function fit(){
+  const aw=window.innerWidth, ah=window.innerHeight;
+  scale=Math.min(aw/LW, ah/LH);
+  const w=Math.round(LW*scale), h=Math.round(LH*scale);
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+  cv.width=Math.round(LW*scale*dpr); cv.height=Math.round(LH*scale*dpr);
+  document.getElementById('wrap').style.width=w+'px';
+  document.getElementById('wrap').style.height=h+'px';
+  ctx.setTransform(scale*dpr,0,0,scale*dpr,0,0);
+}
+window.addEventListener('resize',fit); fit();
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- 世界設定 ----------
+const BANK_W=235;                 // 左側安全高地寬
+const GROUND_Y=560;               // 高地地面高度
+let waterY, waterY0, waterTarget;  // 洪水水位（越小越高）
+const SINK_LIMIT=4;               // 安全載重上限
+const SESSION=90;                 // 秒
+
+// ---------- 狀態 ----------
+let state='title';                // title | play | over
+let t=0, last=0, timeLeft=SESSION;
+let score=0, rescued=0, combo=0, lostCount=0;
+let shake=0;
+let overText='';
+
+// ---------- 物件 ----------
+const veh={x:120,y:0,vx:0,onboard:0,draft:0,sinking:0,facing:1,bob:0};
+let roofs=[], survivors=[], parts=[], rains=[], splashes=[];
+
+function reset(){
+  t=0; timeLeft=SESSION; score=0; rescued=0; combo=0; lostCount=0; shake=0;
+  waterY=470; waterY0=470; waterTarget=470;
+  veh.x=120; veh.y=GROUND_Y-26; veh.vx=0; veh.onboard=0; veh.draft=0; veh.sinking=0; veh.facing=1; veh.bob=0;
+  // 屋頂平台（洪水中的受困點）
+  roofs=[
+    {x:430,w:120,top:430,color:'#3b5566'},
+    {x:640,w:110,top:470,color:'#33495a'},
+    {x:850,w:130,top:445,color:'#3b5566'},
+    {x:1080,w:120,top:485,color:'#33495a'},
+  ];
+  survivors=[]; parts=[]; splashes=[];
+  rains=[]; for(let i=0;i<120;i++) rains.push({x:Math.random()*LW,y:Math.random()*LH,s:6+Math.random()*8});
+  spawnTimer=0;
+}
+
+// ---------- 受困民眾 ----------
+let spawnTimer=0;
+function spawnSurvivor(){
+  const live=roofs.filter(r=>r.top<waterY-6);     // 還沒被淹的屋頂
+  if(!live.length) return;
+  const r=live[(Math.random()*live.length)|0];
+  if(survivors.some(s=>s.roof===r && s.state==='wait')) return;
+  survivors.push({roof:r, x:r.x+r.w/2+(Math.random()*30-15), y:r.top-14,
+    state:'wait', wave:Math.random()*6, panic:0});
+}
+
+// ---------- 音效（WebAudio，純合成，離線可跑） ----------
+let actx=null;
+function ac(){ if(!actx){ try{actx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return actx; }
+function beep(freq,dur,type='sine',vol=.18,slideTo){
+  const a=ac(); if(!a) return;
+  const o=a.createOscillator(), g=a.createGain();
+  o.type=type; o.frequency.value=freq;
+  if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,a.currentTime+dur);
+  g.gain.value=vol; g.gain.exponentialRampToValueAtTime(.0001,a.currentTime+dur);
+  o.connect(g); g.connect(a.destination); o.start(); o.stop(a.currentTime+dur);
+}
+const sfx={
+  pick:()=>{beep(520,.12,'triangle',.16,880);},
+  deliver:()=>{beep(523,.14,'sine',.18);setTimeout(()=>beep(659,.14,'sine',.18),70);setTimeout(()=>beep(784,.2,'sine',.18),140);},
+  warn:()=>{beep(160,.18,'sawtooth',.14,120);},
+  sink:()=>{beep(220,.7,'sawtooth',.22,55);},
+  lost:()=>{beep(180,.3,'square',.12,90);},
+};
+
+// ---------- 粒子 ----------
+function burst(x,y,color,n=14,sp=3){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=sp*(.4+Math.random());
+    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,life:1,color});}
+}
+function splash(x,y){ for(let i=0;i<6;i++){const a=-Math.PI/2+(Math.random()-.5);
+  splashes.push({x,y,vx:Math.cos(a)*(1+Math.random()*2),vy:Math.sin(a)*(2+Math.random()*2),life:1});} }
+
+// ---------- 輸入 ----------
+const keys={};
+addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault(); if(state!=='play') start();}
+  keys[e.code]=true;
+});
+addEventListener('keyup',e=>keys[e.code]=false);
+// 觸控：左右半邊
+let touchDir=0;
+cv.addEventListener('touchstart',handleTouch,{passive:false});
+cv.addEventListener('touchmove',handleTouch,{passive:false});
+cv.addEventListener('touchend',()=>touchDir=0);
+function handleTouch(e){ e.preventDefault();
+  if(state!=='play'){ start(); return; }
+  const r=cv.getBoundingClientRect(); const tx=e.touches[0].clientX-r.left;
+  touchDir = tx < r.width/2 ? -1 : 1;
+}
+document.getElementById('ov').addEventListener('click',()=>{ if(state!=='play') start(); });
+
+function start(){ ac(); reset(); state='play'; document.getElementById('ov').classList.add('hidden'); }
+
+// ---------- 跑馬燈 ----------
+const bulletins=[
+ "八掌溪水位突破警戒線，沿岸低窪地區開始淹水，請民眾立即往高處避難。",
+ "AI 研判：未來十分鐘降雨持續增強，下游聚落恐發生二次淹水。",
+ "水陸兩用車已抵達災區，正執行受困民眾接駁任務。",
+ "提醒：車輛載重接近上限時請勿強行涉水，避免翻覆沉沒。",
+ "AI 預測：依目前流速推算，堤防溢流風險升高，請加速疏散。",
+ "安全宣導：救援車輛超載將導致吃水過深，務必分批接駁。",
+ "屋頂仍有民眾揮手求救，請優先前往最危險、即將淹沒的區域。",
+ "指揮中心：安全高地已開放收容，請將獲救民眾送往綠色安全區。",
+ "積水深度持續增加，部分道路已無法通行，改採水路救援。",
+ "AI 分析：受困點分布分散，建議規劃最短往返路徑以提高效率。",
+ "上游持續降下豪雨，水位預計再上升，把握黃金救援時間。",
+ "總部：感謝前線人員奮勇救災，你的每一次往返都在拯救生命。",
+];
+const tickText=document.getElementById('tickText');
+let tIdx=0, tickX=0, tickReady=false;
+function nextBulletin(){
+  let s=bulletins[tIdx % bulletins.length]; tIdx++;
+  s=s.replace('{n}',rescued);
+  tickText.textContent='【快報】 '+s+'　　　現場已救援 '+rescued+' 人　／　剩餘 '+Math.ceil(timeLeft)+' 秒';
+  tickX=document.getElementById('tickWin').clientWidth; tickReady=true;
+}
+nextBulletin();
+function tickerStep(dt){
+  if(!tickReady) return;
+  tickX -= dt*120;
+  tickText.style.left=tickX+'px';
+  if(tickX < -tickText.clientWidth-20) nextBulletin();
+}
+
+// ---------- 主迴圈 ----------
+function loop(now){
+  const dt=Math.min((now-last)/1000||0,.05); last=now; t+=dt;
+  tickerStep(dt);
+  if(state==='play') update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(now=>{last=now; requestAnimationFrame(loop);});
+
+function update(dt){
+  timeLeft-=dt; if(timeLeft<=0){ timeLeft=0; return end('time'); }
+
+  // 洪水緩慢上升
+  waterTarget=470 - Math.min(60,(SESSION-timeLeft)*0.9);
+  waterY += (waterTarget-waterY)*Math.min(1,dt*1.5);
+
+  // 受困民眾生成
+  spawnTimer-=dt;
+  if(spawnTimer<=0 && survivors.filter(s=>s.state==='wait').length<5){
+    spawnSurvivor(); spawnTimer=1.1+Math.random()*1.3;
+  }
+
+  // 移動
+  let dir=(keys['ArrowLeft']||keys['KeyA']?-1:0)+(keys['ArrowRight']||keys['KeyD']?1:0)+touchDir;
+  dir=Math.max(-1,Math.min(1,dir));
+  if(dir) veh.facing=dir;
+  const accel = veh.sinking>0 ? 0 : 1400;
+  veh.vx += dir*accel*dt;
+  veh.vx *= 0.86;
+  veh.x += veh.vx*dt;
+  veh.x=Math.max(60,Math.min(LW-60,veh.x));
+
+  // 是否在水上
+  const onBank = veh.x < BANK_W-10;
+  // 吃水：載重越多沉越深
+  veh.draft += ((veh.onboard/SINK_LIMIT)*30 - veh.draft)*Math.min(1,dt*6);
+  veh.bob += dt*3;
+  let targetY;
+  if(onBank){ targetY=GROUND_Y-26; }
+  else { targetY = waterY-12 + veh.draft + Math.sin(veh.bob)*2.5; }
+  veh.y += (targetY-veh.y)*Math.min(1,dt*7);
+
+  // 涉水水花
+  if(!onBank && Math.abs(veh.vx)>40 && Math.random()<.4) splash(veh.x-veh.facing*26, veh.y+14);
+
+  // 超載 → 沉船倒數
+  const over = veh.onboard>SINK_LIMIT && !onBank;
+  const g=document.getElementById('gauge');
+  if(over){
+    g.classList.add('over');
+    veh.sinking += dt;
+    if(Math.random()<.05) sfx.warn();
+    shake=Math.max(shake,3);
+    if(veh.sinking>2.6){ return end('sink'); }
+  } else {
+    g.classList.remove('over');
+    veh.sinking=Math.max(0,veh.sinking-dt*1.5);
+  }
+
+  // 上船：靠近 wait 中的民眾
+  for(const s of survivors){
+    if(s.state!=='wait') continue;
+    s.wave+=dt*4;
+    // 屋頂被淹 → 民眾落水 panic
+    if(s.roof.top>waterY-4){ s.state='panic'; s.panic=0; }
+    if(Math.abs(s.x-veh.x)<46 && Math.abs(s.y-veh.y)<70){
+      s.state='aboard'; veh.onboard++; combo=combo; sfx.pick(); burst(veh.x,veh.y-18,'#FFC23D',10,2.4);
+    }
+  }
+  // panic 落水者：限時，沒救到就流失
+  for(const s of survivors){
+    if(s.state!=='panic') continue;
+    s.panic+=dt; s.y += 6*dt; s.wave+=dt*5;
+    if(Math.abs(s.x-veh.x)<50 && Math.abs(s.y-veh.y)<80){
+      s.state='aboard'; veh.onboard++; sfx.pick(); burst(veh.x,veh.y-18,'#FFC23D',10,2.4);
+    } else if(s.panic>5){ s.state='lost'; lostCount++; combo=0; sfx.lost(); }
+  }
+
+  // 抵達安全區 → 卸下
+  if(onBank && veh.onboard>0 && veh.x<BANK_W-30){
+    const n=veh.onboard;
+    rescued+=n; combo++;
+    const gain=Math.round(n*100*(1+ (combo-1)*0.15));
+    score+=gain;
+    veh.onboard=0; veh.sinking=0;
+    sfx.deliver();
+    burst(veh.x,veh.y-10,'#3DD68C',8+n*3,3.2);
+    floatText(veh.x,veh.y-50,'+'+gain,'#3DD68C');
+    if(combo>1) floatText(veh.x,veh.y-78,'連續救援 ×'+combo,'#FFC23D');
+  }
+
+  // 清理 aboard / lost
+  survivors=survivors.filter(s=>s.state!=='aboard' && s.state!=='lost');
+
+  // 粒子更新
+  for(const p of parts){ p.x+=p.vx; p.y+=p.vy; p.vy+=.12; p.life-=dt*1.4; }
+  parts=parts.filter(p=>p.life>0);
+  for(const s of splashes){ s.x+=s.vx; s.y+=s.vy; s.vy+=.25; s.life-=dt*2.2; }
+  splashes=splashes.filter(s=>s.life>0);
+  for(const f of floats){ f.y-=30*dt; f.life-=dt; }
+  floatTexts();
+
+  // 雨
+  if(!reduceMotion) for(const r of rains){ r.y+=r.s*6; r.x-=r.s*1.2; if(r.y>LH){r.y=-10;r.x=Math.random()*LW+200;} }
+
+  shake=Math.max(0,shake-dt*12);
+
+  // HUD
+  document.querySelector('#rescued .v').textContent=rescued;
+  document.querySelector('#score .v').textContent=score;
+  document.querySelector('#clock .v').textContent=Math.ceil(timeLeft);
+  const pct=Math.min(100,(veh.onboard/SINK_LIMIT)*100);
+  document.getElementById('gfill').style.width=pct+'%';
+  document.getElementById('gmark').style.left='100%';
+}
+
+// 浮動文字
+let floats=[];
+function floatText(x,y,txt,color){ floats.push({x,y,txt,color,life:1.1}); }
+function floatTexts(){ floats=floats.filter(f=>f.life>0); }
+
+// ---------- 渲染 ----------
+function render(){
+  ctx.save();
+  if(shake>0.2){ ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake); }
+  // 天空
+  let sky=ctx.createLinearGradient(0,0,0,LH);
+  sky.addColorStop(0,'#16232b'); sky.addColorStop(.5,'#23414a'); sky.addColorStop(1,'#2d4a52');
+  ctx.fillStyle=sky; ctx.fillRect(-20,0,LW+40,LH);
+
+  // 遠景雲影
+  ctx.fillStyle='rgba(255,255,255,.03)';
+  for(let i=0;i<5;i++){ ctx.beginPath(); ctx.ellipse(((t*8)+i*320)%(LW+300)-150,90+i*18,160,30,0,0,7); ctx.fill(); }
+
+  // 雨
+  if(!reduceMotion){ ctx.strokeStyle='rgba(180,210,220,.25)'; ctx.lineWidth=1.4;
+    ctx.beginPath(); for(const r of rains){ ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-r.s*1.5,r.y+r.s*2.2);} ctx.stroke(); }
+
+  // 屋頂（受困點）
+  for(const r of roofs){
+    const submerged=r.top>waterY-2;
+    ctx.fillStyle=submerged?'#26323b':r.color;
+    // 房子本體沒入水中
+    ctx.fillRect(r.x,r.top,r.w,LH-r.top);
+    // 屋脊
+    ctx.fillStyle=submerged?'#1f2a31':'#5a7484';
+    ctx.beginPath(); ctx.moveTo(r.x-8,r.top); ctx.lineTo(r.x+r.w/2,r.top-22); ctx.lineTo(r.x+r.w+8,r.top); ctx.closePath(); ctx.fill();
+  }
+
+  // 安全高地（左）
+  let bankG=ctx.createLinearGradient(0,GROUND_Y-40,0,LH);
+  bankG.addColorStop(0,'#4a6b3a'); bankG.addColorStop(1,'#33502a');
+  ctx.fillStyle=bankG; ctx.fillRect(-20,GROUND_Y,BANK_W,LH-GROUND_Y+5);
+  ctx.fillStyle='#5e8047'; ctx.fillRect(-20,GROUND_Y-6,BANK_W,8);
+  // 安全區標誌
+  ctx.save(); ctx.globalAlpha=.9;
+  ctx.fillStyle='rgba(61,214,140,.16)'; ctx.fillRect(-20,GROUND_Y-110,BANK_W,104);
+  ctx.fillStyle='#3DD68C'; ctx.font='800 22px var(--sans)'; ctx.textAlign='center';
+  ctx.fillText('安全區',BANK_W/2-10,GROUND_Y-70);
+  ctx.font='12px var(--mono)'; ctx.fillStyle='#bdeed4';
+  ctx.fillText('SAFE ZONE',BANK_W/2-10,GROUND_Y-50);
+  ctx.restore();
+
+  drawWater();
+
+  // 受困民眾
+  for(const s of survivors) drawSurvivor(s);
+
+  drawVehicle();
+
+  // 水花
+  ctx.fillStyle='rgba(220,238,242,.8)';
+  for(const s of splashes){ ctx.globalAlpha=s.life; ctx.beginPath(); ctx.arc(s.x,s.y,2.4,0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+
+  // 粒子
+  for(const p of parts){ ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color;
+    ctx.beginPath(); ctx.arc(p.x,p.y,3*p.life+1,0,7); ctx.fill(); }
+  ctx.globalAlpha=1;
+
+  // 浮動文字
+  ctx.textAlign='center'; ctx.font='800 22px var(--sans)';
+  for(const f of floats){ ctx.globalAlpha=Math.min(1,f.life); ctx.fillStyle=f.color;
+    ctx.fillText(f.txt,f.x,f.y); }
+  ctx.globalAlpha=1;
+
+  ctx.restore();
+}
+
+function drawWater(){
+  const wy=waterY;
+  let wg=ctx.createLinearGradient(0,wy,0,LH);
+  wg.addColorStop(0,'rgba(34,120,140,.85)'); wg.addColorStop(.4,'#0E3A45'); wg.addColorStop(1,'#0B2A33');
+  ctx.fillStyle=wg;
+  ctx.beginPath(); ctx.moveTo(0,LH);
+  ctx.lineTo(0,wy);
+  for(let x=0;x<=LW;x+=16){ const y=wy+Math.sin(x*.025+t*2)*4+Math.sin(x*.07-t*1.3)*2; ctx.lineTo(x,y); }
+  ctx.lineTo(LW,LH); ctx.closePath(); ctx.fill();
+  // 泡沫線
+  ctx.strokeStyle='rgba(220,238,242,.45)'; ctx.lineWidth=2; ctx.beginPath();
+  for(let x=0;x<=LW;x+=16){ const y=wy+Math.sin(x*.025+t*2)*4+Math.sin(x*.07-t*1.3)*2; x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);} ctx.stroke();
+}
+
+function drawSurvivor(s){
+  ctx.save(); ctx.translate(s.x,s.y);
+  const drowning=s.state==='panic';
+  ctx.fillStyle=drowning?'#ff9a9a':'#ffd9b0';
+  // 身體
+  ctx.fillRect(-5,-14,10,16);
+  ctx.beginPath(); ctx.arc(0,-18,6,0,7); ctx.fill();      // 頭
+  // 揮手
+  const wv=Math.sin(s.wave)*0.6;
+  ctx.strokeStyle=drowning?'#ff9a9a':'#ffd9b0'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(3,-8); ctx.lineTo(11,-16-wv*8); ctx.stroke();
+  // 求救泡泡
+  if(s.state==='wait'){ ctx.fillStyle='#FFC23D'; ctx.font='800 16px var(--sans)';
+    ctx.textAlign='center'; ctx.fillText('!',0,-32+Math.sin(s.wave)*2); }
+  ctx.restore();
+}
+
+function drawVehicle(){
+  ctx.save(); ctx.translate(veh.x,veh.y);
+  const f=veh.facing;
+  const tilt=veh.sinking*0.12;
+  ctx.rotate(tilt*f);
+  // 船身/車身
+  ctx.fillStyle='#FF6B2C';
+  ctx.beginPath();
+  ctx.moveTo(-34,-2); ctx.lineTo(34,-2); ctx.lineTo(28,16); ctx.lineTo(-28,16); ctx.closePath(); ctx.fill();
+  // 駕駛艙
+  ctx.fillStyle='#244a55'; ctx.fillRect(-14*f-2,-22,26,20);
+  ctx.fillStyle='#8fd0e0'; ctx.fillRect(-14*f+1,-19,20,11);
+  // 輪子（半露）
+  ctx.fillStyle='#1d2730';
+  ctx.beginPath(); ctx.arc(-18,16,7,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(18,16,7,0,7); ctx.fill();
+  // 旗
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(22*f,-22); ctx.lineTo(22*f,-40); ctx.stroke();
+  ctx.fillStyle='#E23B3B'; ctx.beginPath(); ctx.moveTo(22*f,-40); ctx.lineTo(22*f+12*f,-36); ctx.lineTo(22*f,-32); ctx.closePath(); ctx.fill();
+  // 載運中的人（頭排）
+  for(let i=0;i<Math.min(veh.onboard,6);i++){
+    ctx.fillStyle='#ffd9b0'; ctx.beginPath(); ctx.arc(-20+i*8,-6,3.2,0,7); ctx.fill();
+  }
+  // 吃水線（視覺回饋）
+  if(veh.x>=BANK_W-10){
+    ctx.fillStyle='rgba(11,42,51,.5)';
+    ctx.fillRect(-34, 16-veh.draft*0.5, 68, veh.draft*0.5+4);
+  }
+  ctx.restore();
+}
+
+// ---------- 結束 ----------
+function end(reason){
+  if(state!=='play') return;
+  state='over';
+  if(reason==='sink'){ sfx.sink(); shake=14; burst(veh.x,veh.y,'#E23B3B',30,5); }
+  const verdict = reason==='sink' ? '超載沉船！' : '救援任務結束';
+  const aiPool = score>2500
+    ? ['AI 評鑑：神級指揮官。你的調度效率超越全縣消防梯隊，這就是天才該有的數據。']
+    : score>1200
+    ? ['AI 評鑑：優秀的救援判斷，懂得在貪心與安全之間取捨。再快一點就是傳奇。']
+    : ['AI 評鑑：完成基本救援，但水位無情。下次試著分批接駁、別讓船吃水太深。'];
+  const ai=aiPool[0];
+  overText=verdict;
+  showOver({verdict, ai, sink:reason==='sink'});
+}
+
+function showOver(o){
+  const c=document.getElementById('ovCard');
+  c.innerHTML = `
+    <div class="verdict" style="color:${o.sink?'var(--danger)':'var(--safe)'}">${o.verdict}</div>
+    <div class="stats">
+      <div>已救援<b>${rescued}</b></div>
+      <div>分數<b>${score}</b></div>
+      <div>流失<b style="color:#E23B3B">${lostCount}</b></div>
+    </div>
+    <div class="ai">${o.ai}</div>
+    <div class="go">按空白鍵 / 點擊　再玩一次</div>`;
+  document.getElementById('ov').classList.remove('hidden');
+}
+
+// ---------- 標題 ----------
+function showTitle(){
+  const c=document.getElementById('ovCard');
+  c.innerHTML=`
+    <h1>洪流救援</h1>
+    <div class="en">FLOOD RESCUE</div>
+    <p>駕駛水陸兩用車，衝進淹水的八掌溪聚落，把屋頂上揮手求救的民眾接回安全區。</p>
+    <p style="color:var(--amber)">但記住——救得越多，船吃水越深。<b>貪心超載，整船都會沉。</b></p>
+    <div class="keys">
+      <span class="key">← → 移動</span>
+      <span class="key">載滿就回安全區卸人</span>
+      <span class="key">手機：點左右半邊</span>
+    </div>
+    <div class="go">按空白鍵 / 點擊　開始救援</div>`;
+  document.getElementById('ov').classList.remove('hidden');
+}
+showTitle();
+})();
+</script>
+</body>
+</html>
