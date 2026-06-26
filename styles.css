@@ -2410,3 +2410,9 @@ body.is-editing {
 /* ====== 雷達圖 ====== */
 .award-radar-wrap { display: flex; justify-content: center; margin: 12px 0 8px; padding: 8px; background: rgba(255,215,0,0.03); border-radius: 8px; }
 .award-radar { display: block; }
+
+/* ====== 試玩回饋引言（社員/觀眾語錄）====== */
+.award-testimonial { margin: 12px 0 4px; padding: 14px 16px 12px 36px; background: rgba(255,215,0,0.05); border-left: 3px solid #b8860b; border-radius: 0 8px 8px 0; position: relative; font-style: normal; }
+.award-testimonial .testimonial-quote { position: absolute; top: 0; left: 8px; font-size: 36px; color: #b8860b; line-height: 1; font-family: Georgia, serif; opacity: 0.5; }
+.award-testimonial p { margin: 0 0 6px; font-size: 13px; line-height: 1.7; color: #4a3f1c; font-style: italic; }
+.award-testimonial cite { font-size: 11px; color: #8b6914; font-style: normal; letter-spacing: 1px; }

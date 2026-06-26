@@ -1064,6 +1064,13 @@ function renderAwards() {
                       ${a.winnerNote ? `<em>${escapeHtml(a.winnerNote)}</em>` : ""}
                     </a>
                     ${a.scores ? `<div class="award-radar-wrap">${renderRadar(a.scores)}</div>` : ""}
+                    ${a.testimonial ? `
+                      <blockquote class="award-testimonial">
+                        <span class="testimonial-quote">“</span>
+                        <p>${escapeHtml(a.testimonial)}</p>
+                        <cite>— ${escapeHtml(a.testimonialFrom || "試玩回饋")}</cite>
+                      </blockquote>
+                    ` : ""}
                   ` : published ? `
                     <p class="muted award-pending">本獎項從缺</p>
                   ` : `
