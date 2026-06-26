@@ -2,415 +2,129 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>大業實驗中學 AI 創作社｜頒獎典禮</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<title>嘉義市大業實驗國民中學 — AI 創作社團期末成果展 獎狀預覽</title>
 <style>
-  :root {
-    --gold:        #C8A050;
-    --gold-deep:   #8B6914;
-    --gold-bright: #DAA520;
-    --gold-pale:   #F0DDA0;
-    --ink:         #2A1A0A;
-    --accent:      #8B0000;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body {
-    background: radial-gradient(ellipse at center, #2A1810 0%, #0A0504 100%);
-    font-family: 'Noto Serif TC', 'Songti TC', serif;
-    color: var(--ink);
-    min-height: 100vh; overflow: hidden;
-  }
-
-  /* ─── 控制條 ─── */
-  .controls {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    z-index: 100; display: flex; gap: 10px; align-items: center;
-    background: rgba(10,5,2,0.9); backdrop-filter: blur(12px);
-    border: 1px solid rgba(218,165,32,0.4);
-    padding: 8px 18px; border-radius: 100px;
-  }
-  .controls button {
-    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-deep) 100%);
-    color: #FFF8DC; border: none; padding: 8px 18px; border-radius: 25px;
-    font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: 2px;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .controls button:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(218,165,32,0.5); }
-  .controls .info { color: var(--gold-pale); font-size: 13px; padding: 0 6px; letter-spacing: 1px; }
-  .controls .info .current { color: #FFF; font-weight: 700; font-size: 17px; }
-
-  /* ─── 舞台 ─── */
-  .stage {
-    width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center;
-    perspective: 1500px;
-  }
-
-  /* ─── 獎狀本體（寬度受高度約束，不會超出 viewport） ─── */
-  .certificate {
-    width: min(1080px, 92vw, calc((100vh - 140px) * 1.414));
-    aspect-ratio: 1.414/1;
-    position: relative;
-    background: #FFFFFF;
-    background-image: var(--bg-img, none);
-    background-size: cover;
-    background-position: center;
-    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-    overflow: hidden;
-  }
-
-  /* 內容容器（grid 三段：頂 / 中 / 底） */
-  .cert-inner {
-    position: absolute; inset: 0;
-    padding: 7% 13% 9%;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    row-gap: 12px;
-    z-index: 5;
-    overflow: hidden;
-  }
-
-  /* ─── 自帶金邊（沒有底圖時也漂亮） ─── */
-  .border-outer {
-    position: absolute; inset: 24px;
-    border: 2px solid var(--gold);
-    pointer-events: none;
-  }
-  .border-inner {
-    position: absolute; inset: 34px;
-    border: 1px solid var(--gold-deep); opacity: 0.5;
-    pointer-events: none;
-  }
-  /* 金色斜緞帶（左上 + 右下） */
-  .ribbon {
-    position: absolute; pointer-events: none; z-index: 2;
-  }
-  .ribbon.tl {
-    top: 0; left: 0; width: 140px; height: 140px;
-    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 35%, var(--gold-deep) 100%);
-    clip-path: polygon(0 0, 100% 0, 0 100%);
-    box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
-  }
-  .ribbon.br {
-    bottom: 0; right: 0; width: 140px; height: 140px;
-    background: linear-gradient(315deg, var(--gold-bright) 0%, var(--gold) 35%, var(--gold-deep) 100%);
-    clip-path: polygon(100% 100%, 100% 0, 0 100%);
-    box-shadow: -4px -4px 12px rgba(0,0,0,0.2);
-  }
-  /* 緞帶下層紙折角 */
-  .ribbon.tl::after, .ribbon.br::after {
-    content: ''; position: absolute; background: rgba(255,255,255,0.5);
-    width: 30px; height: 100%; transform: rotate(45deg);
-  }
-  .ribbon.tl::after { right: -15px; top: 0; }
-  .ribbon.br::after { left: -15px; bottom: 0; }
-
-  /* 找不到底圖警告 */
-  .bg-warning {
-    position: fixed; top: 80px; left: 20px;
-    background: rgba(255, 200, 0, 0.95); color: #333;
-    padding: 8px 14px; border-radius: 6px; font-size: 12px;
-    font-family: monospace; z-index: 50;
-    display: none;
-  }
-
-  /* ─── 上方：校名 ─── */
-  .header {
-    text-align: center; padding-top: 4px;
-  }
-  .school-cn {
-    font-size: 16px; letter-spacing: 7px; color: var(--gold-deep); font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .school-en {
-    font-size: 8px; letter-spacing: 0.6px; color: var(--gold-deep); opacity: 0.7;
-    margin-bottom: 8px; font-family: 'Noto Serif TC', serif;
-    white-space: nowrap;
-  }
-  .ornament {
-    display: flex; align-items: center; justify-content: center; gap: 12px;
-  }
-  .ornament .line { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
-  .ornament .dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; box-shadow: 0 0 6px var(--gold-bright); }
-
-  /* ─── 中央：標題 + 獎項 + 得獎人 + 事由 ─── */
-  .main {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: flex-start;
-    gap: 14px;
-    text-align: center;
-    padding-top: 8px;
-  }
-  .title {
-    font-family: 'Songti TC', 'Source Han Serif TC', 'Noto Serif TC', serif;
-    font-size: 46px; font-weight: 900; color: var(--ink);
-    letter-spacing: 22px; padding-left: 22px;
-    line-height: 1;
-    text-shadow: 1px 1px 0 var(--gold-pale);
-  }
-  .award-band {
-    display: inline-block;
-    padding: 5px 28px;
-    color: var(--accent); font-size: 24px; font-weight: 700;
-    letter-spacing: 8px;
-    border-top: 1.5px solid var(--gold);
-    border-bottom: 1.5px solid var(--gold);
-  }
-  .winner {
-    font-size: 22px; color: var(--ink);
-    letter-spacing: 3px;
-    margin-top: 6px;
-  }
-  .winner .seat { font-size: 18px; color: var(--gold-deep); font-weight: 500; }
-  .winner .name {
-    font-size: 30px; color: var(--accent); font-weight: 700;
-    padding: 0 12px; letter-spacing: 6px;
-  }
-  .reason {
-    font-size: 15px; line-height: 1.8;
-    color: var(--ink);
-    max-width: 620px;
-    text-align: justify; text-justify: inter-ideograph;
-    text-indent: 2em;
-    margin-top: 4px;
-  }
-  .reason em { font-style: normal; color: var(--accent); font-weight: 700; }
-
-  /* ─── 底部：日期左下 / 校長右下（精準對齊底圖 DATE/SIGNATURE 位置） ─── */
-  .footer {
-    position: absolute;
-    bottom: calc(12% + 36px);
-    left: 0; right: 0;
-    display: block;
-    height: 0;
-  }
-  .footer .col {
-    position: absolute;
-    bottom: 0;
-    transform: translateX(-50%);
-    text-align: center;
-    white-space: nowrap;
-  }
-  .footer .col:first-child { left: 22%; }
-  .footer .col:last-child { left: 78%; }
-  .footer .col { text-align: center; }
-  .footer .col .text {
-    font-size: 18px; color: var(--ink); font-weight: 600;
-    letter-spacing: 3px; white-space: nowrap;
-    padding-bottom: 4px;
-  }
-  .footer .col .text .label {
-    font-size: 13px; color: var(--gold-deep); font-weight: 500;
-    margin-right: 10px;
-  }
-
-  /* 提示 */
-  .hint {
-    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-    color: var(--gold-pale); font-size: 12px; opacity: 0.65;
-    letter-spacing: 2px;
-  }
-  .hint kbd {
-    background: rgba(218,165,32,0.15); border: 1px solid rgba(218,165,32,0.5);
-    padding: 2px 8px; border-radius: 4px; font-family: monospace;
-    color: #FFF; margin: 0 2px;
-  }
-
-  /* ─── 列印 ─── */
-  @media print {
-    @page { size: A4 landscape; margin: 0; }
-    html, body { background: white !important; perspective: none; }
-    .controls, .hint, .bg-warning { display: none !important; }
-    .stage { width: 100%; height: auto; display: block; perspective: none; }
-    .certificate {
-      width: 297mm; height: 210mm; aspect-ratio: unset;
-      box-shadow: none; page-break-after: always;
-      transform: none !important; opacity: 1 !important;
-      margin: 0;
-    }
-    .certificate * { opacity: 1 !important; transform: none !important; }
-    .kirin-sig { transform: rotate(-3deg) !important; }
-  }
+  :root { --ink:#1a2845; --gold:#b8860b; --paper:#fdfaf3; --line:#c9a96a; --muted:#6b7280; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:32px 16px; background:linear-gradient(180deg,#f3eee0,#e8e1ce); font-family:"標楷體","DFKai-SB","BiauKai","Noto Serif TC",serif; color:var(--ink); }
+  .container { max-width:880px; margin:0 auto; }
+  .header { text-align:center; margin-bottom:32px; }
+  .header h1 { font-size:28px; margin:0 0 8px; letter-spacing:4px; }
+  .header p { color:var(--muted); margin:4px 0; }
+  .cert { background:var(--paper); border:3px double var(--line); border-radius:12px; padding:60px 64px 48px; margin:0 0 32px; box-shadow:0 8px 32px rgba(26,40,69,0.12); position:relative; page-break-after:always; }
+  .cert::before { content:""; position:absolute; top:12px; left:12px; right:12px; bottom:12px; border:1px solid var(--line); border-radius:8px; pointer-events:none; }
+  .cert-eyebrow { text-align:center; font-size:14px; color:var(--muted); letter-spacing:6px; margin-bottom:16px; }
+  .cert-school { text-align:center; font-size:18px; margin-bottom:8px; letter-spacing:3px; }
+  .cert-event { text-align:center; font-size:16px; color:var(--muted); margin-bottom:32px; letter-spacing:2px; }
+  .award-name { text-align:center; font-size:48px; font-weight:bold; color:var(--gold); letter-spacing:12px; margin:24px 0 8px; }
+  .award-icon { text-align:center; font-size:56px; margin-bottom:16px; }
+  .meta { margin:32px auto 16px; max-width:560px; font-size:18px; line-height:2; }
+  .row { display:flex; gap:12px; margin:8px 0; }
+  .label { width:100px; color:var(--muted); }
+  .value { flex:1; }
+  .name-big { font-size:32px; font-weight:bold; color:var(--ink); letter-spacing:4px; }
+  .reason { margin:24px auto; max-width:640px; font-size:16px; line-height:2; text-indent:2em; text-align:justify; }
+  .footer { margin-top:48px; text-align:right; font-size:14px; color:var(--muted); letter-spacing:2px; }
+  .note { text-align:center; font-size:13px; color:var(--muted); margin-top:24px; padding:12px; background:rgba(184,134,11,0.06); border-radius:6px; }
+  @media print { body { background:white; padding:0; } .header { display:none; } .cert { box-shadow:none; margin:0; padding:48px; } }
 </style>
 </head>
 <body>
+<div class="container">
 
-<div class="controls">
-  <button id="btn-prev">◀ 上一張</button>
-  <span class="info">第 <span class="current">1</span> / <span id="total">13</span> 張</span>
-  <button id="btn-next">下一張 ▶</button>
-  <button id="btn-auto">自動播放</button>
-  <button id="btn-print">🖨 列印全部</button>
-</div>
+  <div class="header">
+    <h1>獎狀預覽</h1>
+    <p>嘉義市大業實驗國民中學 — AI 創作社團期末成果展</p>
+    <p>114 學年度春夏學季 · 2026 年 6 月</p>
+  </div>
 
-<div class="bg-warning" id="bgWarn">⚠️ 找不到 ~/Desktop/cert_bg.png（用內建金邊版）</div>
-
-<div class="stage" id="stage"></div>
-
-<div class="hint">
-  <kbd>←</kbd> <kbd>→</kbd> 切換　<kbd>Space</kbd> 自動　<kbd>P</kbd> 列印
-</div>
-
-<script>
-const AWARDS = [
-  { award:"人氣金獎",       seat:"804 班 11 號", name:"顏琮騰",
-    reason:"於 114 學年度春夏學季「AI 創作社團」期末成果展中，以原創遊戲作品<em>《ECO Defender's Bizarre Adventure》</em>獲得全展<em>最高人氣</em>，表現優異，特頒此狀，以資鼓勵。" },
-  { award:"人氣銀獎",       seat:"704 班 8 號",  name:"劉兆棋",
-    reason:"於 114 學年度春夏學季「AI 創作社團」期末成果展中，以原創遊戲作品<em>《八掌溪跑酷》</em>獲得展中<em>第二高人氣</em>，並以五項評分平均 4.80 為全展最高品質，特頒此狀，以資鼓勵。" },
-  { award:"人氣銅獎",       seat:"701 班 16 號", name:"高明萱",
-    reason:"於 114 學年度春夏學季「AI 創作社團」期末成果展中，以原創遊戲作品<em>《風味抉擇：漢堡帝國》</em>之可愛畫風與用心關卡設計，獲得展中高人氣肯定，特頒此狀，以資鼓勵。" },
-  { award:"最佳遊戲體驗獎", seat:"804 班 14 號", name:"余沛潔",
-    reason:"於 114 學年度春夏學季「AI 創作社團」期末成果展中，以原創遊戲作品<em>《八掌溪環保爭霸戰》</em>於創意、美術、遊戲性、操作流暢度、完成度五項評分<em>皆獲滿分</em>肯定，特頒此狀，以資鼓勵。" },
-];
-
-const stage = document.getElementById('stage');
-document.getElementById('total').textContent = AWARDS.length;
-const currentEl = document.querySelector('.controls .current');
-
-let idx = 0, auto = false, autoTimer = null, currentTl = null;
-let bgAvailable = false;
-let sigAvailable = false;
-
-// 預先檢查兩張圖
-function preflight() {
-  return new Promise(resolve => {
-    let done = 0;
-    const check = () => { done++; if (done === 2) resolve(); };
-    const bg = new Image();
-    bg.onload = () => { bgAvailable = true; check(); };
-    bg.onerror = () => { document.getElementById('bgWarn').style.display = 'block'; check(); };
-    bg.src = 'cert_bg.png';
-    const sig = new Image();
-    sig.onload = () => { sigAvailable = true; check(); };
-    sig.onerror = () => { check(); };
-    sig.src = 'file:///Users/kk/Desktop/kirin_signature.png';
-  });
-}
-
-function buildCertHTML(a, i) {
-  const bgStyle = bgAvailable
-    ? `style="--bg-img:url('cert_bg.png')"`
-    : '';
-
-  const ornaments = bgAvailable ? '' : `
-    <div class="border-outer"></div>
-    <div class="border-inner"></div>
-    <div class="ribbon tl"></div>
-    <div class="ribbon br"></div>
-  `;
-
-  return `
-    <div class="certificate" id="cert" ${bgStyle}>
-      ${ornaments}
-      <div class="cert-inner">
-        <div class="header">
-          <div class="school-cn">嘉義市立大業實驗國民中學</div>
-          <div class="school-en">CHIAYI MUNICIPAL DAYE EXPERIMENTAL JUNIOR HIGH SCHOOL</div>
-          <div class="ornament"><div class="line"></div><div class="dot"></div><div class="line"></div></div>
-        </div>
-
-        <div class="main">
-          <div class="title">獎　狀</div>
-          <div><span class="award-band">${a.award}</span></div>
-          <div class="winner">
-            <span class="seat">${a.seat}</span>
-            <span class="name">${a.name}</span>
-            <span>同學</span>
-          </div>
-          <div class="reason">${a.reason}</div>
-        </div>
-
-        <div class="footer">
-          <div class="col">
-            <div class="text">2026.6.29</div>
-          </div>
-          <div class="col">
-            <div class="text"><span class="label">校長</span>陳明君</div>
-          </div>
-        </div>
-      </div>
+  <div class="cert">
+    <div class="cert-eyebrow">CERTIFICATE OF AWARD</div>
+    <div class="cert-school">嘉義市大業實驗國民中學</div>
+    <div class="cert-event">114 學年度春夏學季 · AI 創作社團期末成果展</div>
+    <div class="award-icon">🥇</div>
+    <div class="award-name">金獎</div>
+    <div class="meta">
+      <div class="row"><div class="label">班級座號</div><div class="value">804 班 11 號</div></div>
+      <div class="row"><div class="label">姓名</div><div class="value name-big">顏琮騰</div></div>
     </div>
-  `;
-}
+    <div class="reason">於 114 學年度春夏學季「AI 創作社團」期末成果展中,以原創遊戲作品《ECO Defender's Bizarre Adventure》獲得全展最高觀眾人氣,並以立體環保冒險的高完整度經得起反覆試玩檢驗,特頒此狀,以資鼓勵。</div>
+    <div class="footer">指導老師　　　　2026 年 6 月 29 日</div>
+  </div>
 
-function render(i) {
-  stage.innerHTML = buildCertHTML(AWARDS[i], i);
-  currentEl.textContent = i + 1;
-  playEntrance();
-}
+  <div class="cert">
+    <div class="cert-eyebrow">CERTIFICATE OF AWARD</div>
+    <div class="cert-school">嘉義市大業實驗國民中學</div>
+    <div class="cert-event">114 學年度春夏學季 · AI 創作社團期末成果展</div>
+    <div class="award-icon">🥈</div>
+    <div class="award-name">銀獎</div>
+    <div class="meta">
+      <div class="row"><div class="label">班級座號</div><div class="value">704 班 8 號</div></div>
+      <div class="row"><div class="label">姓名</div><div class="value name-big">劉兆棋</div></div>
+    </div>
+    <div class="reason">於 114 學年度春夏學季「AI 創作社團」期末成果展中,以原創遊戲作品《八掌溪跑酷》結合在地場景,並以五項評分平均 4.80 為全展最高品質,特頒此狀,以資鼓勵。</div>
+    <div class="footer">指導老師　　　　2026 年 6 月 29 日</div>
+  </div>
 
-function playEntrance() {
-  if (currentTl) currentTl.kill();
-  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-  currentTl = tl;
+  <div class="cert">
+    <div class="cert-eyebrow">CERTIFICATE OF AWARD</div>
+    <div class="cert-school">嘉義市大業實驗國民中學</div>
+    <div class="cert-event">114 學年度春夏學季 · AI 創作社團期末成果展</div>
+    <div class="award-icon">🥉</div>
+    <div class="award-name">銅獎</div>
+    <div class="meta">
+      <div class="row"><div class="label">班級座號</div><div class="value">701 班 16 號</div></div>
+      <div class="row"><div class="label">姓名</div><div class="value name-big">高明萱</div></div>
+    </div>
+    <div class="reason">於 114 學年度春夏學季「AI 創作社團」期末成果展中,以原創遊戲作品《風味抉擇:漢堡帝國》之可愛畫風與用心關卡設計,獲得展中高人氣肯定,特頒此狀,以資鼓勵。</div>
+    <div class="footer">指導老師　　　　2026 年 6 月 29 日</div>
+  </div>
 
-  tl.fromTo('#cert',
-    { scale: 0.92, opacity: 0, rotateY: -6, y: 20 },
-    { scale: 1, opacity: 1, rotateY: 0, y: 0, duration: 0.9, ease: 'expo.out' })
-  .fromTo('.header',
-    { y: -10, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.5 }, '-=0.4')
-  .fromTo('.title',
-    { y: 20, opacity: 0, letterSpacing: '60px' },
-    { y: 0, opacity: 1, letterSpacing: '24px', duration: 0.9 }, '-=0.2')
-  .fromTo('.award-band',
-    { scale: 1.3, opacity: 0, filter: 'blur(6px)' },
-    { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 0.6 }, '-=0.4')
-  .fromTo('.winner',
-    { y: 20, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.6 }, '-=0.2')
-  .fromTo('.reason',
-    { y: 16, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.8 }, '-=0.3')
-  .fromTo('.footer',
-    { y: 16, opacity: 0 },
-    { y: 0, opacity: 1, duration: 0.6 }, '-=0.4');
+  <div class="cert">
+    <div class="cert-eyebrow">CERTIFICATE OF AWARD</div>
+    <div class="cert-school">嘉義市大業實驗國民中學</div>
+    <div class="cert-event">114 學年度春夏學季 · AI 創作社團期末成果展</div>
+    <div class="award-icon">🎮</div>
+    <div class="award-name">最佳遊戲體驗獎</div>
+    <div class="meta">
+      <div class="row"><div class="label">班級座號</div><div class="value">804 班 14 號</div></div>
+      <div class="row"><div class="label">姓名</div><div class="value name-big">余沛潔</div></div>
+    </div>
+    <div class="reason">於 114 學年度春夏學季「AI 創作社團」期末成果展中,以原創遊戲作品《八掌溪環保爭霸戰》於創意、美術、遊戲性、操作流暢度、完成度五項評分皆獲滿分肯定,特頒此狀,以資鼓勵。</div>
+    <div class="footer">指導老師　　　　2026 年 6 月 29 日</div>
+  </div>
 
-  const sig = document.querySelector('.kirin-sig');
-  if (sig) {
-    tl.fromTo(sig,
-      { opacity: 0, scale: 0.7, rotate: '-15deg' },
-      { opacity: 1, scale: 1, rotate: '-3deg', duration: 0.8, ease: 'back.out(1.4)' }, '-=0.3');
-  }
-}
+  <div class="cert">
+    <div class="cert-eyebrow">CERTIFICATE OF AWARD</div>
+    <div class="cert-school">嘉義市大業實驗國民中學</div>
+    <div class="cert-event">114 學年度春夏學季 · AI 創作社團期末成果展</div>
+    <div class="award-icon">✨</div>
+    <div class="award-name">內部品質獎</div>
+    <div class="meta">
+      <div class="row"><div class="label">班級座號</div><div class="value">904 班 7 號(已畢業)</div></div>
+      <div class="row"><div class="label">姓名</div><div class="value name-big">陳威齊</div></div>
+    </div>
+    <div class="reason">於 114 學年度春夏學季「AI 創作社團」期末成果展中,以原創遊戲作品《深淵騎士》獲得全展社員平均 4.5 / 5 的最高內部評分,品質經得起社員反覆試玩檢驗,特頒此狀,以資鼓勵。</div>
+    <div class="note">本獎位由社團指導老師於網頁公開致敬;如需紙本獎狀,歡迎洽詢指導老師補印。</div>
+    <div class="footer">指導老師　　　　2026 年 6 月 29 日</div>
+  </div>
 
-function next() { idx = (idx + 1) % AWARDS.length; render(idx); }
-function prev() { idx = (idx - 1 + AWARDS.length) % AWARDS.length; render(idx); }
-function toggleAuto() {
-  auto = !auto;
-  const btn = document.getElementById('btn-auto');
-  if (auto) { btn.textContent = '⏸ 停止播放'; autoTimer = setInterval(next, 8000); }
-  else { btn.textContent = '自動播放'; clearInterval(autoTimer); }
-}
-function printAll() {
-  const allHTML = AWARDS.map((a, i) => buildCertHTML(a, i)).join('');
-  stage.innerHTML = allHTML;
-  setTimeout(() => { window.print(); setTimeout(() => render(idx), 1000); }, 400);
-}
+  <div class="cert">
+    <div class="cert-eyebrow">IN HONOR OF THE WORK ITSELF</div>
+    <div class="cert-school">嘉義市大業實驗國民中學</div>
+    <div class="cert-event">114 學年度春夏學季 · AI 創作社團期末成果展</div>
+    <div class="award-icon">🌱</div>
+    <div class="award-name">永續關懷特別獎</div>
+    <div class="meta">
+      <div class="row"><div class="label">作品名稱</div><div class="value name-big">拯救永續島</div></div>
+      <div class="row"><div class="label">作者</div><div class="value">佚名(推測為已畢業學生作品)</div></div>
+    </div>
+    <div class="reason">於 114 學年度春夏學季「AI 創作社團」期末成果展中,作品《拯救永續島》以完整 SDG 永續主題與遊戲機制成立。雖無人現身領取,評審團決議將此獎位歸還給作品本身,致敬這份留下來的心意 — 留下作品的人,作品會替他繼續說話。</div>
+    <div class="note">本獎位不發實體獎狀,僅於社團公開網頁致敬作品。</div>
+    <div class="footer">指導老師　　　　2026 年 6 月 29 日</div>
+  </div>
 
-document.getElementById('btn-prev').onclick = prev;
-document.getElementById('btn-next').onclick = next;
-document.getElementById('btn-auto').onclick = toggleAuto;
-document.getElementById('btn-print').onclick = printAll;
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') prev();
-  else if (e.key === 'ArrowRight') next();
-  else if (e.key === ' ') { e.preventDefault(); toggleAuto(); }
-  else if (e.key === 'p' || e.key === 'P') printAll();
-});
-
-preflight().then(() => {
-  const params = new URLSearchParams(location.search);
-  if (params.get('print') === 'all') {
-    stage.innerHTML = AWARDS.map((a, i) => buildCertHTML(a, i)).join('');
-    document.querySelector('.controls').style.display = 'none';
-    document.querySelector('.hint').style.display = 'none';
-  } else {
-    render(0);
-  }
-});
-</script>
+</div>
 </body>
 </html>
+</content>
