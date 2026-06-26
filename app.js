@@ -607,6 +607,25 @@ function bindBrowseControls() {
   });
 }
 
+function awardsArePublished() {
+  const awards = (window.SITE_CONFIG && window.SITE_CONFIG.awards) || {};
+  if (!awards.publishAt) return false;
+  return Date.now() >= new Date(awards.publishAt).getTime();
+}
+
+function getAwardForWork(workId) {
+  if (!awardsArePublished()) return null;
+  const awards = (window.SITE_CONFIG && window.SITE_CONFIG.awards) || {};
+  const list = awards.list || [];
+  return list.find(a => a.winner === workId) || null;
+}
+
+function renderAwardBadge(workId) {
+  const award = getAwardForWork(workId);
+  if (!award) return "";
+  return `<span class="award-badge" title="${escapeAttr(award.name)}">${award.icon} ${escapeHtml(award.name)}</span>`;
+}
+
 function renderProjectCard(project) {
   const voted = hasVotedLocal(project.id);
   const apiEnabled = !!getVoteApiUrl();
@@ -625,6 +644,7 @@ function renderProjectCard(project) {
           ${coverImage(project)}
           <span>${escapeHtml(project.id)}</span>
           ${isDemo ? `<span class="demo-badge" title="教師示範作品，不參賽">🎓 教師示範</span>` : ""}
+          ${renderAwardBadge(project.id)}
           ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
         </div>
         <div class="card-body">
