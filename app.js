@@ -976,10 +976,40 @@ function renderAwards() {
   const published = publishAt && now >= publishAt;
 
   const groups = [
-    { code: "A", title: "觀眾票選（3 個獎位）", subtitle: "由觀眾票選決定 — 哪件最受歡迎、畫面最讚、玩法最棒" },
-    { code: "B", title: "專業評選（2 個獎位）", subtitle: "由社員與指導老師依作品創意與潛力深度評定" },
+    { code: "A", title: "綜合評定（3 個獎位）", subtitle: "觀眾人氣 60% + 評審完整度 40% — 民意與專業並重" },
+    { code: "B", title: "專業評選（3 個獎位）", subtitle: "由社員與指導老師依作品深度評定" },
     { code: "C", title: "評審特別獎", subtitle: "補足作品亮點與努力歷程的特別獎項" },
   ];
+
+  const stats = awards.stats || null;
+  const renderRadar = (scores) => {
+    if (!scores) return "";
+    const labels = [
+      { key: "creativity", name: "創意" },
+      { key: "art", name: "美術" },
+      { key: "gameplay", name: "遊戲性" },
+      { key: "smoothness", name: "流暢度" },
+      { key: "completeness", name: "完成度" },
+    ];
+    const size = 140, cx = size / 2, cy = size / 2, r = 48;
+    const angles = labels.map((_, i) => -Math.PI / 2 + (i * 2 * Math.PI / 5));
+    const point = (val, i) => {
+      const d = (val / 5) * r;
+      return [cx + d * Math.cos(angles[i]), cy + d * Math.sin(angles[i])];
+    };
+    const grid = [1, 2, 3, 4, 5].map(level => {
+      const pts = angles.map((a) => `${cx + (level / 5 * r) * Math.cos(a)},${cy + (level / 5 * r) * Math.sin(a)}`).join(" ");
+      return `<polygon points="${pts}" fill="none" stroke="rgba(184,134,11,0.15)" stroke-width="0.5"/>`;
+    }).join("");
+    const axes = angles.map(a => `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(a)}" y2="${cy + r * Math.sin(a)}" stroke="rgba(184,134,11,0.2)" stroke-width="0.5"/>`).join("");
+    const pts = labels.map((l, i) => point(scores[l.key] || 0, i).join(",")).join(" ");
+    const labelText = labels.map((l, i) => {
+      const [x, y] = point(5.6, i);
+      const val = (scores[l.key] || 0).toFixed(1);
+      return `<text x="${x}" y="${y + 3}" font-size="9" fill="#6b5a2c" text-anchor="middle">${l.name} ${val}</text>`;
+    }).join("");
+    return `<svg class="award-radar" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.25)" stroke="#b8860b" stroke-width="1.5"/>${labelText}</svg>`;
+  };
 
   app.innerHTML = `
     <section class="awards-page">
@@ -992,6 +1022,23 @@ function renderAwards() {
           ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
         </p>
       </div>
+
+      ${stats ? `
+        <div class="awards-stats">
+          <div class="awards-stats-head">
+            <span class="awards-stats-label">📊 ${escapeHtml(stats.label || "展期回響")}</span>
+            <span class="awards-stats-duration">${escapeHtml(stats.duration || "")}</span>
+          </div>
+          <div class="awards-stats-grid">
+            ${(stats.items || []).map(s => `
+              <div class="awards-stat">
+                <div class="awards-stat-value">${escapeHtml(s.value)}</div>
+                <div class="awards-stat-label">${escapeHtml(s.label)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      ` : ""}
 
     ${groups.map(g => {
       const items = list.filter(a => a.group === g.code);
@@ -1016,6 +1063,7 @@ function renderAwards() {
                       <span>${escapeHtml(winner.title)}</span>
                       ${a.winnerNote ? `<em>${escapeHtml(a.winnerNote)}</em>` : ""}
                     </a>
+                    ${a.scores ? `<div class="award-radar-wrap">${renderRadar(a.scores)}</div>` : ""}
                   ` : published ? `
                     <p class="muted award-pending">本獎項從缺</p>
                   ` : `

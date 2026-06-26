@@ -2396,3 +2396,17 @@ body.is-editing {
   outline: 2px solid rgba(184, 134, 11, 0.3);
   outline-offset: 4px;
 }
+
+/* ====== 展期回響大數區塊 ====== */
+.awards-stats { background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(184,134,11,0.04)); border: 1px solid rgba(184,134,11,0.2); border-radius: 12px; padding: 20px 24px; margin: 20px 0 28px; }
+.awards-stats-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.awards-stats-label { font-size: 14px; font-weight: 600; color: #8b6914; letter-spacing: 1px; }
+.awards-stats-duration { font-size: 12px; color: #b8860b; font-weight: 500; }
+.awards-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 16px; }
+.awards-stat { text-align: center; padding: 8px 4px; }
+.awards-stat-value { font-size: 28px; font-weight: 700; color: #b8860b; line-height: 1.2; letter-spacing: 1px; }
+.awards-stat-label { font-size: 12px; color: #6b5a2c; margin-top: 4px; }
+
+/* ====== 雷達圖 ====== */
+.award-radar-wrap { display: flex; justify-content: center; margin: 12px 0 8px; padding: 8px; background: rgba(255,215,0,0.03); border-radius: 8px; }
+.award-radar { display: block; }
