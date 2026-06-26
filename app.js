@@ -918,7 +918,7 @@ function renderRules() {
 
       <article class="panel">
         <h2>${escapeHtml(rules.antiFraud && rules.antiFraud.title || "公平性規則")}</h2>
-        <p class="muted">觀眾票主要影響人氣金獎；其他獎項由專業評選決定，讓作品能從不同面向被看見。</p>
+        <p class="muted">觀眾票主要影響金/銀/銅獎（佔 60% 權重）；其他獎項由專業評選決定，讓作品能從不同面向被看見。</p>
         <ol>
           ${(rules.antiFraud && rules.antiFraud.layers || []).map(s => `<li>${escapeHtml(s)}</li>`).join("")}
         </ol>
@@ -967,6 +967,7 @@ function renderAwards() {
         <p class="eyebrow">Awards</p>
         <h1>獎項說明</h1>
         <p class="awards-purpose">${escapeHtml(awards.purpose || "")}</p>
+        ${awards.weightingNote ? `<p class="awards-weighting muted">📐 ${escapeHtml(awards.weightingNote)}</p>` : ""}
         <p class="awards-status ${published ? "success" : "notice"}">
           ${published ? "✅ 結果已公布" : `⏳ 公布時間：${escapeHtml(awards.publishLabel || "")}`}
         </p>
