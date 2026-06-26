@@ -1012,6 +1012,10 @@ function renderAwards() {
         <a class="btn primary" href="#browse">看作品去</a>
         <a class="btn ghost" href="#scoring">看評選標準</a>
         <a class="btn ghost" href="#rules">看投票 Q&A</a>
+        ${published ? `
+          <a class="btn ghost" href="./assets/awards/certificates.html" target="_blank" rel="noopener">查看獎狀預覽</a>
+          <a class="btn ghost" href="./assets/awards/獎狀關鍵字.docx" download>下載獎狀文件 (Word)</a>
+        ` : ""}
       </div>
     </section>
   `;

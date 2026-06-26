@@ -54,18 +54,23 @@ window.SITE_CONFIG = {
     publishLabel: "6/29（一）早上 8:00",
     purpose: "5 個獎項，獻給最被看見的作品。3 個獎位由觀眾票選決定，2 個獎位由社員與指導老師依作品深度評定 — 民意與專業並重。",
     list: [
-      // A 組：觀眾票決定（3 個 — 直覺感受最強的維度）
+      // A 組：觀眾人氣票決定（3 個）
       { id: "popular_gold", group: "A", source: "audience", icon: "🥇", name: "人氣金獎",
-        desc: "由觀眾票選出的最想支持、最想推薦作品", winner: null, winnerNote: "" },
-      { id: "best_visual", group: "A", source: "audience", icon: "🎨", name: "觀眾畫面獎",
-        desc: "觀眾票選出畫面最有風格、最讓人印象深刻的作品", winner: null, winnerNote: "" },
-      { id: "best_gameplay", group: "A", source: "audience", icon: "🕹️", name: "觀眾玩法獎",
-        desc: "觀眾票選出操作最順手、機制最有趣、最想再玩一次的作品", winner: null, winnerNote: "" },
-      // B 組：社員與老師專業評鑑（2 個 — 需要看製作過程的維度）
-      { id: "best_creativity", group: "B", source: "internal", icon: "💡", name: "最佳創意概念獎",
-        desc: "由社員與老師專業評定 — 主題、玩法或視覺包裝有新鮮感、有 AI 共創的痕跡", winner: null, winnerNote: "" },
-      { id: "most_potential", group: "B", source: "internal", icon: "🚀", name: "最具潛力獎",
-        desc: "由社員與老師專業評定 — 概念完整、議題有延伸性，值得繼續開發成更成熟的作品", winner: null, winnerNote: "" },
+        desc: "由觀眾票選出的最想支持、最想推薦作品",
+        winner: "G09", winnerNote: "ECO Defender's Bizarre Adventure 獲得全展最高人氣" },
+      { id: "popular_silver", group: "A", source: "audience", icon: "🥈", name: "人氣銀獎",
+        desc: "由觀眾票選出展中第二高人氣作品",
+        winner: "G03", winnerNote: "八掌溪跑酷 獲得展中第二高人氣,並以五項評分平均 4.80 為全展最高品質" },
+      { id: "popular_bronze", group: "A", source: "audience", icon: "🥉", name: "人氣銅獎",
+        desc: "由觀眾票選出展中高人氣作品",
+        winner: "G02", winnerNote: "風味抉擇:漢堡帝國 之可愛畫風與用心關卡設計,獲得展中高人氣肯定" },
+      // B 組：社員與老師專業評鑑（2 個）
+      { id: "best_experience", group: "B", source: "internal", icon: "🎮", name: "最佳遊戲體驗獎",
+        desc: "由社員與老師專業評定 — 創意、美術、遊戲性、操作流暢度、完成度五項評分皆獲滿分",
+        winner: "G06", winnerNote: "八掌溪環保爭霸戰 於五項評分皆獲滿分肯定" },
+      { id: "sdg_special", group: "B", source: "internal", icon: "🌱", name: "永續關懷特別獎",
+        desc: "由社員與老師專業評定 — 以 SDG 永續主題為核心、議題深度與延伸性最具教育價值",
+        winner: "G08", winnerNote: "拯救永續島 以 SDG 主題完整呈現永續關懷" },
     ],
   },
   // ========================================
