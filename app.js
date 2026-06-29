@@ -638,7 +638,7 @@ function renderProjectCard(project) {
     : award
       ? `${award.icon} ${award.name}`
       : published
-        ? "📊 結果已公布"
+        ? ""
         : shouldShowPublicVoteCounts()
           ? `${apiEnabled ? apiVoteCountOf(project.id) : projectStats(project).voteCount} 票`
           : "投票中";
