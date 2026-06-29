@@ -2418,3 +2418,13 @@ body.is-editing {
 .award-testimonial cite { font-size: 14px; color: #ffd966; font-style: normal; letter-spacing: 1.5px; font-weight: 500; }
 .award-radar-wrap { padding: 12px; margin: 16px 0 12px; }
 .award-radar { display: block; margin: 0 auto; }
+
+/* ====== 作品卡得獎獎名(公佈後)強調 ====== */
+.card-footer { font-size: 18px; font-weight: 700; }
+.card-footer span[data-vote-count-for] {
+  color: #ffd966;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 4px rgba(255,215,0,0.4);
+  padding: 4px 0;
+}
+.card-footer span[data-vote-count-for]:empty { display: none; }
