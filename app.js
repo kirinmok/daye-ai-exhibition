@@ -991,7 +991,7 @@ function renderAwards() {
       { key: "smoothness", name: "流暢度" },
       { key: "completeness", name: "完成度" },
     ];
-    const size = 140, cx = size / 2, cy = size / 2, r = 48;
+    const size = 280, cx = size / 2, cy = size / 2, r = 96;
     const angles = labels.map((_, i) => -Math.PI / 2 + (i * 2 * Math.PI / 5));
     const point = (val, i) => {
       const d = (val / 5) * r;
@@ -999,16 +999,16 @@ function renderAwards() {
     };
     const grid = [1, 2, 3, 4, 5].map(level => {
       const pts = angles.map((a) => `${cx + (level / 5 * r) * Math.cos(a)},${cy + (level / 5 * r) * Math.sin(a)}`).join(" ");
-      return `<polygon points="${pts}" fill="none" stroke="rgba(184,134,11,0.15)" stroke-width="0.5"/>`;
+      return `<polygon points="${pts}" fill="none" stroke="rgba(184,134,11,0.18)" stroke-width="1"/>`;
     }).join("");
-    const axes = angles.map(a => `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(a)}" y2="${cy + r * Math.sin(a)}" stroke="rgba(184,134,11,0.2)" stroke-width="0.5"/>`).join("");
+    const axes = angles.map(a => `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(a)}" y2="${cy + r * Math.sin(a)}" stroke="rgba(184,134,11,0.25)" stroke-width="1"/>`).join("");
     const pts = labels.map((l, i) => point(scores[l.key] || 0, i).join(",")).join(" ");
     const labelText = labels.map((l, i) => {
-      const [x, y] = point(5.6, i);
+      const [x, y] = point(5.8, i);
       const val = (scores[l.key] || 0).toFixed(1);
-      return `<text x="${x}" y="${y + 3}" font-size="9" fill="#6b5a2c" text-anchor="middle">${l.name} ${val}</text>`;
+      return `<text x="${x}" y="${y + 5}" font-size="16" font-weight="600" fill="#5a4a1c" text-anchor="middle">${l.name} ${val}</text>`;
     }).join("");
-    return `<svg class="award-radar" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.25)" stroke="#b8860b" stroke-width="1.5"/>${labelText}</svg>`;
+    return `<svg class="award-radar" viewBox="0 0 ${size} ${size}" width="100%" height="auto" style="max-width:320px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.3)" stroke="#b8860b" stroke-width="2.5"/>${labelText}</svg>`;
   };
 
   app.innerHTML = `

@@ -1504,14 +1504,14 @@ body.is-editing {
 .awards-group .muted { color: #888; font-size: 14px; margin-bottom: 16px; }
 .awards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 24px;
 }
 .award-card {
   display: flex;
   flex-direction: column;
-  padding: 18px;
-  border-radius: 14px;
+  padding: 28px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: transform 0.2s;
@@ -1522,23 +1522,23 @@ body.is-editing {
   box-shadow: 0 4px 16px rgba(255, 217, 102, 0.15);
 }
 .award-card:hover { transform: translateY(-2px); }
-.award-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.award-icon { font-size: 32px; line-height: 1; }
-.award-card h3 { font-size: 17px; margin: 0; }
-.award-desc { color: #b0b0b0; font-size: 14px; line-height: 1.6; margin-bottom: 14px; flex: 1; }
+.award-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.award-icon { font-size: 44px; line-height: 1; }
+.award-card h3 { font-size: 24px; margin: 0; }
+.award-desc { color: #c0c0c0; font-size: 17px; line-height: 1.7; margin-bottom: 16px; flex: 1; }
 .award-winner {
   display: block;
-  padding: 12px;
+  padding: 18px 20px;
   background: rgba(255, 217, 102, 0.12);
-  border-radius: 10px;
+  border-radius: 12px;
   text-decoration: none;
   color: inherit;
   border: 1px solid rgba(255, 217, 102, 0.3);
 }
 .award-winner:hover { background: rgba(255, 217, 102, 0.2); }
-.award-winner strong { display: block; color: #ffd966; font-size: 18px; margin-bottom: 4px; }
-.award-winner span { display: block; color: #fff; font-size: 14px; }
-.award-winner em { display: block; color: #999; font-size: 12px; margin-top: 6px; font-style: italic; }
+.award-winner strong { display: block; color: #ffd966; font-size: 24px; margin-bottom: 8px; letter-spacing: 1px; }
+.award-winner span { display: block; color: #fff; font-size: 18px; margin-bottom: 6px; font-weight: 500; }
+.award-winner em { display: block; color: #ddd; font-size: 15px; margin-top: 8px; font-style: italic; line-height: 1.7; }
 .award-pending { color: #666; font-style: italic; text-align: center; padding: 12px 0; }
 
 /* ========================================
@@ -2412,7 +2412,9 @@ body.is-editing {
 .award-radar { display: block; }
 
 /* ====== 試玩回饋引言（社員/觀眾語錄）====== */
-.award-testimonial { margin: 12px 0 4px; padding: 14px 16px 12px 36px; background: rgba(255,215,0,0.05); border-left: 3px solid #b8860b; border-radius: 0 8px 8px 0; position: relative; font-style: normal; }
-.award-testimonial .testimonial-quote { position: absolute; top: 0; left: 8px; font-size: 36px; color: #b8860b; line-height: 1; font-family: Georgia, serif; opacity: 0.5; }
-.award-testimonial p { margin: 0 0 6px; font-size: 13px; line-height: 1.7; color: #4a3f1c; font-style: italic; }
-.award-testimonial cite { font-size: 11px; color: #8b6914; font-style: normal; letter-spacing: 1px; }
+.award-testimonial { margin: 16px 0 4px; padding: 18px 20px 16px 48px; background: rgba(255,215,0,0.08); border-left: 4px solid #b8860b; border-radius: 0 10px 10px 0; position: relative; font-style: normal; }
+.award-testimonial .testimonial-quote { position: absolute; top: 4px; left: 12px; font-size: 48px; color: #b8860b; line-height: 1; font-family: Georgia, serif; opacity: 0.6; }
+.award-testimonial p { margin: 0 0 8px; font-size: 16px; line-height: 1.8; color: #f0e8d0; font-style: italic; }
+.award-testimonial cite { font-size: 14px; color: #ffd966; font-style: normal; letter-spacing: 1.5px; font-weight: 500; }
+.award-radar-wrap { padding: 12px; margin: 16px 0 12px; }
+.award-radar { display: block; margin: 0 auto; }
