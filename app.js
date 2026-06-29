@@ -1010,7 +1010,7 @@ function renderAwards() {
     const axes = angles.map(a => `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(a)}" y2="${cy + r * Math.sin(a)}" stroke="rgba(184,134,11,0.25)" stroke-width="1"/>`).join("");
     const pts = labels.map((l, i) => point(scores[l.key] || 0, i).join(",")).join(" ");
     const labelText = labels.map((l, i) => {
-      const [x, y] = point(5.5, i);
+      const [x, y] = point(7.0, i);
       const val = (scores[l.key] || 0).toFixed(1);
       const cos = Math.cos(angles[i]);
       const anchor = cos > 0.15 ? "start" : cos < -0.15 ? "end" : "middle";
