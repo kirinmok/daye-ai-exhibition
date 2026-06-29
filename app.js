@@ -631,11 +631,17 @@ function renderProjectCard(project) {
   const apiEnabled = !!getVoteApiUrl();
   const nonVotableIds = (window.SITE_CONFIG && window.SITE_CONFIG.voting && window.SITE_CONFIG.voting.nonVotableIds) || [];
   const isDemo = nonVotableIds.includes(project.id);
+  const award = getAwardForWork(project.id);
+  const published = awardsArePublished();
   const voteLabel = isDemo
     ? "🎓 不參賽"
-    : shouldShowPublicVoteCounts()
-      ? `${apiEnabled ? apiVoteCountOf(project.id) : projectStats(project).voteCount} 票`
-      : "投票中";
+    : award
+      ? `${award.icon} ${award.name}`
+      : published
+        ? "📊 結果已公布"
+        : shouldShowPublicVoteCounts()
+          ? `${apiEnabled ? apiVoteCountOf(project.id) : projectStats(project).voteCount} 票`
+          : "投票中";
   return `
     <article class="project-card-wrap ${isDemo ? "is-demo" : ""}">
       ${renderAdminEditButton(project.id)}
@@ -659,7 +665,7 @@ function renderProjectCard(project) {
           </div>
         </div>
       </a>
-      ${apiEnabled && !isDemo ? `
+      ${apiEnabled && !isDemo && !published ? `
       <div class="card-vote-row">
         <button class="btn ghost vote-btn-card" type="button" data-action="vote" data-project="${project.id}" ${voted ? "disabled" : ""}>
           ${voted ? "✓ 已投" : "👍 投票"}
