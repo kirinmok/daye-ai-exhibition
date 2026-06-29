@@ -1006,9 +1006,9 @@ function renderAwards() {
     const labelText = labels.map((l, i) => {
       const [x, y] = point(5.8, i);
       const val = (scores[l.key] || 0).toFixed(1);
-      return `<text x="${x}" y="${y + 5}" font-size="16" font-weight="600" fill="#5a4a1c" text-anchor="middle">${l.name} ${val}</text>`;
+      return `<text x="${x}" y="${y + 5}" font-size="16" font-weight="600" fill="#ffe082" text-anchor="middle" style="text-shadow:0 1px 2px rgba(0,0,0,0.6)">${l.name} ${val}</text>`;
     }).join("");
-    return `<svg class="award-radar" viewBox="0 0 ${size} ${size}" width="100%" height="auto" style="max-width:320px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.3)" stroke="#b8860b" stroke-width="2.5"/>${labelText}</svg>`;
+    return `<svg class="award-radar" viewBox="0 0 ${size} ${size}" width="100%" height="auto" style="max-width:320px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.35)" stroke="#ffd966" stroke-width="2.5"/>${labelText}</svg>`;
   };
 
   app.innerHTML = `
