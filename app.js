@@ -1010,11 +1010,13 @@ function renderAwards() {
     const axes = angles.map(a => `<line x1="${cx}" y1="${cy}" x2="${cx + r * Math.cos(a)}" y2="${cy + r * Math.sin(a)}" stroke="rgba(184,134,11,0.25)" stroke-width="1"/>`).join("");
     const pts = labels.map((l, i) => point(scores[l.key] || 0, i).join(",")).join(" ");
     const labelText = labels.map((l, i) => {
-      const [x, y] = point(5.8, i);
+      const [x, y] = point(5.5, i);
       const val = (scores[l.key] || 0).toFixed(1);
-      return `<text x="${x}" y="${y + 6}" font-size="20" font-weight="700" fill="#ffe082" text-anchor="middle" style="text-shadow:0 1px 3px rgba(0,0,0,0.7)">${l.name} ${val}</text>`;
+      const cos = Math.cos(angles[i]);
+      const anchor = cos > 0.15 ? "start" : cos < -0.15 ? "end" : "middle";
+      return `<text x="${x}" y="${y + 6}" font-size="20" font-weight="700" fill="#ffe082" text-anchor="${anchor}" style="text-shadow:0 1px 3px rgba(0,0,0,0.7)">${l.name} ${val}</text>`;
     }).join("");
-    return `<svg class="award-radar" viewBox="0 0 ${size} ${size}" width="100%" height="auto" style="max-width:320px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.35)" stroke="#ffd966" stroke-width="2.5"/>${labelText}</svg>`;
+    return `<svg class="award-radar" viewBox="-80 -20 440 320" width="100%" height="auto" style="max-width:380px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.35)" stroke="#ffd966" stroke-width="2.5"/>${labelText}</svg>`;
   };
 
   app.innerHTML = `
