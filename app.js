@@ -649,8 +649,6 @@ function renderProjectCard(project) {
         <div class="cover-art">
           ${coverImage(project)}
           <span>${escapeHtml(project.id)}</span>
-          ${isDemo ? `<span class="demo-badge" title="教師示範作品，不參賽">🎓 教師示範</span>` : ""}
-          ${renderAwardBadge(project.id)}
           ${project.cover ? "" : `<strong>${escapeHtml(project.title)}</strong>`}
         </div>
         <div class="card-body">
