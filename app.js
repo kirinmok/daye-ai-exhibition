@@ -1014,7 +1014,7 @@ function renderAwards() {
       const anchor = cos > 0.15 ? "start" : cos < -0.15 ? "end" : "middle";
       return `<text x="${x}" y="${y + 6}" font-size="20" font-weight="700" fill="#ffe082" text-anchor="${anchor}" style="text-shadow:0 1px 3px rgba(0,0,0,0.7)">${l.name} ${val}</text>`;
     }).join("");
-    return `<svg class="award-radar" viewBox="-80 -20 440 320" width="100%" height="auto" style="max-width:380px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.35)" stroke="#ffd966" stroke-width="2.5"/>${labelText}</svg>`;
+    return `<svg class="award-radar" viewBox="-110 -20 500 320" width="100%" height="auto" style="max-width:400px" aria-label="五維評分雷達圖">${grid}${axes}<polygon points="${pts}" fill="rgba(255,215,0,0.35)" stroke="#ffd966" stroke-width="2.5"/>${labelText}</svg>`;
   };
 
   app.innerHTML = `
