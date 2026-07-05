@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工程救援隊・原型車庫 | 大業實驗中學</title>
+<title>水城救援隊・工程黑客松 | 大業實驗中學</title>
 <style>
 body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
 canvas { display: block; }
@@ -2232,15 +2232,6 @@ canvas { display: block; }
   transform: translateY(-1px);
   border-color: rgba(255,184,74,.46);
 }
-.axis-category-btn.locked {
-  opacity: .42;
-  cursor: not-allowed;
-  filter: grayscale(.45);
-}
-.axis-category-btn.locked:hover {
-  transform: none;
-  border-color: rgba(199,215,232,.13);
-}
 .axis-category-btn.active {
   background: linear-gradient(180deg, rgba(89,199,255,.25), rgba(89,199,255,.08));
   border-color: rgba(89,199,255,.72);
@@ -2258,39 +2249,6 @@ canvas { display: block; }
 }
 .axis-card-focused {
   min-height: 430px;
-}
-.garage-unlock-panel {
-  border: 1px solid rgba(89,199,255,.34);
-  border-left: 4px solid #59c7ff;
-  border-radius: 8px;
-  background: linear-gradient(90deg, rgba(89,199,255,.14), rgba(255,255,255,.035));
-  padding: 14px 16px;
-  color: #dbeafe;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-}
-.garage-unlock-title {
-  color: #ffd866;
-  font-weight: 1000;
-  font-size: 18px;
-}
-.garage-unlock-desc {
-  color: #aebed0;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-top: 3px;
-}
-.garage-unlock-chip {
-  border: 1px solid rgba(255,216,102,.35);
-  border-radius: 999px;
-  padding: 8px 12px;
-  color: #ffd866;
-  background: rgba(0,0,0,.22);
-  font-size: 13px;
-  font-weight: 900;
-  white-space: nowrap;
 }
 .axis-card-focused .axis-head {
   grid-template-columns: 72px 1fr;
@@ -2927,27 +2885,27 @@ canvas { display: block; }
   <div id="splashStage">
     <div class="splash-scene" data-scene="1">
       <div class="small">2026 年・台灣</div>
-      <div class="headline" style="font-size:42px;">原型車測試開始</div>
-      <div class="sub" style="margin-top:10px;">第一題很簡單：一塊板子，四個輪子。</div>
+      <div class="headline" style="font-size:42px;">氣候災難已經來了</div>
+      <div class="sub" style="margin-top:10px;">不是未來的事——是現在。</div>
     </div>
     <div class="splash-scene" data-scene="2">
-      <div class="big-emoji">📏🏎️</div>
-      <div class="headline" style="color:#7ec9e8;">它能不能跑直線？</div>
-      <div class="sub" style="font-size:18px; margin-top:8px;">車身太短會飄，車身太長會笨。<br>看起來小，跑起來就知道。</div>
+      <div class="big-emoji">🌊🏙️</div>
+      <div class="headline" style="color:#7ec9e8;">上個月，又一場暴雨</div>
+      <div class="sub" style="font-size:18px; margin-top:8px;">嘉義老街第三次淹過腳踝。<br>阿嬤的店、童年的路口——還撐得住嗎？</div>
     </div>
     <div class="splash-scene" data-scene="3">
-      <div class="headline" style="color:#ffd866; font-size:38px; line-height:1.4;">「先不要猜答案——<br>讓車子告訴你。」</div>
-      <div class="sub" style="margin-top:16px;">這個車庫只相信測試結果。</div>
+      <div class="headline" style="color:#ffd866; font-size:38px; line-height:1.4;">「我們改不了氣候——<br>能不能改載具？」</div>
+      <div class="sub" style="margin-top:16px;">這個時代的工程師，就要回答這題。</div>
     </div>
     <div class="splash-scene" data-scene="4">
       <div class="big-emoji">📜</div>
-      <div class="headline">工程車庫・原型徵召令</div>
+      <div class="headline">水城工程聯盟・徵召令</div>
       <div class="sub" style="font-size:18px; margin-top:10px; line-height:1.6;">不是科幻、不是未來——<br>是現在，學生工程師動手的時刻。</div>
     </div>
     <div class="splash-scene" data-scene="5">
       <div class="big-emoji" style="font-size:60px;">⚠️</div>
-      <div class="headline" style="color:#ff6b6b;">K-01・底板認證</div>
-      <div class="sub" style="font-size:18px; margin-top:10px; line-height:1.6;">先讓一塊板子和四個輪子跑穩，<br>後面的任務才會把環境慢慢加上去。</div>
+      <div class="headline" style="color:#ff6b6b;">下一個颱風季・實地測試</div>
+      <div class="sub" style="font-size:18px; margin-top:10px; line-height:1.6;">你的設計要在真實的街道、<br>真實的雨、真實的水位裡驗證。</div>
     </div>
     <div class="splash-scene" data-scene="6">
       <div class="headline" style="color:#4ade80; font-size:34px; line-height:1.4;">每一個選擇<br>都會出事</div>
@@ -3024,7 +2982,7 @@ canvas { display: block; }
 <!-- ═══ 車庫改裝工坊 ═══ -->
 <div id="garageScreen">
   <div class="garage-header">
-  <h2>🚨 工程救援隊・原型車庫</h2>
+    <h2>🚨 水城救援隊・工程車庫</h2>
     <div class="sub">答案不是被告訴的，是被測出來的。</div>
     <div class="garage-tag-row">
       <span class="garage-tag">救援任務</span>
@@ -3082,14 +3040,14 @@ canvas { display: block; }
     <div class="mission-icon" id="missionIcon">📋</div>
     <div class="mission-text">
       <div class="mission-eyebrow">Active Mission</div>
-      <div class="mission-title" id="missionTitle">木板四輪認證 K-01</div>
-      <div class="mission-sub" id="missionSub">先用一塊板子和四個輪子，破解直線穩定與轉彎半徑</div>
+      <div class="mission-title" id="missionTitle">原型車認證 K-01</div>
+      <div class="mission-sub" id="missionSub">先拿到上路資格：抓地、傳動、底盤、續航都要經得起測</div>
     </div>
     <div class="mission-chips" id="missionChips">
-      <span class="mission-chip warn">📐 車體比例</span>
-      <span class="mission-chip active">📏 直線穩定</span>
-      <span class="mission-chip">↩️ 轉彎半徑</span>
-      <span class="mission-chip">🔒 高階零件未解鎖</span>
+      <span class="mission-chip warn">⚠️ 原型車未認證</span>
+      <span class="mission-chip active">⏱ 兩輪檢定</span>
+      <span class="mission-chip">🛞 抓地測試</span>
+      <span class="mission-chip">⚙️ 傳動測試</span>
     </div>
   </div>
 
@@ -3102,15 +3060,26 @@ canvas { display: block; }
       <label>我認為最大風險是</label>
       <select id="hypoRisk" onchange="updateHypothesis()">
         <option value="">— 選一個 —</option>
-        <option value="straight">📏 直線跑偏</option>
+        <option value="water">💧 積水進水短路</option>
+        <option value="range">🔋 電力不夠用</option>
         <option value="turn">🔄 過彎翻覆</option>
+        <option value="climb">⛰ 爬坡上不去</option>
+        <option value="cargo">📦 物資掉落損毀</option>
+        <option value="slip">🛞 雨天打滑</option>
       </select>
     </div>
     <div class="hypo-row">
       <label>我準備用</label>
       <select id="hypoSolution" onchange="updateHypothesis()">
         <option value="">— 選一個 —</option>
-        <option value="bodyshape">📐 調車體比例</option>
+        <option value="waterproof">🛡 防水電機座</option>
+        <option value="shaft">⚙️ 長傳動軸（轉四驅）</option>
+        <option value="float">🛟 側浮筒</option>
+        <option value="battery">🔋 低重心電池盒</option>
+        <option value="multitire">🛞 換 20 吋多紋胎</option>
+        <option value="lowgear">⚡ 換低齒比</option>
+        <option value="awd">⚙️ 改 AWD 四驅</option>
+        <option value="lowchassis">🏎 改低底盤</option>
       </select>
       <label>處理</label>
     </div>
@@ -3198,13 +3167,6 @@ canvas { display: block; }
             <button class="support-btn ai" id="radioSupportBtn" onclick="callRadioSupport()">呼叫一次（-35 分）</button>
           </div>
           <div class="support-cost">無線電只給方向，不給答案</div>
-        </div>
-        <div class="support-card">
-          <h3>🧱 工程工單 / 好事換 RC</h3>
-          <p>錢不是白給的。接工單可以賺改裝費，但會花時間、扣破解榮譽，或讓任務更有壓力。</p>
-          <div class="support-current" id="workLastReply">尚未接工單。</div>
-          <div class="material-shop" id="workBoard"></div>
-          <div class="support-cost" id="workCost">每輪最多接 1 件</div>
         </div>
         <div class="support-card wallet-card">
           <div class="wallet-top">
@@ -3438,59 +3400,29 @@ function headingToRotY(h){ return -h + Math.PI/2; }
 // ═══════════════════════════════════════════════
 // Stage 2 整體 z 平移 +400 遠離 Stage 1（橢圓賽道 z ∈ [-81, 81]），避免物件重疊
 const STAGE2_OFFSET_Z = 400;
-// 簡化真實地圖（以嘉義火車站當 (0,0)，+X=東、+Z=南）
-// 不是 1:1 GPS；只保留相對方位：
-// 北門在東北、文化路/噴水圓環在市中心東側、地下道/民生南路在南側、
-// 蘭潭在東南、水上在南偏西、高鐵嘉義站在西南偏西、竹崎在東北山區。
+// 真實嘉義市地理座標（以嘉義火車站當 (0,0) 原點，+X=東、+Z=南）
+// 比例非嚴格 km 對應，但相對方位符合真實地理：
+// 火車站在西、噴水池在市中心、文化路夜市在中心偏南、秀泰/民生南路天橋在南、
+// 蘭潭水庫在遠東北、水上鄉在南、高鐵嘉義站在西邊太保、避難點設在市區
 const STAGE2_NODES = [
   { x:    0, z:    0 + STAGE2_OFFSET_Z, name: '嘉義火車站',           realPlace: '嘉義市西區・火車站前廣場（起點）' },
-  { x:   58, z:  -38 + STAGE2_OFFSET_Z, name: '北門平交道',           realPlace: '東北・阿里山林鐵北門車站旁' },
-  { x:   32, z:    8 + STAGE2_OFFSET_Z, name: '文化路夜市',           realPlace: '市中心偏東南・文化路夜市' },
-  { x:   62, z:   36 + STAGE2_OFFSET_Z, name: '透天住宅巷弄',         realPlace: '東南側・住宅區巷弄' },
-  { x:   38, z:   -2 + STAGE2_OFFSET_Z, name: '噴水圓環',             realPlace: '市中心東側・中央噴水池' },
-  { x:   30, z:    3 + STAGE2_OFFSET_Z, name: '中山路低窪',           realPlace: '中山路市區段・低窪易積水' },
-  { x:   14, z:   62 + STAGE2_OFFSET_Z, name: '秀泰地下道',           realPlace: '南側・垂楊路地下道' },
-  { x:   10, z:   98 + STAGE2_OFFSET_Z, name: '民生南路天橋',         realPlace: '南側・民生南路陸橋（上坡）' },
-  { x:   88, z:   24 + STAGE2_OFFSET_Z, name: '蘭潭水庫環湖道路',     realPlace: '東南・蘭潭水庫環湖道路' },
-  { x:   10, z:  138 + STAGE2_OFFSET_Z, name: '水上偏遠聚落',         realPlace: '南偏西・水上鄉偏遠社區' },
-  { x:   42, z:  116 + STAGE2_OFFSET_Z, name: '農村四合院',           realPlace: '南郊・傳統三合院聚落' },
-  { x: -135, z:   42 + STAGE2_OFFSET_Z, name: '高鐵大道荒涼段',       realPlace: '西南偏西・台 82 線往高鐵嘉義站（太保）' },
-  { x:  -34, z:   26 + STAGE2_OFFSET_Z, name: '避難點入口',           realPlace: '西區・避難收容中心' },
+  { x:   50, z:  -20 + STAGE2_OFFSET_Z, name: '北門平交道',           realPlace: '東北・阿里山林鐵北門車站旁' },
+  { x:   35, z:   15 + STAGE2_OFFSET_Z, name: '文化路夜市',           realPlace: '市中心偏南・文化路夜市' },
+  { x:   70, z:   30 + STAGE2_OFFSET_Z, name: '透天住宅巷弄',         realPlace: '東南郊・住宅區巷弄' },
+  { x:   45, z:    0 + STAGE2_OFFSET_Z, name: '噴水圓環',             realPlace: '市中心・中央噴水池' },
+  { x:   20, z:    0 + STAGE2_OFFSET_Z, name: '中山路低窪',           realPlace: '中山路東段・低窪易積水' },
+  { x:   15, z:   30 + STAGE2_OFFSET_Z, name: '秀泰地下道',           realPlace: '南・垂楊路秀泰百貨地下道' },
+  { x:   25, z:   50 + STAGE2_OFFSET_Z, name: '民生南路天橋',         realPlace: '南・民生南路陸橋（上坡）' },
+  { x:  120, z:  -50 + STAGE2_OFFSET_Z, name: '蘭潭水庫環湖道路',     realPlace: '遠東北・蘭潭水庫山仔頂' },
+  { x:   80, z:   80 + STAGE2_OFFSET_Z, name: '農村四合院',           realPlace: '南郊・傳統三合院聚落' },
+  { x:   50, z:  110 + STAGE2_OFFSET_Z, name: '水上偏遠聚落',         realPlace: '南遠・水上鄉偏遠社區' },
+  { x:  -90, z:   80 + STAGE2_OFFSET_Z, name: '高鐵大道荒涼段',       realPlace: '西郊・台 82 線往高鐵嘉義站（太保）' },
+  { x:  -30, z:   30 + STAGE2_OFFSET_Z, name: '避難點入口',           realPlace: '西區・避難收容中心' },
 ];
-
-const STAGE3_OFFSET_Z = 700;
-const STAGE3_NODES = [
-  { x:  112, z:  -54 + STAGE3_OFFSET_Z, name: '竹崎市集',       realPlace: '東北・竹崎市集與竹崎車站周邊' },
-  { x:  138, z:  -82 + STAGE3_OFFSET_Z, name: '髮夾彎上坡',     realPlace: '往阿里山線山路・坡度開始增加' },
-  { x:  166, z: -104 + STAGE3_OFFSET_Z, name: '碎石林道',       realPlace: '東北山區林道・抓地不穩' },
-  { x:  198, z:  -90 + STAGE3_OFFSET_Z, name: '落石警戒段',     realPlace: '山壁落石區・底盤與避震考驗' },
-  { x:  226, z: -122 + STAGE3_OFFSET_Z, name: '茶園陡坡',       realPlace: '更東側產業道路・長坡低速扭力' },
-  { x:  192, z: -154 + STAGE3_OFFSET_Z, name: '霧中窄橋',       realPlace: '山谷窄橋・視線與車寬壓力' },
-  { x:  152, z: -178 + STAGE3_OFFSET_Z, name: '山區收容點',     realPlace: '東北偏遠收容點・續航可靠度結算' },
-];
-
-const STAGE4_OFFSET_Z = 1020;
-const STAGE4_NODES = [
-  { x:    4, z:    0 + STAGE4_OFFSET_Z, name: '高樓商圈',       realPlace: '嘉義火車站前與市中心商圈・低速控制' },
-  { x:   58, z:  -38 + STAGE4_OFFSET_Z, name: '平交道震動',     realPlace: '東北・北門車站周邊鐵軌震動段' },
-  { x:   14, z:   62 + STAGE4_OFFSET_Z, name: '地下道深水',     realPlace: '南側・城市深水地下道' },
-  { x:   10, z:   98 + STAGE4_OFFSET_Z, name: '天橋上坡',       realPlace: '南側・民生南路陸橋上坡' },
-  { x:   88, z:   24 + STAGE4_OFFSET_Z, name: '蘭潭連續彎',     realPlace: '東南・蘭潭環湖濕滑連續彎' },
-  { x:  150, z:  -72 + STAGE4_OFFSET_Z, name: '竹崎碎石山路',   realPlace: '東北・竹崎山路碎石坡' },
-  { x: -135, z:   42 + STAGE4_OFFSET_Z, name: '高鐵荒涼長路',   realPlace: '西南偏西・高鐵大道長距離路段' },
-  { x:  -30, z:   28 + STAGE4_OFFSET_Z, name: '最終避難點',     realPlace: '西區・混合任務終點與證據結算' },
-];
-
-const MISSION_ROUTE_NODES = {
-  1: STAGE2_NODES,
-  2: STAGE3_NODES,
-  3: STAGE4_NODES,
-};
 
 let STAGE2_CURVE = null;
 let L2_TOTAL = 0;
 let STAGE2_NODE_DISTS = []; // 每個節點在曲線上的累積距離（給 sector 偵測用）
-const missionRouteCache = {};
 
 function initStage2Path(){
   if(STAGE2_CURVE) return;
@@ -3503,71 +3435,6 @@ function initStage2Path(){
   STAGE2_NODE_DISTS = STAGE2_CURVE.getLengths(STAGE2_NODES.length - 1).slice();
 }
 initStage2Path();
-
-function initMissionRoutePath(missionIdx){
-  if(missionIdx === 1){
-    initStage2Path();
-    missionRouteCache[1] = {
-      curve: STAGE2_CURVE,
-      total: L2_TOTAL,
-      nodeDists: STAGE2_NODE_DISTS,
-      nodes: STAGE2_NODES,
-    };
-    return missionRouteCache[1];
-  }
-  if(missionRouteCache[missionIdx]) return missionRouteCache[missionIdx];
-  if(typeof THREE === 'undefined') return null;
-  const nodes = MISSION_ROUTE_NODES[missionIdx];
-  if(!nodes || !nodes.length) return null;
-  const pts = nodes.map(n => new THREE.Vector3(n.x, 0, n.z));
-  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
-  const total = curve.getLength();
-  const nodeDists = curve.getLengths(nodes.length - 1).slice();
-  missionRouteCache[missionIdx] = { curve, total, nodeDists, nodes };
-  return missionRouteCache[missionIdx];
-}
-
-function getRouteMissionIndex(){
-  if(currentStage >= 2) return Math.max(1, currentStage - 1);
-  return activeMissionLevel > 0 ? activeMissionLevel : 1;
-}
-
-function isMissionRouteStage(){
-  return currentStage >= 2;
-}
-
-function getMissionRouteTotal(missionIdx){
-  const route = initMissionRoutePath(missionIdx || getRouteMissionIndex());
-  return route ? route.total : L_TOTAL;
-}
-
-function getMissionRoutePoint(dist, lateralOffset, missionIdx){
-  const route = initMissionRoutePath(missionIdx || getRouteMissionIndex());
-  if(!route || !route.curve || route.total <= 0) return { x: 0, z: 0, heading: 0 };
-  const lo = lateralOffset || 0;
-  const t = Math.max(0, Math.min(1, dist / route.total));
-  const p = route.curve.getPointAt(t);
-  const tan = route.curve.getTangentAt(t);
-  const heading = Math.atan2(tan.z, tan.x);
-  return {
-    x: p.x - tan.z * lo,
-    z: p.z + tan.x * lo,
-    heading: heading
-  };
-}
-
-function getMissionRouteNodeIndex(dist, missionIdx){
-  const route = initMissionRoutePath(missionIdx || getRouteMissionIndex());
-  if(!route || !route.nodeDists || !route.nodeDists.length) return 0;
-  for(let i = route.nodeDists.length - 1; i >= 0; i--){
-    if(dist >= route.nodeDists[i]) return i;
-  }
-  return 0;
-}
-
-function getRaceStartDist(){
-  return isMissionRouteStage() ? 0 : START_DIST;
-}
 
 // 同樣接口 (dist, lateralOffset) → { x, z, heading }，但走折線路徑
 // dist 範圍 [0, L2_TOTAL]，超出兩端會 clamp（單程，不繞圈）
@@ -3612,19 +3479,19 @@ function getStage2NodeIndex(dist){
 let currentStage = 1;
 
 function getRunningTrackPoint(dist, lateralOffset){
-  return isMissionRouteStage()
-    ? getMissionRoutePoint(dist, lateralOffset, getRouteMissionIndex())
+  return currentStage === 2
+    ? getTrackPoint2(dist, lateralOffset)
     : getTrackPoint(dist, lateralOffset);
 }
 
 function getRunningTrackTotal(){
-  return isMissionRouteStage() ? getMissionRouteTotal(getRouteMissionIndex()) : L_TOTAL;
+  return currentStage === 2 ? L2_TOTAL : L_TOTAL;
 }
 
 function checkRaceFinished(ud){
-  if(isMissionRouteStage()){
-    // 單程任務路線，跑到終點節點就算完賽
-    return (ud._dist || ud.aiDist || 0) >= getRunningTrackTotal();
+  if(currentStage === 2){
+    // Stage 2: 單程，跑到避難點（dist >= L2_TOTAL）就算完賽
+    return (ud._dist || 0) >= L2_TOTAL;
   }
   // Stage 1: 維持原本 lap 制（getMissionLapGoal 已處理任務目標）
   return (ud.laps || 0) >= getMissionLapGoal();
@@ -4082,252 +3949,6 @@ function spawnStage2Hero(node, idx){
 }
 STAGE2_NODES.forEach((node, idx) => spawnStage2Hero(node, idx));
 
-function missionRoutePathPoints(missionIdx, lateralOffset, segments){
-  const pts = [];
-  const total = getMissionRouteTotal(missionIdx);
-  segments = segments || 220;
-  for(let i = 0; i <= segments; i++){
-    const d = (i / segments) * total;
-    const p = getMissionRoutePoint(d, lateralOffset, missionIdx);
-    pts.push({ x: p.x, z: p.z });
-  }
-  return pts;
-}
-
-function getNodeBounds(nodes){
-  const xs = nodes.map(n => n.x);
-  const zs = nodes.map(n => n.z);
-  return {
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minZ: Math.min(...zs),
-    maxZ: Math.max(...zs),
-  };
-}
-
-function spawnRouteMarker(node, idx, missionIdx){
-  const markerColor = missionIdx === 2 ? 0x34d399 : 0xf97316;
-  const pole = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.22, 0.22, 4.5),
-    new THREE.MeshLambertMaterial({ color: 0x64748b })
-  );
-  pole.position.set(node.x, 2.25, node.z + 13);
-  scene.add(pole);
-  const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(2.2, 1.2, 2.2),
-    new THREE.MeshLambertMaterial({ color: markerColor })
-  );
-  cube.position.set(node.x, 5.0, node.z + 13);
-  cube.castShadow = true;
-  scene.add(cube);
-  if(idx === 0 || idx === (MISSION_ROUTE_NODES[missionIdx] || []).length - 1){
-    const flag = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.2, 1.8),
-      new THREE.MeshBasicMaterial({ color: idx === 0 ? 0x38bdf8 : 0xfacc15, side: THREE.DoubleSide })
-    );
-    flag.position.set(node.x + 2.5, 6.2, node.z + 13);
-    scene.add(flag);
-  }
-}
-
-function spawnMountainLandmark(node, idx){
-  if(idx === 0){
-    for(let i = 0; i < 4; i++){
-      const shop = new THREE.Mesh(
-        new THREE.BoxGeometry(5, 4, 4),
-        new THREE.MeshLambertMaterial({ color: [0xf59e0b, 0xef4444, 0x22c55e, 0x60a5fa][i] })
-      );
-      shop.position.set(node.x - 18 + i * 6, 2, node.z + 20);
-      shop.castShadow = true;
-      scene.add(shop);
-    }
-  }
-  if(idx === 1 || idx === 4){
-    for(let i = 0; i < 3; i++){
-      const mt = new THREE.Mesh(
-        new THREE.ConeGeometry(10 + i * 2, 22 + i * 4, 6),
-        new THREE.MeshLambertMaterial({ color: idx === 4 ? 0x4d7c0f : 0x365314 })
-      );
-      mt.position.set(node.x + 18 + i * 12, 11 + i * 2, node.z + 26 + i * 4);
-      mt.castShadow = true;
-      scene.add(mt);
-    }
-  }
-  if(idx === 2 || idx === 3){
-    for(let i = 0; i < 8; i++){
-      const rock = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(1.4 + Math.random() * 1.2),
-        new THREE.MeshLambertMaterial({ color: 0x78716c })
-      );
-      rock.position.set(node.x - 8 + Math.random() * 18, 1.0, node.z + 11 + Math.random() * 12);
-      rock.castShadow = true;
-      scene.add(rock);
-    }
-  }
-  if(idx === 5){
-    const bridge = new THREE.Mesh(
-      new THREE.BoxGeometry(22, 0.8, 5),
-      new THREE.MeshLambertMaterial({ color: 0x94a3b8 })
-    );
-    bridge.position.set(node.x, 1.2, node.z + 7);
-    bridge.castShadow = true;
-    scene.add(bridge);
-    const fogPanel = new THREE.Mesh(
-      new THREE.PlaneGeometry(36, 14),
-      new THREE.MeshBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
-    );
-    fogPanel.position.set(node.x, 7, node.z + 18);
-    scene.add(fogPanel);
-  }
-  if(idx === 6){
-    const shelter = new THREE.Mesh(
-      new THREE.BoxGeometry(12, 6, 9),
-      new THREE.MeshLambertMaterial({ color: 0xe2e8f0 })
-    );
-    shelter.position.set(node.x, 3, node.z + 18);
-    shelter.castShadow = true;
-    scene.add(shelter);
-  }
-}
-
-function spawnFinalLandmark(node, idx){
-  if(idx === 0){
-    for(let i = 0; i < 3; i++){
-      const tower = new THREE.Mesh(
-        new THREE.BoxGeometry(7, 16 + i * 5, 7),
-        new THREE.MeshLambertMaterial({ color: 0x334155 })
-      );
-      tower.position.set(node.x - 18 + i * 9, 8 + i * 2.5, node.z + 22);
-      tower.castShadow = true;
-      scene.add(tower);
-    }
-  }
-  if(idx === 1){
-    [-4, 4].forEach(dz => {
-      const rail = new THREE.Mesh(
-        new THREE.BoxGeometry(24, 0.18, 0.35),
-        new THREE.MeshLambertMaterial({ color: 0xa3a3a3 })
-      );
-      rail.position.set(node.x, 0.18, node.z + dz);
-      scene.add(rail);
-    });
-  }
-  if(idx === 2){
-    const water = new THREE.Mesh(
-      new THREE.PlaneGeometry(28, 16),
-      new THREE.MeshLambertMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
-    );
-    water.rotation.x = -Math.PI / 2;
-    water.position.set(node.x, 0.12, node.z + 6);
-    scene.add(water);
-  }
-  if(idx === 4){
-    const lake = new THREE.Mesh(
-      new THREE.PlaneGeometry(46, 28),
-      new THREE.MeshLambertMaterial({ color: 0x0f766e, transparent: true, opacity: 0.62, side: THREE.DoubleSide })
-    );
-    lake.rotation.x = -Math.PI / 2;
-    lake.position.set(node.x + 22, 0.08, node.z + 20);
-    scene.add(lake);
-  }
-  if(idx === 5){
-    for(let i = 0; i < 10; i++){
-      const rock = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(1.1 + Math.random() * 1.5),
-        new THREE.MeshLambertMaterial({ color: 0x57534e })
-      );
-      rock.position.set(node.x - 10 + Math.random() * 24, 1, node.z + 10 + Math.random() * 16);
-      rock.castShadow = true;
-      scene.add(rock);
-    }
-  }
-  if(idx === 6){
-    const roadSign = new THREE.Mesh(
-      new THREE.BoxGeometry(10, 4, 0.4),
-      new THREE.MeshLambertMaterial({ color: 0x1d4ed8 })
-    );
-    roadSign.position.set(node.x, 5, node.z + 16);
-    scene.add(roadSign);
-  }
-  if(idx === 7){
-    const beacon = new THREE.Mesh(
-      new THREE.CylinderGeometry(2.2, 2.2, 9, 16),
-      new THREE.MeshBasicMaterial({ color: 0xfacc15, transparent: true, opacity: 0.9 })
-    );
-    beacon.position.set(node.x, 4.5, node.z + 16);
-    scene.add(beacon);
-  }
-}
-
-function buildMissionRouteScene(missionIdx, palette){
-  const nodes = MISSION_ROUTE_NODES[missionIdx];
-  if(!nodes) return;
-  initMissionRoutePath(missionIdx);
-  const bounds = getNodeBounds(nodes);
-  const groundW = Math.max(260, bounds.maxX - bounds.minX + 140);
-  const groundH = Math.max(190, bounds.maxZ - bounds.minZ + 150);
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(groundW, groundH),
-    new THREE.MeshLambertMaterial({ color: palette.ground, side: THREE.DoubleSide })
-  );
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.set((bounds.minX + bounds.maxX) / 2, -0.12, (bounds.minZ + bounds.maxZ) / 2);
-  scene.add(ground);
-
-  const outer = missionRoutePathPoints(missionIdx, TW/2, 220);
-  const inner = missionRoutePathPoints(missionIdx, -TW/2, 220);
-  const shape = new THREE.Shape();
-  shape.moveTo(outer[0].x, outer[0].z);
-  for(let i = 1; i < outer.length; i++) shape.lineTo(outer[i].x, outer[i].z);
-  for(let i = inner.length - 1; i >= 0; i--) shape.lineTo(inner[i].x, inner[i].z);
-  shape.closePath();
-  const road = new THREE.Mesh(
-    new THREE.ShapeGeometry(shape),
-    new THREE.MeshLambertMaterial({ color: palette.road, side: THREE.DoubleSide })
-  );
-  road.rotation.x = -Math.PI / 2;
-  road.position.y = 0.065;
-  scene.add(road);
-
-  function routeLine(lateralOffset, color, dashed){
-    const pts = missionRoutePathPoints(missionIdx, lateralOffset, 220);
-    const verts = pts.map(p => new THREE.Vector3(p.x, 0.09, p.z));
-    const geo = new THREE.BufferGeometry().setFromPoints(verts);
-    const mat = dashed
-      ? new THREE.LineDashedMaterial({ color, dashSize: 3, gapSize: 3 })
-      : new THREE.LineBasicMaterial({ color });
-    const line = new THREE.Line(geo, mat);
-    if(dashed) line.computeLineDistances();
-    scene.add(line);
-  }
-  routeLine(-TW/2, 0xffcc00, false);
-  routeLine(TW/2, 0xffcc00, false);
-  for(let lane = 1; lane < LANE_COUNT; lane++){
-    routeLine(LANE_OFFSETS[lane] - LANE_W/2, 0xffffff, true);
-  }
-
-  const total = getMissionRouteTotal(missionIdx);
-  const finishStart = getMissionRoutePoint(total - 0.5, -TW/2, missionIdx);
-  const finishEnd = getMissionRoutePoint(total - 0.5, TW/2, missionIdx);
-  const finish = new THREE.Mesh(
-    new THREE.PlaneGeometry(Math.hypot(finishEnd.x - finishStart.x, finishEnd.z - finishStart.z), 3),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  );
-  finish.position.set((finishStart.x + finishEnd.x) / 2, 0.11, (finishStart.z + finishEnd.z) / 2);
-  finish.rotation.x = -Math.PI / 2;
-  finish.rotation.z = Math.atan2(finishEnd.z - finishStart.z, finishEnd.x - finishStart.x);
-  scene.add(finish);
-
-  nodes.forEach((node, idx) => {
-    spawnRouteMarker(node, idx, missionIdx);
-    if(missionIdx === 2) spawnMountainLandmark(node, idx);
-    if(missionIdx === 3) spawnFinalLandmark(node, idx);
-  });
-}
-
-buildMissionRouteScene(2, { ground: 0x22311f, road: 0x343a30 });
-buildMissionRouteScene(3, { ground: 0x1b2630, road: 0x303238 });
-
 // Start/Finish line at middle of bottom straight (dist = HL)
 // Line crosses the track perpendicular (along Z axis)
 {
@@ -4552,10 +4173,9 @@ function createUtilityPole(x, z){
   scene.add(waterMark);
 }
 
-// K-01 先不考慮淹水；涉水視覺交給 K-02 以後的任務路線。
-const ENABLE_OVAL_FLOOD_SCENE = false;
-if(ENABLE_OVAL_FLOOD_SCENE){
-  // 舊版橢圓賽道水道中心距離
+// 在水道 sector 兩側 spawn 淹水測試場景
+{
+  // 8 個 sector，水道是 index 6 → 中心距離 = 6.5/8 * L_TOTAL
   const floodCenterD = (6.5 / 8) * L_TOTAL;
   // 5 棟房子（兩側交錯）
   for(let i = 0; i < 5; i++){
@@ -4660,15 +4280,17 @@ if(ENABLE_OVAL_FLOOD_SCENE){
 // 🚏 各 sector 招牌（兩側 spawn 不同主題的招牌柱，讓「風景變換」可見）
 {
   const STREET_SCENES = [
-    { sec: 0, emoji: '📏', label: '直線門',   color: '#3b3b3b' },
-    { sec: 1, emoji: '↩️', label: '小彎',     color: '#1e3a5f' },
-    { sec: 2, emoji: '〰️', label: 'S 彎',     color: '#7a2828' },
-    { sec: 3, emoji: '🏘', label: '窄巷',     color: '#2d5a3a' },
-    { sec: 4, emoji: '📏', label: '長直線',   color: '#1a4d8c' },
-    { sec: 5, emoji: '🔁', label: '回起點',   color: '#4a2c1a' },
+    { sec: 0, emoji: '🏁', label: '啟動門',   color: '#3b3b3b' },
+    { sec: 1, emoji: '🛞', label: '抓地彎',   color: '#1e3a5f' },
+    { sec: 2, emoji: '⚡', label: '齒比線',   color: '#7a2828' },
+    { sec: 3, emoji: '🚧', label: '底盤門',   color: '#2d5a3a' },
+    { sec: 4, emoji: '📦', label: '配重彎',   color: '#1a4d8c' },
+    { sec: 5, emoji: '🔋', label: '耗電廊',   color: '#4a2c1a' },
+    // sector 6 是水道區
+    { sec: 7, emoji: '⛰', label: '扭力坡',   color: '#5a3a1a' },
   ];
   STREET_SCENES.forEach(s => {
-    const center = (s.sec + 0.5) / 6 * L_TOTAL;
+    const center = (s.sec + 0.5) / 8 * L_TOTAL;
     // 進場招牌（區頭）
     const dEnter = center - L_TOTAL / 16; // 往前推半個 sector
     [-1, 1].forEach(side => {
@@ -5445,9 +5067,9 @@ function spawnObstacleRock(d, lateralOffset){
   scene.add(rock);
   obstacleRocks.push(rock);
 }
-// 在賽道沿線散布 7 顆石頭（第一關簡化）（避開水道區）
-for(let i = 0; i < 7; i++){
-  const d = (i / 7 + 0.05) * L_TOTAL;
+// 在賽道沿線散布 14 顆石頭（避開水道區）
+for(let i = 0; i < 14; i++){
+  const d = (i / 14 + 0.03) * L_TOTAL;
   const sec = Math.floor(d / L_TOTAL * 8);
   if(sec === 6) continue; // 水道區跳過
   const lat = (Math.random() - 0.5) * (TW - 4);
@@ -5861,31 +5483,6 @@ for(let i = 0; i < CP_COUNT; i++) CP_DISTS.push((i / CP_COUNT) * L_TOTAL);
 function checkCheckpoints(car){
   const ud = car.userData;
   const dist = ud._dist !== undefined ? ud._dist : (ud.aiDist || 0);
-  if(isMissionRouteStage()){
-    const total = getRunningTrackTotal();
-    const prev = ud._prevDist || 0;
-    if(dist - prev < 0.5){
-      ud._prevDist = dist;
-      return;
-    }
-    const mission = getActiveMission();
-    const progressMax = mission.progressMax || (getActiveSectors().length || 1);
-    ud.cpIdx = Math.min(progressMax, Math.floor(Math.max(0, dist) / Math.max(total, 1) * progressMax));
-    if(dist >= total && !ud.finished){
-      ud.cpIdx = progressMax;
-      ud.laps = 1;
-      ud.finished = true;
-      ud.finishTime = raceTime;
-      ud.rank = allCars.filter(c => c.userData.finished).length;
-      if(ud.isPlayer){
-        const posBonus = [500, 300, 150, 50][ud.rank - 1] || 0;
-        addScore(posBonus);
-        showPowerUpMsg('🏥 第 ' + ud.rank + ' 位送達終點！+' + posBonus);
-      }
-    }
-    ud._prevDist = dist;
-    return;
-  }
   const norm = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
   const prevNorm = ((ud._prevDist % L_TOTAL) + L_TOTAL) % L_TOTAL;
 
@@ -5930,9 +5527,9 @@ function checkCheckpoints(car){
         if(ud.isPlayer){
           const posBonus = [500, 300, 150, 50][ud.rank - 1] || 0;
           addScore(posBonus);
-          showPowerUpMsg(activeMissionLevel > 0
-            ? '🏥 第 ' + ud.rank + ' 位送達終點！+' + posBonus
-            : '🏁 木板四輪認證完成！+' + posBonus);
+          showPowerUpMsg(activeMissionLevel === 1
+            ? '🏥 第 ' + ud.rank + ' 位送達避難點！+' + posBonus
+            : '🏁 原型車認證完成！+' + posBonus);
         }
       }
     }
@@ -6059,7 +5656,7 @@ function startCountdown(){
 
 // ═══ 開場徵召 splash ═══
 // ═══════════════════════════════════════════════
-// 第七十二波：Quick Rescue Mode 核心模組（綜合藍圖第 12 章實作）
+// 第七十二波：Quick Rescue Mode 核心模組（綜合藍圖第 12 章 prompt 實作）
 // 採法：ChatGPT 90 秒局 + Claude.ai 水位反派 + Gemini 在地細節
 // 完整工程模式用 ?engineer=1 進入
 // ═══════════════════════════════════════════════
@@ -6339,12 +5936,13 @@ function closeOpeningSplash(){
       setTimeout(() => {
         rv.style.display = 'none';
         showGarage();
-        // 第一次玩不要自動出車：先停在木板四輪工坊，讓學生自己選底板比例再測。
+        // KIRIN 6/19 deep cut：第一次玩，工坊閃過去直接出動（progressive disclosure）
         const isFirstPlay = !localStorage.getItem('kirinRacingPlayed');
         if(isFirstPlay){
           setTimeout(() => {
+            const startBtn = document.getElementById('garageStartBtn');
+            if(startBtn) startBtn.click();
             localStorage.setItem('kirinRacingPlayed', '1');
-            showPowerUpMsg('📐 先選底板比例，再出車測試');
           }, 250);
         }
       }, 600);
@@ -6593,11 +6191,11 @@ const GARAGE_AXES = [
   },
   {
     key: 'wheelbase', icon: '📏', name: '軸距 + 車身比例（寬窄長短）',
-    hint: '第一堂只看一塊板子加四個輪子：正方形容易轉彎但直線飄，長方形走直線穩但轉彎變笨',
+    hint: '要解的是穩定問題：車身比例會影響重心、轉彎半徑、載重；直線強不代表彎道安全',
     options: [
-      { name: '⬛ 正方形板車',  secret: '四邊差不多長，轉彎靈活；但直線方向容易左右飄', d: { start: +1, top: -1, turn: +2, range: 0, climb: 0 } },
-      { name: '▰ 長方形板車',  secret: '前後拉長，直線比較穩；但轉彎半徑變大',       d: { start: 0, top: +1, turn: -1, range: +1, climb: 0 } },
-      { name: '🚌 窄長載貨板',  secret: '最會跑直線、能放物資；彎道和巷弄會狠狠打臉', d: { start: -1, top: +2, turn: -2, range: +1, climb: +1 } },
+      { name: '🚙 寬胖短軸（小型攤車）',  secret: '重心低、過彎神、抗側翻，但載貨少',  d: { start: +1, top:  -1, turn: +2, range: 0, climb: 0 } },
+      { name: '🚐 中庸標配（街頭餐車）',  secret: '寬窄適中，街頭老闆首選',          d: { start:  0, top:  0, turn:  0, range: 0, climb: 0 } },
+      { name: '🚌 窄長遊覽車型',         secret: '直線飛快、載貨多，但過彎易側翻 ⚠️', d: { start: -1, top: +2, turn: -2, range: +1, climb: +1 } },
     ],
   },
   {
@@ -6661,88 +6259,13 @@ const GARAGE_AXES = [
     ],
   },
 ];
-// 玩家當前選擇：一開始是「一塊板子 + 四輪」，先學車體比例，再慢慢解鎖複雜系統。
-const garageChoice = { tire: 1, wheelbase: 0, drive: 0, power: 0, gear: 1, shell: 1, chassis: 1 };
+// 玩家當前選擇（index 0=第一選項；預設全部中庸 = index 1）
+const garageChoice = { tire: 1, wheelbase: 1, drive: 1, power: 1, gear: 1, shell: 0, chassis: 1 };
 let supportPenalty = 0;
 let supportUses = [];
 let radioUses = [];
 let rescueCoins = 120;
 const materialOwned = {};
-const PART_CHANGE_COST = { tire: 18, wheelbase: 22, drive: 26, power: 24, gear: 18, shell: 20, chassis: 20 };
-const GARAGE_UNLOCK_STAGES = [
-  {
-    title: 'K-01 木板四輪',
-    desc: '現在只有一塊板子和四個輪子。先破解：正方形會轉彎，長方形會走直線。',
-    chip: '解鎖：車體比例・原型台免費試',
-    axes: ['wheelbase'],
-    freeAxes: ['wheelbase'],
-    tools: false,
-    presets: false,
-  },
-  {
-    title: 'K-02 城市涉水',
-    desc: '能走直線後，開始處理水、輪胎、底盤、齒比。每多一個零件，判斷就更複雜。',
-    chip: '解鎖：輪胎/底盤/齒比',
-    axes: ['wheelbase', 'tire', 'chassis', 'gear'],
-    tools: true,
-    presets: false,
-  },
-  {
-    title: 'K-03 山路傳動',
-    desc: '山區開始考動力分配與能源。這時才開放驅動方式和動力配置。',
-    chip: '解鎖：驅動/動力',
-    axes: ['wheelbase', 'tire', 'chassis', 'gear', 'drive', 'power'],
-    tools: true,
-    presets: false,
-  },
-  {
-    title: 'K-04 全域工程車',
-    desc: '前面都過關後，才給你整套車殼、預設配置與完整改裝自由。',
-    chip: '解鎖：完整工坊',
-    axes: ['wheelbase', 'tire', 'chassis', 'gear', 'drive', 'power', 'shell'],
-    tools: true,
-    presets: true,
-  },
-];
-
-function getGarageUnlockStage(){
-  return GARAGE_UNLOCK_STAGES[activeMissionLevel] || GARAGE_UNLOCK_STAGES[0];
-}
-
-function isAxisUnlocked(axisKey){
-  return getGarageUnlockStage().axes.includes(axisKey);
-}
-
-function isToolSystemUnlocked(){
-  return !!getGarageUnlockStage().tools;
-}
-
-function isPrototypeAxisFree(axisKey){
-  return (getGarageUnlockStage().freeAxes || []).includes(axisKey);
-}
-
-function ensureActiveGarageAxisUnlocked(){
-  if(isAxisUnlocked(activeGarageAxisKey)) return;
-  activeGarageAxisKey = getGarageUnlockStage().axes[0] || 'wheelbase';
-}
-
-function getPartChangeCost(axisKey, idx){
-  if(garageChoice[axisKey] === idx) return 0;
-  if(isPrototypeAxisFree(axisKey)) return 0;
-  return PART_CHANGE_COST[axisKey] || 20;
-}
-
-function spendRescueCoins(amount, reason){
-  if(amount <= 0) return true;
-  if(rescueCoins < amount){
-    showPowerUpMsg('💳 RC 不夠：' + reason + ' 需要 ' + amount + ' RC');
-    syncSupportControls();
-    return false;
-  }
-  rescueCoins -= amount;
-  renderWallet();
-  return true;
-}
 
 // 🏎️ 預設車種（賽車遊戲風一鍵選車）
 const PRESETS = {
@@ -6751,18 +6274,11 @@ const PRESETS = {
   offroad: { tire: 2, wheelbase: 1, drive: 2, power: 1, gear: 0, shell: 1, chassis: 2 }, // 越野：高底盤支架
   eco:     { tire: 1, wheelbase: 1, drive: 0, power: 0, gear: 1, shell: 2, chassis: 1 }, // 環保：中底盤
 };
-let activeGarageAxisKey = 'wheelbase';
+let activeGarageAxisKey = 'tire';
 
 function applyPreset(key){
-  if(!getGarageUnlockStage().presets){
-    showPowerUpMsg('🔒 整套配置要到後面任務才會解鎖');
-    return;
-  }
   const p = PRESETS[key];
   if(!p) return;
-  const cost = Object.keys(p).reduce((sum, axisKey) => sum + getPartChangeCost(axisKey, p[axisKey]), 0);
-  const discounted = Math.ceil(cost * 0.75);
-  if(discounted > 0 && !spendRescueCoins(discounted, '套用整套解法')) return;
   Object.assign(garageChoice, p);
   // 標記哪個 preset active
   document.querySelectorAll('.preset-btn').forEach((b, i) => {
@@ -6771,20 +6287,6 @@ function applyPreset(key){
   renderGarage();
   updatePerfPrediction();
   rebuildPreviewCar();
-  if(discounted > 0) showPowerUpMsg('🧩 套用整套解法 -' + discounted + ' RC');
-}
-
-function syncPresetControls(){
-  const unlocked = getGarageUnlockStage().presets;
-  document.querySelectorAll('.preset-row').forEach(row => {
-    row.style.display = unlocked ? '' : 'none';
-  });
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.disabled = !unlocked;
-    btn.style.opacity = unlocked ? '' : '.42';
-    btn.style.cursor = unlocked ? '' : 'not-allowed';
-    btn.title = unlocked ? '' : '後面任務才會解鎖整套配置';
-  });
 }
 
 function shortAxisTitle(name){
@@ -6801,42 +6303,17 @@ function splitOptionLabel(name, fallbackIcon){
 function renderGarage(){
   const container = document.getElementById('garageAxes');
   container.innerHTML = '';
-  ensureActiveGarageAxisUnlocked();
-  const unlockStage = getGarageUnlockStage();
   const activeAxis = GARAGE_AXES.find(axis => axis.key === activeGarageAxisKey) || GARAGE_AXES[0];
   activeGarageAxisKey = activeAxis.key;
-
-  const unlockPanel = document.createElement('div');
-  unlockPanel.className = 'garage-unlock-panel';
-  unlockPanel.innerHTML =
-    '<div>' +
-      '<div class="garage-unlock-title">' + unlockStage.title + '</div>' +
-      '<div class="garage-unlock-desc">' + unlockStage.desc + '</div>' +
-    '</div>' +
-    '<div class="garage-unlock-chip">' + unlockStage.chip + '</div>';
-  container.appendChild(unlockPanel);
 
   const rail = document.createElement('div');
   rail.className = 'axis-category-rail';
   GARAGE_AXES.forEach(axis => {
-    const unlocked = isAxisUnlocked(axis.key);
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'axis-category-btn'
-      + (axis.key === activeAxis.key ? ' active' : '')
-      + (!unlocked ? ' locked' : '');
-    b.disabled = !unlocked;
-    b.title = unlocked ? shortAxisTitle(axis.name) : '後面任務才會解鎖';
-    b.innerHTML =
-      '<span class="cat-icon">' + (unlocked ? axis.icon : '🔒') + '</span>' +
-      '<span class="cat-label">' + shortAxisTitle(axis.name) + '</span>';
-    b.onclick = () => {
-      if(!unlocked){
-        showPowerUpMsg('🔒 這個系統後面才會解鎖');
-        return;
-      }
-      selectGarageAxis(axis.key);
-    };
+    b.className = 'axis-category-btn' + (axis.key === activeAxis.key ? ' active' : '');
+    b.innerHTML = '<span class="cat-icon">' + axis.icon + '</span><span class="cat-label">' + shortAxisTitle(axis.name) + '</span>';
+    b.onclick = () => selectGarageAxis(axis.key);
     rail.appendChild(b);
   });
   container.appendChild(rail);
@@ -6860,65 +6337,38 @@ function renderGarage(){
     o.className = 'opt-card' + (garageChoice[activeAxis.key] === idx ? ' selected' : '');
     const label = splitOptionLabel(opt.name, activeAxis.icon);
     const figHtml = opt.figure ? '<div class="opt-figure">' + opt.figure + '</div>' : '';
-    const changeCost = getPartChangeCost(activeAxis.key, idx);
-    const costLabel = garageChoice[activeAxis.key] === idx
-      ? '✅ 目前解法'
-      : (changeCost ? '💳 改這項要 ' + changeCost + ' RC' : '🧪 原型台免費試');
     o.innerHTML = '<div class="opt-icon" aria-hidden="true">' + label.icon + '</div>' +
                   '<div class="opt-body">' +
                     '<div class="opt-name">' + label.text + '</div>' +
                     figHtml +
                     '<div class="opt-secret">' + opt.secret + '</div>' +
-                    '<div class="opt-secret">' + costLabel + '</div>' +
                   '</div>';
     o.onclick = () => {
-      const cost = getPartChangeCost(activeAxis.key, idx);
-      if(cost && !spendRescueCoins(cost, shortAxisTitle(activeAxis.name))) return;
       garageChoice[activeAxis.key] = idx;
       // 手動偏離 preset → 清 active 綠燈
       document.querySelectorAll('.preset-btn.active').forEach(b => b.classList.remove('active'));
       renderGarage();
       updatePerfPrediction();
       rebuildPreviewCar();   // 3D 預覽即時重組
-      if(cost) showPowerUpMsg('🔧 ' + shortAxisTitle(activeAxis.name) + ' -' + cost + ' RC');
     };
     optsDiv.appendChild(o);
   });
 
   const evalCard = document.createElement('div');
   const mission = getActiveMission();
-  const evalRowsByMission = {
-    'alpha-03': [
-      '📏 直線門：車身太短會左右飄',
-      '↩️ 小彎：車身太長轉不過',
-      '〰️ S 彎：穩定和靈活互相拉扯',
-      '🏘 窄巷：轉彎半徑會打臉'
-    ],
-    'chiayi-flood-02': [
-      '💧 地下道：馬達不能進水',
-      '⛰ 天橋：扭力要爬得上去',
-      '🏘 透天巷弄：車寬不能卡住',
-      '🏡 四合院：低速扭力要夠'
-    ],
-    'zhuci-mountain-03': [
-      '↩️ 髮夾彎：低速轉向要穩',
-      '🪨 碎石路：輪胎和底盤要扛得住',
-      '🍵 茶園陡坡：齒比和扭力要夠',
-      '🔋 偏遠山路：跑完還要有電'
-    ],
-    'all-terrain-final-04': [
-      '🌊 水陸混合：不能只顧單一地形',
-      '⛰ 山區坡道：扭力和配重要撐住',
-      '🏘 巷弄救援：車身不能太笨重',
-      '💳 預算有限：少花錢也要能完成'
-    ]
-  };
-  const evalRows = evalRowsByMission[mission.id] || [
-    '📏 直線門：先看方向會不會飄',
-    '↩️ 小彎：再看轉彎半徑夠不夠',
-    '〰️ S 彎：檢查穩定和靈活的取捨',
-    '🏘 窄巷：確認車身比例有沒有卡住'
-  ];
+  const evalRows = mission.id === 'chiayi-flood-02'
+    ? [
+        '💧 地下道：馬達不能進水',
+        '⛰ 天橋：扭力要爬得上去',
+        '🏘 透天巷弄：車寬不能卡住',
+        '🏡 四合院：低速扭力要夠'
+      ]
+    : [
+        '🛞 抓地彎：不只輪胎會害你',
+        '⚙️ 扭力坡：齒比不是唯一答案',
+        '🦵 底盤門檻：高低都有代價',
+        '🔋 耗電長廊：耗電真兇要跑才知道'
+      ];
   evalCard.className = 'axis-card task-eval-card';
   evalCard.innerHTML =
     '<div class="task-eval-head"><span>📋</span><strong>問題清單</strong></div>' +
@@ -6932,15 +6382,9 @@ function renderGarage(){
     '<div class="task-eval-verdict" id="taskEvalVerdict">⚙️ 先選一個解法，再看它解決了什麼</div>';
   container.appendChild(evalCard);
   updatePerfPrediction();
-  syncPresetControls();
-  syncSupportControls();
 }
 
 function selectGarageAxis(key){
-  if(!isAxisUnlocked(key)){
-    showPowerUpMsg('🔒 這個系統後面才會解鎖');
-    return;
-  }
   activeGarageAxisKey = key;
   renderGarage();
 }
@@ -7061,48 +6505,11 @@ function addSupportPenalty(points, label){
 // 🎯 補給站冷卻系統（每輪限制，避免亂抽亂呼叫）
 let drawnThisRound = 0;
 let radioThisRound = 0;
-let workThisRound = 0;
 const DRAW_COST_RC = 15;
 const MAX_DRAWS_PER_ROUND = 1;
 const MAX_RADIOS_PER_ROUND = 1;
-const MAX_WORK_PER_ROUND = 1;
-const WORK_JOBS = [
-  {
-    id: 'drain',
-    name: '清排水溝',
-    desc: '幫社區清掉落葉，賺 RC；但花時間，破解榮譽會下降。',
-    coins: 35,
-    penalty: 10
-  },
-  {
-    id: 'bridge',
-    name: '補臨時便橋',
-    desc: '協助架木板便橋，賺較多 RC；車隊會更累。',
-    coins: 50,
-    penalty: 18
-  },
-  {
-    id: 'delivery',
-    name: '幫長輩送物資',
-    desc: '做好事拿到社區支援金，也會增加在地分。',
-    coins: 30,
-    penalty: 0,
-    local: 10
-  },
-  {
-    id: 'survey',
-    name: '道路巡查',
-    desc: '先去標記坑洞和積水點，得到少量 RC 與線索。',
-    coins: 25,
-    penalty: 5
-  }
-];
 
 function drawSupportCard(){
-  if(!isToolSystemUnlocked()){
-    showPowerUpMsg('🔒 先完成木板四輪測試，後面才開支援卡');
-    return;
-  }
   if(drawnThisRound >= MAX_DRAWS_PER_ROUND){
     showPowerUpMsg('🃏 本輪卡包已抽完，跑完一場才能再抽');
     syncSupportControls();
@@ -7139,66 +6546,17 @@ function renderWallet(){
   MATERIALS.forEach(mat => {
     const btn = document.createElement('button');
     btn.className = 'material-btn' + (materialOwned[mat.id] ? ' owned' : '');
-    btn.disabled = !isToolSystemUnlocked();
     btn.innerHTML =
       '<div class="mat-name">' + (materialOwned[mat.id] ? '✓ ' : '') + mat.name + '</div>' +
       '<div class="mat-desc">' + mat.desc + '</div>' +
-      '<div class="mat-cost">' + (!isToolSystemUnlocked() ? '後面任務解鎖' : (materialOwned[mat.id] ? '已裝備' : mat.cost + ' RC')) + '</div>';
+      '<div class="mat-cost">' + (materialOwned[mat.id] ? '已裝備' : mat.cost + ' RC') + '</div>';
     btn.onclick = () => buyMaterial(mat.id);
     shop.appendChild(btn);
   });
-  renderWorkBoard();
   syncSupportControls();
 }
 
-function renderWorkBoard(){
-  const board = document.getElementById('workBoard');
-  if(!board) return;
-  board.innerHTML = '';
-  WORK_JOBS.forEach(job => {
-    const btn = document.createElement('button');
-    btn.className = 'material-btn';
-    btn.disabled = !isToolSystemUnlocked() || workThisRound >= MAX_WORK_PER_ROUND;
-    btn.innerHTML =
-      '<div class="mat-name">' + job.name + '</div>' +
-      '<div class="mat-desc">' + job.desc + '</div>' +
-      '<div class="mat-cost">' + (!isToolSystemUnlocked() ? '後面任務解鎖' : ('+' + job.coins + ' RC' + (job.penalty ? ' / -' + job.penalty + ' 分' : ' / 在地 +10'))) + '</div>';
-    btn.onclick = () => takeWorkJob(job.id);
-    board.appendChild(btn);
-  });
-}
-
-function takeWorkJob(id){
-  if(!isToolSystemUnlocked()){
-    showPowerUpMsg('🔒 工程工單後面任務才會開放');
-    return;
-  }
-  if(workThisRound >= MAX_WORK_PER_ROUND){
-    showPowerUpMsg('🧱 本輪已接過工單，先上路驗證');
-    return;
-  }
-  const job = WORK_JOBS.find(j => j.id === id);
-  if(!job) return;
-  workThisRound++;
-  rescueCoins += job.coins;
-  if(job.penalty) addSupportPenalty(job.penalty, '工單：' + job.name);
-  if(job.local) {
-    localScore += job.local;
-    updateTripleHud && updateTripleHud();
-  }
-  supportUses.push('工單：' + job.name);
-  const el = document.getElementById('workLastReply');
-  if(el) el.textContent = job.name + ' 完成，+' + job.coins + ' RC。' + (job.penalty ? '破解榮譽 -' + job.penalty + '。' : '在地 +10。');
-  renderWallet();
-  updateGarageFlowUI();
-  showPowerUpMsg('🧱 ' + job.name + ' +' + job.coins + ' RC');
-}
-
 function buyMaterial(id){
-  if(!isToolSystemUnlocked()){
-    showPowerUpMsg('🔒 材料兌換後面任務才會開放');
-    return;
-  }
   const mat = MATERIALS.find(m => m.id === id);
   if(!mat || materialOwned[id]) return;
   if(rescueCoins < mat.cost){
@@ -7218,10 +6576,6 @@ function buyMaterial(id){
 // 遊戲內不提供答題機制
 
 function callRadioSupport(){
-  if(!isToolSystemUnlocked()){
-    showPowerUpMsg('🔒 先用自己的木板車跑出證據');
-    return;
-  }
   if(radioThisRound >= MAX_RADIOS_PER_ROUND){
     showPowerUpMsg('📻 本輪無線電已用過，跑完一場才能再呼叫');
     syncSupportControls();
@@ -7243,36 +6597,30 @@ function syncSupportControls(){
   if(drawBtn){
     const used = drawnThisRound >= MAX_DRAWS_PER_ROUND;
     const poor = rescueCoins < DRAW_COST_RC;
-    const locked = !isToolSystemUnlocked();
-    drawBtn.disabled = locked || used || poor;
-    drawBtn.textContent = locked ? '後面解鎖' : used ? '本輪已抽卡' : poor ? 'RC 不足' : '抽一張（-15 RC）';
+    drawBtn.disabled = used || poor;
+    drawBtn.textContent = used ? '本輪已抽卡' : poor ? 'RC 不足' : '抽一張（-15 RC）';
   }
   const radioBtn = document.getElementById('radioSupportBtn');
   if(radioBtn){
     const used = radioThisRound >= MAX_RADIOS_PER_ROUND;
-    const locked = !isToolSystemUnlocked();
-    radioBtn.disabled = locked || used;
-    radioBtn.textContent = locked ? '後面解鎖' : used ? '本輪已呼叫' : '呼叫一次（-35 分）';
+    radioBtn.disabled = used;
+    radioBtn.textContent = used ? '本輪已呼叫' : '呼叫一次（-35 分）';
   }
-  renderWorkBoard();
-  const workCost = document.getElementById('workCost');
-  if(workCost) workCost.textContent = !isToolSystemUnlocked() ? '完成基本底板測試後解鎖' : workThisRound >= MAX_WORK_PER_ROUND ? '本輪工單已完成' : '每輪最多接 1 件';
 }
 
 function resetSupportState(){
   supportPenalty = 0;
   supportUses = [];
   radioUses = [];
+  rescueCoins = 120;
   drawnThisRound = 0;
   radioThisRound = 0;
-  workThisRound = 0;
+  Object.keys(materialOwned).forEach(k => delete materialOwned[k]);
   const card = document.getElementById('supportCardText');
   const radio = document.getElementById('radioLastReply');
-  const work = document.getElementById('workLastReply');
   const cost = document.getElementById('supportCost');
   if(card) card.textContent = '尚未抽卡。';
   if(radio) radio.textContent = '尚未呼叫。';
-  if(work) work.textContent = '尚未接工單。';
   if(cost) cost.textContent = '支援代價：0 分';
   renderWallet();
   syncSupportControls();
@@ -7304,7 +6652,6 @@ function showGarage(){
   renderWallet();
   renderMissionLevelSelect();
   applyMissionLevel();
-  renderHypothesisOptions();
   const screen = document.getElementById('garageScreen');
   screen.classList.add('show');
   switchGarageTab('mission');  // 預設戰情室：先看任務、押假設，再去改車
@@ -7320,7 +6667,6 @@ function showGarage(){
 // 🎯 本輪假設（KIRIN 19:15 加）— 押判斷再改車
 let currentHypothesis = { risk: '', solution: '' };
 const HYPO_RISK_LABEL = {
-  straight: '📏 直線跑偏',
   water: '💧 積水進水短路',
   range: '🔋 電力不夠用',
   turn:  '🔄 過彎翻覆',
@@ -7329,7 +6675,6 @@ const HYPO_RISK_LABEL = {
   slip:  '🛞 雨天打滑',
 };
 const HYPO_SOLUTION_LABEL = {
-  bodyshape:   '📐 調車體比例',
   waterproof:  '🛡 防水電機座',
   shaft:       '⚙️ 長傳動軸',
   float:       '🛟 側浮筒',
@@ -7339,47 +6684,6 @@ const HYPO_SOLUTION_LABEL = {
   awd:         '⚙️ AWD 四驅',
   lowchassis:  '🏎 低底盤',
 };
-
-const HYPOTHESIS_OPTIONS_BY_MISSION = [
-  {
-    risks: ['straight', 'turn'],
-    solutions: ['bodyshape'],
-    intro: '第一關先不管淹水。只觀察一塊板子加四個輪子：它會不會跑偏？轉彎半徑會不會太大？'
-  },
-  {
-    risks: ['water', 'slip', 'turn', 'climb', 'range', 'cargo'],
-    solutions: ['bodyshape', 'multitire', 'lowchassis', 'lowgear', 'waterproof', 'shaft', 'float'],
-    intro: '城市水淹才開始處理積水、打滑、地下道、天橋和救援物資。先猜哪段路會打臉你。'
-  },
-  {
-    risks: ['climb', 'turn', 'range', 'cargo', 'slip'],
-    solutions: ['bodyshape', 'multitire', 'lowgear', 'awd', 'battery', 'lowchassis'],
-    intro: '山區任務考的是上坡、髮夾彎、碎石和續航。不要急著追速度，先猜真正瓶頸。'
-  },
-  {
-    risks: ['water', 'climb', 'turn', 'range', 'cargo', 'slip', 'straight'],
-    solutions: ['bodyshape', 'multitire', 'lowgear', 'awd', 'battery', 'lowchassis', 'waterproof', 'shaft', 'float'],
-    intro: '終局混合任務沒有神配置。先押最大風險，再用有限預算做取捨。'
-  }
-];
-
-function renderSelectOptions(selectEl, optionKeys, labels){
-  if(!selectEl) return;
-  const previous = selectEl.value;
-  selectEl.innerHTML = '<option value="">— 選一個 —</option>' + optionKeys.map(key =>
-    '<option value="' + key + '">' + labels[key] + '</option>'
-  ).join('');
-  selectEl.value = optionKeys.includes(previous) ? previous : '';
-}
-
-function renderHypothesisOptions(){
-  const config = HYPOTHESIS_OPTIONS_BY_MISSION[activeMissionLevel] || HYPOTHESIS_OPTIONS_BY_MISSION[0];
-  const intro = document.querySelector('.hypo-intro');
-  if(intro) intro.textContent = config.intro;
-  renderSelectOptions(document.getElementById('hypoRisk'), config.risks, HYPO_RISK_LABEL);
-  renderSelectOptions(document.getElementById('hypoSolution'), config.solutions, HYPO_SOLUTION_LABEL);
-  updateHypothesis();
-}
 
 function hasCompleteHypothesis(){
   return !!(currentHypothesis.risk && currentHypothesis.solution);
@@ -7457,9 +6761,9 @@ function updateGarageFlowUI(){
     mission: {
       count: 'STEP 1 / 6',
       title: '先押判斷',
-      desc: activeMissionLevel > 0
-        ? '這關不是固定跑道。先猜哪段路會打臉你，再決定車子要怎麼活過任務路線。'
-        : '先預測底板會直線跑偏，還是會在彎道轉不過。第一關只看車體比例。',
+      desc: mission.id === 'chiayi-flood-02'
+        ? '這關不是固定跑道。先猜哪段街道會打臉你，再決定車子要怎麼活過水淹路段。'
+        : '先說你覺得會壞在哪裡，再選一個能處理它的改法。不要為了改裝而改裝。',
       chip: ready ? '已押好' : '現在：看任務'
     },
     vehicle: {
@@ -7594,9 +6898,9 @@ function actuallyStartRace(){
   }
   playerCar.userData.mission = { ...getActiveMission(), index: activeMissionLevel };
 
-  // ⚙️ Stage 切換：第 1 關用認證場；第 2~4 關用各自的單程任務路線
-  currentStage = activeMissionLevel > 0 ? activeMissionLevel + 1 : 1;
-  resetCarsToCurrentRoute();
+  // ⚙️ Stage 切換：activeMissionLevel 0 = stage 1（橢圓賽道）, 1 = stage 2（折線馬路）
+  // 目前 stage 2 仍鎖著（第二關 locked），所以實際只會走到 stage 1
+  currentStage = (activeMissionLevel === 1) ? 2 : 1;
 
   stopGarageAnimate();
   document.getElementById('garageScreen').classList.remove('show');
@@ -8262,18 +7566,18 @@ const MISSION_LEVELS = [
     id: 'alpha-03',
     icon: '🏁',
     kicker: 'MISSION 01',
-    cardTitle: '木板四輪認證',
-    cardDesc: '從一塊板子和四個輪子開始。先學會直線穩定和轉彎半徑，再談高階改裝。',
-    title: '木板四輪認證 K-01',
-    sub: '第一題只有車體比例：正方形會轉，長方形會直。先把底板跑穩，再談後面的系統',
+    cardTitle: '原型車認證',
+    cardDesc: '每段地形都像在考某個零件，但真正兇手可能藏在別處。先押判斷，再讓結果打臉。',
+    title: '原型車認證 K-01',
+    sub: '情報只給方向，不給答案。看起來像輪胎問題，可能其實是配重或底盤在搞事',
     chips: [
-      { text: '📐 車體比例', tone: 'warn' },
-      { text: '📏 直線穩定', tone: 'active' },
-      { text: '↩️ 轉彎半徑', tone: '' },
-      { text: '🔒 高階零件未解鎖', tone: '' },
+      { text: '🕵️ 線索會誤導', tone: 'warn' },
+      { text: '🧪 跑完才算數', tone: 'active' },
+      { text: '🔁 同地形可重複', tone: '' },
+      { text: '⚠️ 真兇可能不同', tone: '' },
     ],
-    routeTitle: '底板測試序列',
-    routeText: '直線門 → 連續小彎 → S 彎 → 窄巷回轉 → 長直線 → 回到起點',
+    routeTitle: '可疑地形序列',
+    routeText: '啟動門 → 抓地彎 → 齒比直線 → 底盤門檻 → 配重 S 彎 → 耗電長廊 → 防水槽 → 扭力坡',
     progressLabel: '驗證',
     progressMax: TOTAL_LAPS,
   },
@@ -8296,44 +7600,6 @@ const MISSION_LEVELS = [
     progressLabel: '節點',
     progressMax: 13,
   },
-  {
-    id: 'zhuci-mountain-03',
-    icon: '⛰',
-    kicker: 'MISSION 03',
-    cardTitle: '竹崎山區',
-    cardDesc: '偏遠山路不是比快，是比能不能穩定上坡、過彎、避開落石，還有撐到最後。',
-    title: '竹崎山區 Gamma-03',
-    sub: '山區救援：髮夾彎、碎石路、陡坡、落石、薄霧與長距離，會把車子的扭力和穩定逼出來',
-    chips: [
-      { text: '⛰ 陡坡髮夾彎', tone: 'warn' },
-      { text: '🪨 落石碎石路', tone: 'active' },
-      { text: '🌫 山霧視線差', tone: '' },
-      { text: '🔋 偏遠續航', tone: '' },
-    ],
-    routeTitle: '竹崎山區節點',
-    routeText: '竹崎市集 → 山路髮夾彎 → 碎石林道 → 落石警戒段 → 茶園陡坡 → 霧中窄橋 → 山區收容點',
-    progressLabel: '山路',
-    progressMax: 7,
-  },
-  {
-    id: 'all-terrain-final-04',
-    icon: '🚨',
-    kicker: 'MISSION 04',
-    cardTitle: '全域救援總挑戰',
-    cardDesc: '把前面學到的都混在一起：市區、淹水、地下道、天橋、山區、偏遠長路一次來。',
-    title: '全域救援 Omega-04',
-    sub: '終局任務：沒有單一神配置。你要用證據判斷最大風險，帶著有限預算做取捨',
-    chips: [
-      { text: '🌊 水陸混合', tone: 'warn' },
-      { text: '⛰ 山區坡道', tone: 'active' },
-      { text: '🏘 巷弄救援', tone: '' },
-      { text: '💳 預算有限', tone: '' },
-    ],
-    routeTitle: '終局混合地形',
-    routeText: '高樓商圈 → 平交道 → 地下道深水 → 天橋上坡 → 蘭潭連續彎 → 竹崎山路 → 高鐵荒涼段 → 最終避難點',
-    progressLabel: '混合',
-    progressMax: 8,
-  },
 ];
 let activeMissionLevel = 0;
 
@@ -8342,7 +7608,7 @@ function getActiveMission(){
 }
 
 function getMissionLapGoal(){
-  return activeMissionLevel > 0 ? 1 : TOTAL_LAPS;
+  return activeMissionLevel === 1 ? 1 : TOTAL_LAPS;
 }
 
 function renderMissionLevelSelect(){
@@ -8385,12 +7651,6 @@ function selectMissionLevel(idx){
   activeMissionLevel = Math.max(0, Math.min(MISSION_LEVELS.length - 1, idx));
   renderMissionLevelSelect();
   applyMissionLevel();
-  renderHypothesisOptions();
-  ensureActiveGarageAxisUnlocked();
-  if(document.getElementById('garageScreen')?.classList.contains('show')){
-    renderGarage();
-    renderWallet();
-  }
   updateGarageFlowUI();
 }
 
@@ -8422,12 +7682,14 @@ function applyMissionLevel(){
 // ═══ 任務區段命名 + 水道/爬坡判定 ═══
 // 每區用 tag/name/sub 三層描述，配合 banner 大字提示
 const OVAL_SECTORS = [
-  { tag: '📏 認證 1', name: '直線門',       sub: '車頭會不會一直偏？長方形底板通常比較穩', class: 'normal' },
-  { tag: '↩️ 認證 2', name: '連續小彎',     sub: '正方形底板轉得快；長車體會開始轉不過去', class: 'normal' },
-  { tag: '〰️ 認證 3', name: 'S 彎',         sub: '一邊想穩、一邊想靈活，這兩件事常常互相打架', class: 'normal' },
-  { tag: '🏘 認證 4', name: '窄巷回轉',     sub: '巷子不寬時，太長的車會被自己的車身比例卡住', class: 'normal' },
-  { tag: '📏 認證 5', name: '長直線',       sub: '現在換正方形被打臉：方向穩定不足會左右晃', class: 'normal' },
-  { tag: '🔁 認證 6', name: '回到起點',     sub: '沒有完美比例，只有這條路線最需要的取捨', class: 'normal' },
+  { tag: '🏁 認證 1', name: '啟動門',       sub: '表面像起步測試；真正卡住的可能是重量、齒比或馬達負載', class: 'normal' },
+  { tag: '🛞 認證 2', name: '抓地彎',       sub: '看起來像輪胎問題；其實車寬、重心、外傾角都可能是兇手', class: 'normal' },
+  { tag: '⚡ 認證 3', name: '齒比直線',     sub: '直線會誘惑你追極速；下一段可能立刻懲罰高齒比', class: 'normal' },
+  { tag: '🚧 認證 4', name: '底盤門檻',     sub: '表面是高度問題；太高造成晃動，也可能比太低更糟', class: 'normal' },
+  { tag: '📦 認證 5', name: '配重 S 彎',    sub: '像是轉向考題；真正打臉的常常是載重位置和車身比例', class: 'normal' },
+  { tag: '🔋 認證 6', name: '耗電長廊',     sub: '不是只有電池大小，四驅、重量、輪胎阻力都會偷走電量', class: 'normal' },
+  { tag: '💧 認證 7', name: '防水槽',       sub: '像是防水考題；光頭胎、低底盤、後驅也可能一起出事', class: 'water' },
+  { tag: '⛰ 認證 8', name: '扭力坡',       sub: '像是齒比考題；但配重、驅動方式、車重會一起決定結果', class: 'hill' },
 ];
 const CITY_SECTORS = [
   { tag: '🏙 節點 1', name: '火車站高樓商圈', sub: '高樓大廈旁人車密集，視線遮蔽多，起步太衝反而容易撞', class: 'normal' },
@@ -8444,36 +7706,14 @@ const CITY_SECTORS = [
   { tag: '🛣 節點 12', name: '高鐵大道荒涼段', sub: '空曠長直路很誘惑，但拋錨就沒人救；耗能和穩定要一起顧', class: 'normal' },
   { tag: '🏥 節點 13', name: '避難點入口',    sub: '最後確認物資、電量與車體狀態，能到才算真的解決', class: 'normal' },
 ];
-const MOUNTAIN_SECTORS = [
-  { tag: '⛰ 山路 1', name: '竹崎市集起點',   sub: '出發前最後補給，錯過後面就很難救回來', class: 'normal' },
-  { tag: '↩️ 山路 2', name: '髮夾彎上坡',     sub: '看起來像轉向問題，實際常常是扭力和配重不夠', class: 'hill' },
-  { tag: '🪨 山路 3', name: '碎石林道',       sub: '輪胎抓地、底盤高度和車身穩定會一起被考', class: 'normal' },
-  { tag: '⚠️ 山路 4', name: '落石警戒段',     sub: '低底盤可能卡，高底盤可能晃；沒有免費答案', class: 'normal' },
-  { tag: '🍵 山路 5', name: '茶園陡坡',       sub: '高齒比會被坡度打臉，低齒比也會犧牲速度', class: 'hill' },
-  { tag: '🌫 山路 6', name: '霧中窄橋',       sub: '視線差又路窄，車寬、低速控制和煞車都很重要', class: 'normal' },
-  { tag: '🏥 山路 7', name: '山區收容點',     sub: '偏遠任務最後考的是續航、可靠度和能不能少依賴支援', class: 'normal' },
-];
-const FINAL_SECTORS = [
-  { tag: '🏙 終局 1', name: '高樓商圈',       sub: '人車密集，速度不是答案，低速控制才是第一題', class: 'normal' },
-  { tag: '🚧 終局 2', name: '平交道震動',     sub: '底盤、輪胎、停止再起步一起被考', class: 'normal' },
-  { tag: '💧 終局 3', name: '地下道深水',     sub: '防水、傳動軸、底盤高度和胎型同時上場', class: 'water' },
-  { tag: '⛰ 終局 4', name: '天橋上坡',       sub: '剛過水又要爬坡，扭力和電量會一起被打臉', class: 'hill' },
-  { tag: '🌊 終局 5', name: '蘭潭連續彎',     sub: '濕滑連續彎會抓出重心和車寬問題', class: 'normal' },
-  { tag: '🪨 終局 6', name: '竹崎碎石山路',   sub: '碎石、陡坡、落石混在一起，配置太極端會出事', class: 'hill' },
-  { tag: '🛣 終局 7', name: '高鐵荒涼長路',   sub: '最後一段空曠又長，拚速度可能讓你沒電拋錨', class: 'normal' },
-  { tag: '🚨 終局 8', name: '最終避難點',     sub: '能到只是最低標準，剩多少電、用了多少支援才是證據', class: 'normal' },
-];
 function getActiveSectors(){
-  if(activeMissionLevel === 1) return CITY_SECTORS;
-  if(activeMissionLevel === 2) return MOUNTAIN_SECTORS;
-  if(activeMissionLevel === 3) return FINAL_SECTORS;
-  return OVAL_SECTORS;
+  return activeMissionLevel === 1 ? CITY_SECTORS : OVAL_SECTORS;
 }
 function getSector(dist){
   const sectors = getActiveSectors();
-  // 單程任務路線：用目前路線節點直接對應 sector
-  if(isMissionRouteStage() && getRunningTrackTotal() > 0){
-    return Math.min(sectors.length - 1, Math.max(0, getMissionRouteNodeIndex(dist, getRouteMissionIndex())));
+  // Stage 2 是單程折線馬路（13 節點）— 用 getStage2NodeIndex 直接對應節點 idx
+  if(currentStage === 2 && L2_TOTAL > 0){
+    return Math.min(sectors.length - 1, Math.max(0, getStage2NodeIndex(dist)));
   }
   // Stage 1 橢圓賽道：dist 取模，依比例分到 sectors
   const t = ((dist % L_TOTAL) + L_TOTAL) % L_TOTAL;
@@ -8589,49 +7829,6 @@ function chargeBattery(amount){
   updateBatteryHud();
 }
 
-function resetCarsToCurrentRoute(){
-  const startD = getRaceStartDist();
-  allCars.forEach(car => {
-    const ud = car.userData;
-    const lane = ud.lane !== undefined ? ud.lane : (ud.aiLane !== undefined ? ud.aiLane : 1);
-    const lo = LANE_OFFSETS[lane] || 0;
-    const p = getRunningTrackPoint(startD, lo);
-    car.position.set(p.x, 0, p.z);
-    car.rotation.y = headingToRotY(p.heading);
-    ud.speed = 0;
-    ud.laps = 0;
-    ud.cpIdx = isMissionRouteStage() ? 0 : 1;
-    ud.bestLap = null;
-    ud.lapStart = 0;
-    ud.finished = false;
-    ud.rank = 0;
-    ud._prevDist = startD;
-    ud._prevLapCount = 0;
-    ud._stunTimer = 0;
-    if(ud.isPlayer){
-      ud._dist = startD;
-      ud._lateralOffset = lo;
-      ud._speed = 0;
-      ud._speedBoost = 0;
-      ud._drifting = false;
-      ud._driftCharge = 0;
-      ud._driftBoost = 0;
-    }
-    if(ud.isAI){
-      ud.aiDist = startD;
-      ud.aiLane = ud.aiOriginalLane;
-      ud._speedJitter = 0;
-      ud._jitterTimer = 0;
-      ud._laneTimer = 3 + Math.random() * 5;
-      ud._mistakeTimer = 0;
-      ud._aiBoostTimer = 0;
-      const aiP = getRunningTrackPoint(startD, LANE_OFFSETS[ud.aiLane]);
-      car.position.set(aiP.x, 0, aiP.z);
-      car.rotation.y = headingToRotY(aiP.heading);
-    }
-  });
-}
-
 // ═══════════════════════════════════════════════
 // RESET
 // ═══════════════════════════════════════════════
@@ -8639,9 +7836,8 @@ function resetRace(openGarageAfter = false){
   raceRunning = false;
   raceTime = 0;
   resultShown = false;
-  currentStage = activeMissionLevel > 0 ? activeMissionLevel + 1 : 1;
   playerScore = 0;
-  activeGarageAxisKey = 'wheelbase';
+  activeGarageAxisKey = 'tire';
   resetSupportState();
   resetHypothesisState();
   lightspeedActive = false;
@@ -8690,13 +7886,13 @@ function resetRace(openGarageAfter = false){
     const ud = car.userData;
     const lane = ud.lane !== undefined ? ud.lane : (ud.aiLane !== undefined ? ud.aiLane : 1);
     const lo = LANE_OFFSETS[lane];
-    const startD = getRaceStartDist();
-    const p = getRunningTrackPoint(startD, lo);
+    const startD = START_DIST;
+    const p = getTrackPoint(startD, lo);
     car.position.set(p.x, 0, p.z);
     car.rotation.y = headingToRotY(p.heading);
     ud.speed = 0;
     ud.laps = 0;
-    ud.cpIdx = isMissionRouteStage() ? 0 : 1;  // 單程路線從節點 0 起算
+    ud.cpIdx = 1;  // 起點在 CP0 之後，已算過 CP0
     ud.bestLap = null;
     ud.lapStart = 0;
     ud.finished = false;
@@ -8727,7 +7923,7 @@ function resetRace(openGarageAfter = false){
       ud._mistakeTimer = 0;
       ud._aiBoostTimer = 0;
       // Re-position with original lane
-      const aiP = getRunningTrackPoint(startD, LANE_OFFSETS[ud.aiLane]);
+      const aiP = getTrackPoint(startD, LANE_OFFSETS[ud.aiLane]);
       car.position.set(aiP.x, 0, aiP.z);
       car.rotation.y = headingToRotY(aiP.heading);
     }
@@ -8757,34 +7953,24 @@ function drawMinimap(){
   const W = mapCv.width, H = mapCv.height;
   mapCtx.clearRect(0, 0, W, H);
 
-  const routeTotal = getRunningTrackTotal();
-  const samples = [];
-  const sampleCount = isMissionRouteStage() ? 160 : 200;
-  for(let i = 0; i <= sampleCount; i++){
-    const d = (i / sampleCount) * routeTotal;
-    samples.push(getRunningTrackPoint(d, 0));
-  }
-  const minX = Math.min(...samples.map(p => p.x)) - TW;
-  const maxX = Math.max(...samples.map(p => p.x)) + TW;
-  const minZ = Math.min(...samples.map(p => p.z)) - TW;
-  const maxZ = Math.max(...samples.map(p => p.z)) + TW;
-  const scale = Math.min(W / Math.max(1, maxX - minX), H / Math.max(1, maxZ - minZ)) * 0.84;
-  const cx = W/2 - ((minX + maxX) / 2) * scale;
-  const cy = H/2 - ((minZ + maxZ) / 2) * scale;
+  const maxX = HL + TR + TW/2 + 10;
+  const maxZ = TR + TW/2 + 10;
+  const scale = Math.min(W / (2 * maxX), H / (2 * maxZ)) * 0.9;
+  const cx = W/2, cy = H/2;
 
   // Track center line
   mapCtx.strokeStyle = '#555';
   mapCtx.lineWidth = TW * scale;
   mapCtx.beginPath();
-  for(let i = 0; i <= sampleCount; i++){
-    const d = (i / sampleCount) * routeTotal;
-    const p = getRunningTrackPoint(d, 0);
+  for(let i = 0; i <= 200; i++){
+    const d = (i / 200) * L_TOTAL;
+    const p = getTrackPoint(d, 0);
     const mx = cx + p.x * scale;
     const my = cy + p.z * scale;
     if(i === 0) mapCtx.moveTo(mx, my);
     else mapCtx.lineTo(mx, my);
   }
-  if(!isMissionRouteStage()) mapCtx.closePath();
+  mapCtx.closePath();
   mapCtx.stroke();
 
   // Lane dividers
@@ -8794,15 +7980,15 @@ function drawMinimap(){
   for(let lane = 1; lane < LANE_COUNT; lane++){
     const lo = LANE_OFFSETS[lane] - LANE_W/2;
     mapCtx.beginPath();
-    for(let i = 0; i <= sampleCount; i++){
-      const d = (i / sampleCount) * routeTotal;
-      const p = getRunningTrackPoint(d, lo);
+    for(let i = 0; i <= 200; i++){
+      const d = (i / 200) * L_TOTAL;
+      const p = getTrackPoint(d, lo);
       const mx = cx + p.x * scale;
       const my = cy + p.z * scale;
       if(i === 0) mapCtx.moveTo(mx, my);
       else mapCtx.lineTo(mx, my);
     }
-    if(!isMissionRouteStage()) mapCtx.closePath();
+    mapCtx.closePath();
     mapCtx.stroke();
   }
   mapCtx.setLineDash([]);
@@ -9081,7 +8267,7 @@ function spawnPowerUp(forceLegendary){
     type = POWERUP_NORMAL[Math.floor(Math.random() * POWERUP_NORMAL.length)];
   }
 
-  const dist = Math.random() * getRunningTrackTotal();
+  const dist = Math.random() * L_TOTAL;
   let laneIdx;
   if(type.id === 'lightspeed'){
     // Lightspeed always on edge lanes (harder to reach)
@@ -9090,7 +8276,7 @@ function spawnPowerUp(forceLegendary){
     laneIdx = Math.floor(Math.random() * LANE_COUNT);
   }
   const lo = LANE_OFFSETS[laneIdx];
-  const p = getRunningTrackPoint(dist, lo);
+  const p = getTrackPoint(dist, lo);
 
   const group = new THREE.Group();
   const isLegendary = type.id === 'lightspeed';
@@ -9135,7 +8321,7 @@ function spawnInitialPowerUps(){
 
 // Create oil slick on track
 function dropOilSlick(dist, lo){
-  const p = getRunningTrackPoint(dist, lo);
+  const p = getTrackPoint(dist, lo);
   const geo = new THREE.CylinderGeometry(4, 4, 0.15, 16);
   const mat = new THREE.MeshLambertMaterial({
     color: 0x1a1a00, transparent: true, opacity: 0.7
@@ -9273,7 +8459,6 @@ function playCelebrationSound(){
 // Results & restart
 // 🎯 結算頁・假設判定（成立/部分成立/不成立）
 const SOLUTION_CHECK = {
-  bodyshape:   () => activeMissionLevel === 0 || isAxisUnlocked('wheelbase'),
   waterproof:  () => !!materialOwned.waterproofMount,
   shaft:       () => !!materialOwned.driveShaft,
   float:       () => !!materialOwned.sideFloat,
@@ -9471,13 +8656,8 @@ function showResults(){
   const gapToLegend = Math.max(0, LEGEND_TARGET - totalAxis);
   let verdict = '';
   const mission = pud.mission || getActiveMission();
-  const missionBaseReward = [35, 60, 75, 100][mission.index || 0] || 45;
-  const honorBonus = (pud.supportPenalty || 0) === 0 ? 20 : 0;
-  const missionReward = Math.max(15, missionBaseReward + Math.floor(totalAxis / 10) + honorBonus);
-  rescueCoins += missionReward;
-  pud.rescueCoins = rescueCoins;
-  if(totalAxis >= LEGEND_TARGET) verdict = (mission.index || 0) > 0
-    ? '🌟 你就是這條救援線的破解傳奇！'
+  if(totalAxis >= LEGEND_TARGET) verdict = mission.id === 'chiayi-flood-02'
+    ? '🌟 你就是嘉義街頭救援傳奇！'
     : '🌟 你把這台原型車測到極限了！';
   else if(totalAxis >= 140) verdict = '👍 再多練幾次，傳奇就在不遠處';
   else if(totalAxis >= 80) verdict = '🌱 還在學徒階段，每一個取捨都算數';
@@ -9501,7 +8681,6 @@ function showResults(){
       '<div class="result-axis"><span>💬 口碑</span><strong>' + repAxis + '</strong></div>' +
       '<div class="result-axis"><span>🏘 在地</span><strong>' + locAxis + '</strong></div>' +
       '<div class="result-axis"><span>🎯 取捨</span><strong>' + choiceCount + '</strong></div>' +
-      '<div class="result-axis"><span>💳 工程金</span><strong>+' + missionReward + '</strong></div>' +
     '</div>' +
     '<div class="result-support-line">' + supportLine + '</div>' +
     (gapToLegend > 0 ? '<div class="result-gap">離傳奇還差 ' + gapToLegend + ' 分</div>' : '') +
@@ -9667,10 +8846,7 @@ function animate(){
     // 續航：第 3 圈最後 30% 距離後 + rangeMul<1 → 減速
     let rangePenalty = 1;
     if(ud.laps >= getMissionLapGoal() - 1 && mods.rangeMul < 1){
-      const routeTotal = getRunningTrackTotal();
-      const lapProgress = isMissionRouteStage()
-        ? Math.max(0, Math.min(1, (ud._dist || 0) / Math.max(routeTotal, 1)))
-        : (ud._dist / L_TOTAL) % 1;
+      const lapProgress = (ud._dist / L_TOTAL) % 1;
       if(lapProgress > 0.7) rangePenalty = 0.65;  // 沒電了
     }
 
@@ -9830,48 +9006,27 @@ function animate(){
       }
     });
 
-    // ── 🪨 OBSTACLE ROCKS（石頭碰撞 + 物理阻擋,修穿模）──
+    // ── 🪨 OBSTACLE ROCKS（石頭碰撞）──
     obstacleRocks.forEach(rock => {
-      const R = 1.8;
-      const dx = playerCar.position.x - rock.position.x;
-      const dz = playerCar.position.z - rock.position.z;
-      const d2 = dx*dx + dz*dz;
-      if(d2 >= R*R) return;
-      const _mods = ud.mods || {};
-      const climb = (_mods.tot && _mods.tot.climb) || 0;
-      // 高底盤(climb>=2)可以碾過去,不阻擋只扣一點分
-      if(climb >= 2){
-        if(!rock.userData.hit){
-          rock.userData.hit = true;
-          ud._speed *= 0.92;
-          localScore += -1;
-          ud.hits = (ud.hits || 0) + 1;
-          const el = document.getElementById('hitCnt');
-          if(el) el.textContent = ud.hits;
-          updateTripleHud && updateTripleHud();
-          rock.material.color.setHex(0x4a3a2a);
-          showPowerUpMsg('🪨 高底盤輕鬆碾過石頭');
-        }
-        return;
-      }
-      // 中/低底盤:每 frame 把車推出去(物理阻擋不穿模)
-      const d = Math.sqrt(d2) || 0.01;
-      const push = (R - d + 0.3);
-      playerCar.position.x += (dx / d) * push;
-      playerCar.position.z += (dz / d) * push;
-      ud._speed *= 0.85;
-      // 首次撞:扣分 + 紅閃
-      if(!rock.userData.hit){
+      if(rock.userData.hit) return;
+      if(isNearItem(playerCar.position, rock.position, 1.8)){
         rock.userData.hit = true;
-        const dmg = climb <= -2 ? -10 : -5;
-        const msg = climb <= -2 ? '💥 低底盤撞石頭！掉零件 -10 分' : '💥 撞到石頭！-5 分';
-        ud._speed *= (climb <= -2 ? 0.45 : 0.65);
+        // 低底盤車：重傷；高底盤：擦過
+        const _mods = ud.mods || {};
+        const climb = (_mods.tot && _mods.tot.climb) || 0;
+        let dmg = -5, slow = 0.65, msg;
+        if(climb >= 2){ dmg = -1; slow = 0.92; msg = '🪨 高底盤輕鬆碾過石頭'; }
+        else if(climb <= -2){ dmg = -10; slow = 0.45; msg = '💥 低底盤撞石頭！掉零件 -10 分'; }
+        else { msg = '💥 撞到石頭！-5 分'; }
+        ud._speed *= slow;
         localScore += dmg;
         ud.hits = (ud.hits || 0) + 1;
         const el = document.getElementById('hitCnt');
         if(el) el.textContent = ud.hits;
         updateTripleHud && updateTripleHud();
+        // 視覺：石頭翻過去 + 紅閃
         rock.material.color.setHex(0x4a3a2a);
+        rock.position.y -= 0.3;
         const flash = document.getElementById('crashFlash');
         if(flash){
           flash.classList.add('flash');
@@ -9951,7 +9106,7 @@ function animate(){
           case 'oil':
             // Drop oil slick behind player
             dropOilSlick(ud._dist - 20, ud._lateralOffset);
-            showPowerUpMsg(activeMissionLevel > 0 ? '🌊 路線積水！後車小心' : '🌊 測試水痕！後車小心');
+            showPowerUpMsg(activeMissionLevel === 1 ? '🌊 街區積水！後車小心' : '🌊 測試水痕！後車小心');
             break;
           case 'lightspeed':
             lightspeedActive = true;
@@ -10057,7 +9212,7 @@ function animate(){
     // Lap completion bonus
     if(ud.laps > (ud._prevLapCount || 0)){
       addScore(200);
-      showPowerUpMsg(activeMissionLevel > 0
+      showPowerUpMsg(activeMissionLevel === 1
         ? '🏥 救援路線送達！+200'
         : '📊 第 ' + ud.laps + ' 輪數據回收！+200');
       ud._prevLapCount = ud.laps;
@@ -10086,9 +9241,9 @@ function animate(){
       if(sec.class === 'water'){
         let slipMul = 1.0;
         const lapNum = (ud.laps || 0) + 1;
-        let msg = activeMissionLevel > 0
+        let msg = activeMissionLevel === 1
           ? (lapNum >= 2
-              ? '⚠️ 任務路線水位再升！'
+              ? '⚠️ 城市深水區・水位再升！'
               : '💧 進入 ' + sec.name + '！先判斷能不能硬闖 ')
           : (lapNum >= 2
               ? '⚠️ 第二輪・淺水槽水位提高！'
@@ -10337,7 +9492,7 @@ function animate(){
     chaseCamera.position.lerp(target, lightspeedActive ? 0.12 : 0.06);
     chaseCamera.lookAt(playerCar.position.x, 2, playerCar.position.z);
   } else if(currentCamera === birdCamera){
-    birdCamera.position.set(playerCar.position.x, 250, playerCar.position.z);
+    birdCamera.position.set(0, 250, 0);
     birdCamera.lookAt(playerCar.position);
   }
 
@@ -10390,10 +9545,10 @@ function animate(){
     lapInfo.dataset.missionId = mission.id;
     lapInfo.innerHTML = mission.progressLabel + ' <span id="lapCur">0</span> / <span id="lapMax">' + mission.progressMax + '</span>';
   }
-  if(isMissionRouteStage()){
+  if(mission.id === 'chiayi-flood-02'){
     const nodeProgress = Math.min(
       mission.progressMax,
-      Math.max(0, getMissionRouteNodeIndex(ud._dist || 0, getRouteMissionIndex()) + 1)
+      (ud.laps || 0) * mission.progressMax + Math.floor((((ud._dist % L_TOTAL) + L_TOTAL) % L_TOTAL) / L_TOTAL * mission.progressMax)
     );
     document.getElementById('lapCur').textContent = nodeProgress;
     document.getElementById('lapMax').textContent = mission.progressMax;

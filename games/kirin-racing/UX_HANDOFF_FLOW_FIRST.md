@@ -25,12 +25,25 @@ If a part does not clearly solve a terrain, stability, power, waterproofing, car
   - bottom: main action button
 - Changed modification categories to a focused rail:
   - tire, wheelbase, drive, power, gear, shell, chassis
+- Added progressive garage unlock:
+  - K-01 starts as `木板四輪認證`: one board plus four wheels only.
+  - K-01 must not surface flooding, waterproofing, motor water damage, floaters, or deep-water rescue yet.
+  - The only unlocked decision is vehicle proportion / wheelbase.
+  - Square board = turns easily but poor straight-line stability.
+  - Rectangular board = straighter and more stable but larger turning radius.
+  - K-01 wheelbase swaps are free prototype tests, so players can compare evidence without being blocked by economy.
+  - K-02 unlocks tires, chassis, and gear for city flooding.
+  - K-03 unlocks drive type and power system for mountain transmission and range.
+  - K-04 unlocks shell system and preset builds for full-vehicle strategy.
+  - First-time players now stop in the garage instead of auto-launching, so they must choose a baseline before testing.
+  - K-01 hypothesis options are mission-scoped: straight-line drift / turning radius only, with vehicle proportion as the only solution family.
+  - The old oval flood-scene visuals are disabled for K-01; water hazards belong to K-02+.
 - Reworked the supply station into three clear panels:
   - card draw
   - radio hint
   - wallet/material exchange
 - Pit stop now opens the same vehicle panel and uses the same stage UI.
-- Rematch resets the active part category to tires.
+- Rematch resets the active part category to the current mission's first unlocked part.
 - Results page now emphasizes score, evidence, and next target instead of reading like a plain report.
 - Added Mission 02: `嘉義市水淹 Beta-02`.
   - Student can select it from the war-room mission cards.
@@ -48,9 +61,37 @@ If a part does not clearly solve a terrain, stability, power, waterproofing, car
     - `農村四合院`: rural courtyard entry, uneven ground, low-speed torque, chassis clearance, water puddles.
     - `高鐵大道荒涼段`: long exposed road, high-speed temptation, range anxiety, stability if stranded.
   - Current Mission 02 route has 13 nodes: high-rise station district, railroad crossing, narrow street, townhouse lanes, fountain roundabout, low-lying road, underpass, overpass, Lantan lakeside road, Shuishang remote settlement, rural courtyard, HSR avenue wasteland, shelter entrance.
-  - Mission 01 is now `原型車認證 K-01`: a closed certification course, not a rescue mission.
+- Added Mission 03: `竹崎山區 Gamma-03`.
+  - Terrain theme: remote mountain rescue.
+  - Problems: hairpin climbs, gravel roads, rockfall, tea-field slopes, foggy narrow bridge, long-distance reliability.
+  - Main modification questions: low gear vs speed, AWD vs battery drain, chassis clearance vs center of gravity, tire grip on gravel.
+- Added Mission 04: `全域救援 Omega-04`.
+  - Terrain theme: final mixed challenge.
+  - Combines city, flood, underpass, overpass, Lantan curves, Zhuci mountain road, and exposed long roads.
+  - Main rule: no single perfect build. The player must choose a limited-budget compromise.
+- Mission routes are now partially abstracted:
+  - Mission 02 keeps the Chiayi city single-route path.
+  - Mission 03 now has its own one-way Zhuci mountain road nodes, road mesh, finish line, minimap path, route-based checkpoints, and simple mountain landmarks.
+  - Mission 04 now has its own one-way mixed final route nodes, road mesh, finish line, minimap path, route-based checkpoints, and mixed city/water/mountain landmarks.
+  - Car reset, power-up spawning, oil slicks, sector detection, route progress, and finish checks now read the active mission route instead of assuming the oval track.
+  - Bird-view camera now follows the active car position, so far-away route maps stay visible.
+- Real-map simplification pass:
+  - Route coordinates use Chiayi railway station as the mental origin: east is +X and south is +Z.
+  - The map is intentionally compressed for playability, but the landmark directions are now closer to reality.
+  - Beimen is northeast of Chiayi station, Lantan is southeast, Shuishang is south/southwest, HSR Chiayi is west-southwest in Taibao, and Zhuqi mountain content sits northeast of Chiayi.
+  - Do not chase exact GPS scale inside the 3D course; preserve relative direction, route readability, and gameplay pacing.
+- Upgrade economy now exists:
+  - Core part changes cost RC.
+  - Materials still cost RC.
+  - Preset builds cost a discounted bundle price.
+  - RC persists across rematches instead of resetting every round.
+  - Players can earn RC by mission rewards and one optional work order per round.
+  - Work orders are good deeds / construction jobs, not free money. They give RC but may cost honor score or time pressure.
+  - Mission 01 is now `木板四輪認證 K-01`: a closed certification course, not a rescue mission.
   - Do not reuse Mission 01 certification modules as Mission 02 story beats. Mission 01 proves the vehicle baseline; Mission 02 applies it in the flooded city.
-  - Mission 01 content pillars: grip, gear ratio, chassis clearance, weight balance, battery drain, waterproofing, hill torque.
+  - Mission 01 content pillars: straight-line stability, turning radius, S-curve compromise, narrow-lane turnability, and vehicle proportion.
+  - Mission 01 should not ask students to solve tires, gears, motor waterproofing, chassis height, or power systems yet.
+  - Complexity must arrive as earned garage access, not as a giant initial setup screen.
   - Terrain can repeat, differ, or deliberately mislead.
   - A surface clue should never be a guaranteed answer. Example: a grip corner may look like a tire problem but actually punish weight balance or narrow body ratio.
   - Misleading design is allowed only when the race evidence can reveal the real cause.
@@ -62,8 +103,9 @@ If a part does not clearly solve a terrain, stability, power, waterproofing, car
     - battery corridor -> power system / weight / drive type / tire resistance
     - waterproof tray -> motor mount / tire grip / chassis height / drive type
     - torque slope -> low gear / AWD / weight distribution / total weight
-  - The current implementation still reuses the existing oval/path physics core; the visible loop is reframed as six city road nodes.
-  - Next engineering pass should replace the hardcoded oval track with a route/path abstraction for real city roads.
+  - The old oval/path physics core still powers Mission 01.
+  - Mission 02~04 now use one-way route paths, but the road art is still built from simple Three.js geometry.
+  - Next engineering pass should make the mission route system data-driven enough to spawn hazards, rescue targets, water zones, and clue cards per node.
 
 ## Keep Student-Facing Copy Cool
 
@@ -87,10 +129,15 @@ Use game language:
 3. Add a mission map thumbnail for Alpha-03.
 4. Add part rarity / risk labels, but keep them simple.
 5. Verify browser layout at desktop and mobile sizes before deployment.
-6. For Beta-02, implement a real road route:
-   - introduce per-mission path data
-   - make `getTrackPoint`, checkpoints, minimap, AI, water zones, and road mesh read from the active mission
-   - use city road intersections instead of a closed oval lap
+6. Add route-authored events:
+   - per-node water depth, slope, gravel, narrow-road, and long-distance modifiers
+   - visible hazard thumbnails before launch
+   - evidence cards that quote the exact node where the build failed
+   - rescue targets and optional work orders tied to each mission route
+7. Improve route visuals:
+   - replace temporary primitive landmarks with consistent low-poly assets
+   - add route-specific ground materials, rain/fog, and water surface animation
+   - add mission map thumbnails for all four mission cards
 
 ## Verification Already Run
 
