@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>便當快遞 K-01 | 水城救援隊</title>
+<style>
+:root{
+  --cream:#FFF8E7; --sky:#7EC8E3; --grass:#A8D672;
+  --btn1:#FFB347; --btn2:#FF8C42; --ok:#6BCB77; --bad:#FF6B6B;
+  --ink:#4A3728;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Nunito","Varela Round","jf-openhuninn","Noto Sans TC",system-ui,sans-serif;
+  background:var(--cream);color:var(--ink);overflow:hidden;user-select:none}
+#c3d{position:fixed;inset:0;z-index:0}
+
+/* ===== 通用屏層 ===== */
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:24px;padding:24px;
+  background:rgba(255,248,231,0.92);opacity:0;pointer-events:none;
+  transition:opacity .3s}
+.screen.show{opacity:1;pointer-events:auto}
+.screen.clear{background:transparent;pointer-events:none}
+
+h1{font-size:clamp(28px,6vw,44px);font-weight:900;letter-spacing:2px;text-align:center}
+h2{font-size:clamp(22px,4.5vw,32px);font-weight:900;letter-spacing:1px;text-align:center}
+.sub{font-size:18px;opacity:.75;text-align:center;line-height:1.6}
+
+.btn{border:none;border-radius:24px;min-height:64px;padding:14px 36px;
+  font-size:22px;font-weight:900;letter-spacing:1px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--btn1),var(--btn2));
+  box-shadow:0 8px 24px rgba(74,55,40,.25),inset 0 2px 0 rgba(255,255,255,.4);
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1);font-family:inherit}
+.btn:active{transform:scale(.92)}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 6px 18px rgba(74,55,40,.15)}
+.btn.wide{width:min(420px,88vw)}
+.btn:disabled{opacity:.35;pointer-events:none}
+
+.card{background:#fff;border-radius:20px;padding:28px 32px;
+  box-shadow:0 8px 24px rgba(74,55,40,.15);max-width:min(520px,92vw);
+  display:flex;flex-direction:column;gap:18px;align-items:center}
+
+/* ===== 開場任務條 ===== */
+#missionBar{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:5;
+  background:#fff;border-radius:999px;padding:12px 30px;font-size:clamp(17px,3.4vw,24px);
+  font-weight:900;box-shadow:0 8px 24px rgba(74,55,40,.2);white-space:nowrap;
+  opacity:0;transition:opacity .5s}
+#missionBar.show{opacity:1}
+#keyHint{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);z-index:5;
+  font-size:17px;font-weight:700;background:rgba(255,255,255,.9);border-radius:999px;
+  padding:10px 24px;box-shadow:0 4px 14px rgba(74,55,40,.15);opacity:0;transition:opacity .6s}
+#keyHint.show{opacity:1}
+
+/* ===== 便當 HUD ===== */
+#bentoHud{position:fixed;top:20px;right:20px;z-index:6;background:#fff;
+  border-radius:999px;padding:10px 22px;font-size:26px;font-weight:900;
+  box-shadow:0 8px 24px rgba(74,55,40,.2);display:none;align-items:center;gap:8px}
+#bentoHud.show{display:flex}
+#bentoHud.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}
+  50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+#bentoNum{color:var(--btn2)}
+
+/* ===== 掉箱提示 ===== */
+#dropMsg{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%) scale(.6);z-index:7;
+  font-size:clamp(24px,5vw,36px);font-weight:900;color:var(--bad);
+  background:#fff;border-radius:20px;padding:16px 32px;
+  box-shadow:0 10px 30px rgba(255,107,107,.35);opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .3s cubic-bezier(.34,1.56,.64,1)}
+#dropMsg.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* ===== 押假設選項 ===== */
+.opts{display:flex;flex-direction:column;gap:14px;width:100%}
+.opt{border:3px solid transparent;border-radius:20px;background:var(--cream);
+  padding:18px 22px;font-size:19px;font-weight:800;cursor:pointer;text-align:left;
+  transition:transform .12s,border-color .2s;font-family:inherit;color:var(--ink)}
+.opt:active{transform:scale(.96)}
+.opt.dim{opacity:.35;pointer-events:none;text-decoration:line-through}
+
+/* ===== 工坊車型卡 ===== */
+.garageRow{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.carCard{background:var(--cream);border:4px solid transparent;border-radius:20px;
+  padding:20px;width:200px;cursor:pointer;text-align:center;
+  transition:transform .15s,border-color .2s;display:flex;flex-direction:column;gap:8px}
+.carCard:active{transform:scale(.94)}
+.carCard.sel{border-color:var(--btn2);background:#fff}
+.carCard .icon{font-size:52px}
+.carCard .nm{font-weight:900;font-size:19px}
+.carCard .desc{font-size:14px;opacity:.7;line-height:1.5}
+.carShape{margin:0 auto;background:#C68B4E;border-radius:6px;border:3px solid #8f5f30}
+.carShape.sq{width:64px;height:64px}
+.carShape.rect{width:52px;height:92px}
+
+/* ===== 彩紙 ===== */
+.confetti{position:fixed;top:-16px;z-index:20;width:12px;height:12px;border-radius:3px;
+  pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* ===== 成功徽章 ===== */
+.medal{font-size:88px;animation:pop .6s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+
+#fade{position:fixed;inset:0;background:var(--cream);z-index:30;opacity:1;
+  transition:opacity .8s;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c3d"></canvas>
+<div id="fade"></div>
+
+<div id="missionBar">🍱 把 3 箱便當送到文化夜市 →</div>
+<div id="keyHint">🎮 W 前進 · A / D 方向</div>
+<div id="bentoHud">📦 <span id="bentoNum">3</span></div>
+<div id="dropMsg">💦 便當掉了！</div>
+
+<!-- 屏3 結算+押假設 -->
+<div class="screen" id="sResult">
+  <div class="card">
+    <h2 id="resTitle">送達 1 / 3 箱</h2>
+    <p class="sub" id="resQ">車子直線一直飄，你覺得是為什麼？</p>
+    <div class="opts" id="resOpts"></div>
+  </div>
+</div>
+
+<!-- 屏4 工坊 -->
+<div class="screen" id="sGarage">
+  <div class="card">
+    <h2>🔧 工坊 — 換車身</h2>
+    <div class="garageRow" id="garageRow"></div>
+    <button class="btn wide" id="garageGo" disabled>換好了，再送一次！</button>
+  </div>
+</div>
+
+<!-- 屏5.5 成功 -->
+<div class="screen" id="sWin">
+  <div class="card">
+    <div class="medal">🎓</div>
+    <h1 id="winTitle">工程師認證 Lv.1</h1>
+    <p class="sub" id="winSub">3 箱便當全部送達！</p>
+    <p class="sub" id="hookText" style="font-weight:800;color:var(--btn2)"></p>
+    <button class="btn wide" id="winNext">▶ 繼續</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/three@0.152.2/build/three.min.js"></script>
+<script>
+/* ═════════ K-01 便當快遞 — 情境驅動流程 ═════════
+   流程: drive1(方形車飄) → result(押假設) → garage(換長車)
+        → drive2(驗證) → win(認證+鉤子) → K-01B 窄巷 → 回主遊戲 */
+
+const S = { phase:'boot', mission:'A', body:'sq', bento:3, sway:0, t:0 };
+
+/* ── Three.js 場景 ── */
+const canvas = document.getElementById('c3d');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x7EC8E3);
+scene.fog = new THREE.Fog(0x7EC8E3, 60, 160);
+const cam = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, .1, 300);
+
+scene.add(new THREE.AmbientLight(0xffffff, .85));
+const sun = new THREE.DirectionalLight(0xfff2cc, 1.1);
+sun.position.set(30,60,20); scene.add(sun);
+
+/* 地面 + 道路 */
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(400,400),
+  new THREE.MeshLambertMaterial({color:0xA8D672}));
+ground.rotation.x = -Math.PI/2; ground.position.y = -0.02; scene.add(ground);
+
+const ROAD_LEN = 220, ROAD_W = 10;
+const road = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_W, ROAD_LEN),
+  new THREE.MeshLambertMaterial({color:0xEDE3D0}));
+road.rotation.x = -Math.PI/2; road.position.z = -ROAD_LEN/2 + 10; scene.add(road);
+for(let i=0;i<22;i++){
+  const dash = new THREE.Mesh(new THREE.PlaneGeometry(.5,3),
+    new THREE.MeshLambertMaterial({color:0xffffff}));
+  dash.rotation.x = -Math.PI/2; dash.position.set(0,.01,-i*10);
+  scene.add(dash);
+}
+/* 路邊小樹 */
+for(let i=0;i<26;i++){
+  const side = i%2? 1:-1;
+  const tr = new THREE.Group();
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.3,.4,1.6),
+    new THREE.MeshLambertMaterial({color:0x8f5f30}));
+  const leaf = new THREE.Mesh(new THREE.SphereGeometry(1.4,8,8),
+    new THREE.MeshLambertMaterial({color:0x6BCB77}));
+  leaf.position.y=1.8; tr.add(trunk,leaf);
+  tr.position.set(side*(8+Math.random()*6), .8, -i*8-4);
+  scene.add(tr);
+}
+/* 終點: 文化夜市牌樓 */
+const FINISH_Z = -195;
+const gate = new THREE.Group();
+const postM = new THREE.MeshLambertMaterial({color:0xd9483b});
+[[-6,0],[6,0]].forEach(([x])=>{
+  const p = new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,9), postM);
+  p.position.set(x,4.5,0); gate.add(p);
+});
+const beam = new THREE.Mesh(new THREE.BoxGeometry(14,1.6,1), postM);
+beam.position.y = 8.6; gate.add(beam);
+const signCv = document.createElement('canvas'); signCv.width=512; signCv.height=96;
+const sc = signCv.getContext('2d');
+sc.fillStyle='#ffd966'; sc.fillRect(0,0,512,96);
+sc.fillStyle='#4A3728'; sc.font='900 56px "Noto Sans TC",sans-serif';
+sc.textAlign='center'; sc.textBaseline='middle';
+sc.fillText('🏮 文化夜市 🏮',256,50);
+const sign = new THREE.Mesh(new THREE.PlaneGeometry(12,2.2),
+  new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(signCv)}));
+sign.position.y=8.6; sign.position.z=.55; gate.add(sign);
+gate.position.z = FINISH_Z; scene.add(gate);
+
+/* ── 板車 ── */
+const car = new THREE.Group();
+let boardMesh = null;
+const wheelM = new THREE.MeshLambertMaterial({color:0x4A3728});
+const wheels = [];
+function buildBoard(kind){
+  if(boardMesh) car.remove(boardMesh);
+  wheels.forEach(w=>car.remove(w)); wheels.length=0;
+  const dims = kind==='sq'? [2.4,.3,2.4] : [1.9,.3,4.2];
+  boardMesh = new THREE.Mesh(new THREE.BoxGeometry(...dims),
+    new THREE.MeshLambertMaterial({color:0xC68B4E}));
+  boardMesh.position.y=.6; car.add(boardMesh);
+  const [w,,l] = dims;
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>{
+    const wh = new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.32,14), wheelM);
+    wh.rotation.z = Math.PI/2;
+    wh.position.set(sx*(w/2-.1), .42, sz*(l/2-.35));
+    car.add(wh); wheels.push(wh);
+  });
+}
+buildBoard('sq');
+/* 便當箱 x3 */
+const bentoBoxes = [];
+function buildBento(){
+  bentoBoxes.forEach(b=>car.remove(b)); bentoBoxes.length=0;
+  for(let i=0;i<S.bento;i++){
+    const b = new THREE.Group();
+    const box = new THREE.Mesh(new THREE.BoxGeometry(.9,.55,.9),
+      new THREE.MeshLambertMaterial({color:0xFF8C42}));
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(.95,.12,.95),
+      new THREE.MeshLambertMaterial({color:0xfff3e0}));
+    lid.position.y=.33; b.add(box,lid);
+    b.position.set(0, 1.1 + i*.62, S.body==='sq'? -0.2 : -0.9);
+    car.add(b); bentoBoxes.push(b);
+  }
+}
+buildBento();
+scene.add(car);
+
+/* ── 控制/物理 ── */
+const key = {};
+addEventListener('keydown',e=>key[e.key.toLowerCase()]=true);
+addEventListener('keyup',e=>key[e.key.toLowerCase()]=false);
+let speed=0, heading=0, swayAcc=0, driving=false;
+car.position.set(0,0,4);
+
+function resetCar(){
+  car.position.set(0,0,4); car.rotation.y=0;
+  speed=0; heading=0; swayAcc=0; S.bento=3;
+  buildBoard(S.body); buildBento(); updateHud();
+}
+
+function dropBento(){
+  if(S.bento<=0) return;
+  S.bento--;
+  const b = bentoBoxes.pop();
+  /* 便當滾走動畫 */
+  const dir = Math.random()>.5?1:-1;
+  scene.attach(b);
+  let t=0;
+  const iv = setInterval(()=>{
+    t+=.05; b.position.x += dir*.4; b.position.y = Math.max(.3, b.position.y-.15);
+    b.rotation.z += dir*.4; b.rotation.x += .3;
+    if(t>1.2){ clearInterval(iv); scene.remove(b); }
+  },30);
+  const hud = document.getElementById('bentoHud');
+  hud.classList.add('shake');
+  setTimeout(()=>hud.classList.remove('shake'),450);
+  updateHud();
+  const dm = document.getElementById('dropMsg');
+  dm.classList.add('show');
+  setTimeout(()=>dm.classList.remove('show'),1100);
+}
+function updateHud(){ document.getElementById('bentoNum').textContent = S.bento; }
+
+/* ── 屏切換 ── */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));
+  if(id) document.getElementById(id).classList.add('show'); }
+
+/* ── 流程 ── */
+function startDrive(){
+  driving = true; resetCar();
+  show(null);
+  document.getElementById('bentoHud').classList.add('show');
+}
+
+function finishDrive(){
+  driving=false;
+  document.getElementById('bentoHud').classList.remove('show');
+  if(S.bento>=3){ return winScreen(); }
+  /* 有掉箱 → 押假設 */
+  const opts = document.getElementById('resOpts');
+  document.getElementById('resTitle').textContent = `送達 ${S.bento} / 3 箱`;
+  opts.innerHTML='';
+  const list = [
+    {t:'🚗 車身太短，容易左右晃', ok:true},
+    {t:'🛞 輪子太滑', ok:false},
+    {t:'😅 我技術太爛', ok:false},
+  ];
+  list.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=o.t;
+    b.onclick=()=>{
+      if(o.ok){ show('sGarage'); }
+      else{ b.classList.add('dim');
+        document.getElementById('resQ').textContent='嗯…好像不是這個原因。再想想？'; }
+    };
+    opts.appendChild(b);
+  });
+  document.getElementById('resQ').textContent='車子直線一直飄，你覺得是為什麼？';
+  show('sResult');
+}
+
+/* 工坊 */
+const cars = [
+  {id:'sq', nm:'方形板車', desc:'轉彎靈活<br>直線會飄', cls:'sq'},
+  {id:'rect', nm:'長方形板車', desc:'直線穩定<br>轉彎半徑大', cls:'rect'},
+];
+const gRow = document.getElementById('garageRow');
+cars.forEach(c=>{
+  const d=document.createElement('div');
+  d.className='carCard'+(c.id===S.body?' sel':'');
+  d.innerHTML=`<div class="carShape ${c.cls}"></div><div class="nm">${c.nm}</div><div class="desc">${c.desc}</div>`;
+  d.onclick=()=>{
+    S.body=c.id;
+    document.querySelectorAll('.carCard').forEach(x=>x.classList.remove('sel'));
+    d.classList.add('sel');
+    document.getElementById('garageGo').disabled = (S.body==='sq');
+  };
+  gRow.appendChild(d);
+});
+document.getElementById('garageGo').onclick=()=>startDrive();
+
+/* 成功 */
+function confetti(){
+  const colors=['#FFB347','#6BCB77','#7EC8E3','#FF6B6B','#FFD966'];
+  for(let i=0;i<80;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=colors[i%5];
+    c.style.animationDuration=(1.6+Math.random()*1.6)+'s';
+    c.style.animationDelay=(Math.random()*.8)+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),4000);
+  }
+}
+function winScreen(){
+  confetti();
+  document.getElementById('hookText').textContent =
+    '長車直線超穩！但夜市裡面的巷子…好像很窄？';
+  document.getElementById('winNext').textContent='▶ 挑戰夜市窄巷';
+  document.getElementById('winNext').onclick=()=>{
+    /* K-01B 之後接回主遊戲(帶參數) */
+    location.href = 'index.html?from=k01&cert=1';
+  };
+  show('sWin');
+}
+
+/* ── 主迴圈 ── */
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), .05);
+  if(driving){
+    if(key['w']||key['arrowup']) speed = Math.min(speed+18*dt, 26);
+    else speed = Math.max(speed-14*dt, 0);
+    if(key['a']||key['arrowleft']) heading += 1.4*dt*(speed>1?1:0);
+    if(key['d']||key['arrowright']) heading -= 1.4*dt*(speed>1?1:0);
+
+    /* 方形車:隨機側偏 */
+    if(S.body==='sq' && speed>4){
+      swayAcc += (Math.random()-.5)*3.2*dt;
+      swayAcc *= .985;
+    } else { swayAcc *= .9; }
+    heading += swayAcc*dt*2;
+
+    car.rotation.y = heading;
+    car.position.x += Math.sin(heading)*-speed*dt;
+    car.position.z += Math.cos(heading)*-speed*dt;
+    /* 掉箱判定:偏離路面或側偏過大 */
+    if(Math.abs(car.position.x) > ROAD_W/2-0.6 && speed>3) dropBento();
+    if(Math.abs(swayAcc) > 1.15 && speed>12) { dropBento(); swayAcc=0; }
+    if(Math.abs(car.position.x) > ROAD_W/2+4) car.position.x = Math.sign(car.position.x)*(ROAD_W/2+4);
+    wheels.forEach(w=>w.rotation.x += speed*dt*2);
+    /* 到終點 */
+    if(car.position.z < FINISH_Z+4) finishDrive();
+  }
+  /* 追蹤鏡頭 */
+  const camT = new THREE.Vector3(
+    car.position.x + Math.sin(heading)*10*.4,
+    7.5,
+    car.position.z + 13);
+  cam.position.lerp(camT, .08);
+  cam.lookAt(car.position.x, 1.5, car.position.z-6);
+  renderer.render(scene, cam);
+}
+animate();
+
+addEventListener('resize',()=>{
+  cam.aspect=innerWidth/innerHeight; cam.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+/* ── 開場流程 ── */
+setTimeout(()=>{ document.getElementById('fade').style.opacity=0; }, 300);
+setTimeout(()=>{
+  document.getElementById('missionBar').classList.add('show');
+  document.getElementById('keyHint').classList.add('show');
+  startDrive();
+}, 1100);
+setTimeout(()=>{ document.getElementById('keyHint').classList.remove('show'); }, 7000);
+setTimeout(()=>{ document.getElementById('missionBar').classList.remove('show'); }, 9000);
+</script>
+</body>
+</html>
