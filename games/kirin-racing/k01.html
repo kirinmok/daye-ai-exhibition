@@ -152,7 +152,7 @@ const TIRES = {
 const MISSIONS = {
   A: {
     bar:'🍱 把 3 箱便當送到文化夜市 →',
-    path:[[0,4],[0,-195]], laneW:10, walls:false,
+    path:[[0,4],[0,-125]], laneW:10, walls:false,
     q:'車子直線一直飄，你覺得是為什麼？',
     opts:[
       {t:'🚗 車身太短，容易左右晃', ok:true},
@@ -165,7 +165,7 @@ const MISSIONS = {
   },
   B: {
     bar:'🏮 穿過夜市窄巷，送到攤位 →',
-    path:[[0,4],[0,-55],[38,-55],[38,-115],[0,-115],[0,-170]], laneW:7, walls:true,
+    path:[[0,4],[0,-40],[30,-40],[30,-85],[0,-85],[0,-125]], laneW:7, walls:true,
     q:'一轉彎就卡牆，你覺得是為什麼？',
     opts:[
       {t:'📏 車身太長，彎不過去', ok:true},
@@ -178,7 +178,7 @@ const MISSIONS = {
   },
   C: {
     bar:'🌀 颱風前！運 3 袋沙包去老屋 →',
-    path:[[0,4],[0,-70],[-30,-70],[-30,-140],[0,-140],[0,-185]], laneW:9,
+    path:[[0,4],[0,-50],[-26,-50],[-26,-100],[0,-100],[0,-135]], laneW:9,
     walls:false, storm:true, wind:0.9,
     q:'車一直被往旁邊推，你覺得是為什麼？',
     opts:[
@@ -432,8 +432,12 @@ function dropBento(){
   hud.classList.add('shake'); setTimeout(()=>hud.classList.remove('shake'),450);
   updateHud();
   const dm=document.getElementById('dropMsg');
-  dm.textContent = MISSIONS[S.mission].storm? '💨 沙包被吹掉了！迴轉去撿 ↩':'💦 便當掉了！迴轉去撿 ↩';
-  dm.classList.add('show'); setTimeout(()=>dm.classList.remove('show'),1400);
+  if(S.bento<=0){
+    dm.textContent='😱 全掉光了！回頭撿還來得及 ↩';
+  } else {
+    dm.textContent = MISSIONS[S.mission].storm? '💨 沙包被吹掉了！迴轉去撿 ↩':'💦 便當掉了！迴轉去撿 ↩';
+  }
+  dm.classList.add('show'); setTimeout(()=>dm.classList.remove('show'),1600);
 }
 function pickupBento(b){
   const i=droppedItems.indexOf(b);
@@ -615,13 +619,20 @@ function animate(){
     if(Math.abs(swayAcc)>1.15 && speed>12){ dropBento(); swayAcc=0; }
     wheels.forEach(w=>w.rotation.x+=speed*dt*2);
     /* 撿回掉落的貨物 */
+    let nearestDrop = Infinity;
     for(let i=droppedItems.length-1;i>=0;i--){
       const b=droppedItems[i];
       b.userData.bob+=dt*4;
       b.position.y=.35+Math.sin(b.userData.bob)*.15;
       b.rotation.y+=dt*2;
       const dx=car.position.x-b.position.x, dz=car.position.z-b.position.z;
-      if(dx*dx+dz*dz < 6.5) pickupBento(b);
+      const d2=dx*dx+dz*dz;
+      if(d2 < 6.5) pickupBento(b);
+      else if(d2 < nearestDrop) nearestDrop = d2;
+    }
+    /* 全掉智慧結算:貨全掉光又開離掉落點太遠 = 玩家放棄,直接進檢討 */
+    if(S.bento<=0 && droppedItems.length>0 && nearestDrop > 35*35){
+      finishDrive();
     }
     if(car.position.distanceTo(FINISH)<5) finishDrive();
   }
