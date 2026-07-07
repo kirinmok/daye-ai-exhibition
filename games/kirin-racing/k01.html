@@ -397,9 +397,11 @@ function resetCar(){
   heading = -Math.atan2(p1.x-p0.x, p1.y-p0.y) + Math.PI;
   car.position.set(p0.x,0,p0.y); car.rotation.y=heading;
   speed=0; swayAcc=0; wallCooldown=0; S.bento=3;
+  clearDropped();
   buildBoard(S.body); buildBento(); updateHud();
 }
 
+const droppedItems=[];
 function dropBento(){
   if(S.bento<=0) return;
   S.bento--;
@@ -408,16 +410,52 @@ function dropBento(){
   scene.attach(b);
   let t=0;
   const iv=setInterval(()=>{
-    t+=.05; b.position.x+=dir*.4; b.position.y=Math.max(.3,b.position.y-.15);
-    b.rotation.z+=dir*.4; b.rotation.x+=.3;
-    if(t>1.2){clearInterval(iv); scene.remove(b);}
+    t+=.05; b.position.x+=dir*.32; b.position.y=Math.max(.35,b.position.y-.15);
+    b.rotation.z+=dir*.35;
+    if(t>=1){
+      clearInterval(iv);
+      b.position.y=.35;
+      /* 掉出路太遠就拉回路邊,保證撿得到 */
+      const near=distToPath(b.position.x,b.position.z);
+      if(near.d > LANE_W/2+1.5){
+        const px=b.position.x-near.x, pz=b.position.z-near.z;
+        const pd=Math.hypot(px,pz)||.01;
+        b.position.x=near.x+px/pd*(LANE_W/2-1);
+        b.position.z=near.z+pz/pd*(LANE_W/2-1);
+      }
+      droppedItems.push(b);
+      /* 呼吸提示光暈:上下浮動 */
+      b.userData.bob=Math.random()*6;
+    }
   },30);
   const hud=document.getElementById('bentoHud');
   hud.classList.add('shake'); setTimeout(()=>hud.classList.remove('shake'),450);
   updateHud();
   const dm=document.getElementById('dropMsg');
-  dm.textContent = MISSIONS[S.mission].storm? '💨 沙包被吹掉了！':'💦 便當掉了！';
-  dm.classList.add('show'); setTimeout(()=>dm.classList.remove('show'),1100);
+  dm.textContent = MISSIONS[S.mission].storm? '💨 沙包被吹掉了！迴轉去撿 ↩':'💦 便當掉了！迴轉去撿 ↩';
+  dm.classList.add('show'); setTimeout(()=>dm.classList.remove('show'),1400);
+}
+function pickupBento(b){
+  const i=droppedItems.indexOf(b);
+  if(i<0) return;
+  droppedItems.splice(i,1);
+  scene.remove(b);
+  S.bento++;
+  car.attach(b);
+  b.rotation.set(0,0,0);
+  b.position.set(0, 1.1+(bentoBoxes.length)*.62, -0.4);
+  bentoBoxes.push(b);
+  wallCooldown=1.5;
+  updateHud();
+  const dm=document.getElementById('dropMsg');
+  dm.textContent='✨ 撿回來了！';
+  dm.style.color='var(--ok)';
+  dm.classList.add('show');
+  setTimeout(()=>{dm.classList.remove('show'); dm.style.color='';},900);
+}
+function clearDropped(){
+  droppedItems.forEach(b=>scene.remove(b));
+  droppedItems.length=0;
 }
 function updateHud(){ document.getElementById('bentoNum').textContent=S.bento; }
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));
@@ -576,6 +614,15 @@ function animate(){
     }
     if(Math.abs(swayAcc)>1.15 && speed>12){ dropBento(); swayAcc=0; }
     wheels.forEach(w=>w.rotation.x+=speed*dt*2);
+    /* 撿回掉落的貨物 */
+    for(let i=droppedItems.length-1;i>=0;i--){
+      const b=droppedItems[i];
+      b.userData.bob+=dt*4;
+      b.position.y=.35+Math.sin(b.userData.bob)*.15;
+      b.rotation.y+=dt*2;
+      const dx=car.position.x-b.position.x, dz=car.position.z-b.position.z;
+      if(dx*dx+dz*dz < 6.5) pickupBento(b);
+    }
     if(car.position.distanceTo(FINISH)<5) finishDrive();
   }
   /* 雨落下 */
