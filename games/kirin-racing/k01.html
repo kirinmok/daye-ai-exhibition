@@ -144,6 +144,10 @@ const CAR_SPECS = {
   rect:   { dims:[1.9,.3,4.2], turn:0.75, sway:0.4, nm:'長方形板車' },
   narrow: { dims:[1.5,.3,3.4], turn:1.25, sway:0.9, nm:'窄長載貨板' },
 };
+const TIRES = {
+  std:  { windRes:1.0, nm:'普通胎', desc:'一般路面 OK<br>濕地會滑' },
+  grip: { windRes:0.35, nm:'防滑寬胎', desc:'咬住濕路面<br>抗側風' },
+};
 
 const MISSIONS = {
   A: {
@@ -170,11 +174,25 @@ const MISSIONS = {
     garage:['sq','rect','narrow'], answer:'narrow',
     winT:'工程師認證 Lv.2', winS:'窄巷全通過，攤位老闆比讚！',
     hook:'沒有完美的車，只有適合任務的車。⋯⋯天氣預報：颱風接近中 🌀',
-    nextBtn:'▶ 前往下一章',
+    nextBtn:'▶ 颱風要來了！',
+  },
+  C: {
+    bar:'🌀 颱風前！運 3 袋沙包去老屋 →',
+    path:[[0,4],[0,-70],[-30,-70],[-30,-140],[0,-140],[0,-185]], laneW:9,
+    walls:false, storm:true, wind:0.9,
+    q:'車一直被往旁邊推，你覺得是為什麼？',
+    opts:[
+      {t:'🌀 颱風的側風在推車', ok:true},
+      {t:'🛞 輪胎壞掉了', ok:false},
+      {t:'🛣 路是斜的', ok:false}],
+    garageType:'tire', garage:['std','grip'], answer:'grip',
+    winT:'工程師認證 Lv.3', winS:'沙包送達，老屋保住了！',
+    hook:'防滑寬胎咬住了路面！⋯⋯但雨越下越大，路開始積水了 🌊',
+    nextBtn:'▶ 進入水城救援本篇',
   },
 };
 
-const S = { mission:'A', body:'sq', bento:3 };
+const S = { mission:'A', body:'sq', tire:'std', bento:3 };
 
 /* ── Three.js ── */
 const canvas = document.getElementById('c3d');
@@ -198,11 +216,34 @@ let trackGroup = null, PATH = [], LANE_W = 10, FINISH = new THREE.Vector3();
 
 function v2(p){ return new THREE.Vector2(p[0], p[1]); }
 
+let rainPts = null;
 function buildTrack(mid){
   if(trackGroup) scene.remove(trackGroup);
+  if(rainPts){ scene.remove(rainPts); rainPts=null; }
   trackGroup = new THREE.Group();
   const M = MISSIONS[mid];
   PATH = M.path.map(v2); LANE_W = M.laneW;
+  /* 颱風天氣 */
+  if(M.storm){
+    scene.background = new THREE.Color(0x8A96A3);
+    scene.fog = new THREE.Fog(0x8A96A3, 40, 130);
+    ground.material.color.setHex(0x7FA357);
+    const rg = new THREE.BufferGeometry();
+    const N=600, pos=new Float32Array(N*3);
+    for(let i=0;i<N;i++){
+      pos[i*3]=(Math.random()-.5)*120;
+      pos[i*3+1]=Math.random()*40;
+      pos[i*3+2]=-Math.random()*200;
+    }
+    rg.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    rainPts = new THREE.Points(rg,
+      new THREE.PointsMaterial({color:0xcfe3ff,size:.35,transparent:true,opacity:.7}));
+    scene.add(rainPts);
+  } else {
+    scene.background = new THREE.Color(0x7EC8E3);
+    scene.fog = new THREE.Fog(0x7EC8E3, 60, 170);
+    ground.material.color.setHex(0xA8D672);
+  }
   const roadM = new THREE.MeshLambertMaterial({color:0xEDE3D0});
   const dashM = new THREE.MeshLambertMaterial({color:0xffffff});
 
@@ -277,7 +318,7 @@ function buildTrack(mid){
   sc.fillStyle='#ffd966'; sc.fillRect(0,0,512,96);
   sc.fillStyle='#4A3728'; sc.font='900 52px "Noto Sans TC",sans-serif';
   sc.textAlign='center'; sc.textBaseline='middle';
-  sc.fillText(mid==='A'?'🏮 文化夜市 🏮':'🍜 目標攤位 🍜',256,50);
+  sc.fillText(mid==='A'?'🏮 文化夜市 🏮': mid==='B'?'🍜 目標攤位 🍜':'🏠 阿嬤的老屋 🏠',256,50);
   const sign = new THREE.Mesh(new THREE.PlaneGeometry(12,2.2),
     new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(signCv), side:THREE.DoubleSide}));
   sign.position.y=8.6; sign.position.z=.55; gate.add(sign);
@@ -325,13 +366,20 @@ function buildBoard(kind){
 const bentoBoxes=[];
 function buildBento(){
   bentoBoxes.forEach(b=>{ (b.parent||car).remove(b); }); bentoBoxes.length=0;
+  const isSand = MISSIONS[S.mission].storm;
   for(let i=0;i<S.bento;i++){
     const b = new THREE.Group();
-    const box = new THREE.Mesh(new THREE.BoxGeometry(.9,.55,.9),
-      new THREE.MeshLambertMaterial({color:0xFF8C42}));
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(.95,.12,.95),
-      new THREE.MeshLambertMaterial({color:0xfff3e0}));
-    lid.position.y=.33; b.add(box,lid);
+    if(isSand){
+      const bag = new THREE.Mesh(new THREE.SphereGeometry(.55,10,8),
+        new THREE.MeshLambertMaterial({color:0xB8A16E}));
+      bag.scale.set(1,.7,1); b.add(bag);
+    } else {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(.9,.55,.9),
+        new THREE.MeshLambertMaterial({color:0xFF8C42}));
+      const lid = new THREE.Mesh(new THREE.BoxGeometry(.95,.12,.95),
+        new THREE.MeshLambertMaterial({color:0xfff3e0}));
+      lid.position.y=.33; b.add(box,lid);
+    }
     b.position.set(0, 1.1+i*.62, -0.4);
     car.add(b); bentoBoxes.push(b);
   }
@@ -368,6 +416,7 @@ function dropBento(){
   hud.classList.add('shake'); setTimeout(()=>hud.classList.remove('shake'),450);
   updateHud();
   const dm=document.getElementById('dropMsg');
+  dm.textContent = MISSIONS[S.mission].storm? '💨 沙包被吹掉了！':'💦 便當掉了！';
   dm.classList.add('show'); setTimeout(()=>dm.classList.remove('show'),1100);
 }
 function updateHud(){ document.getElementById('bentoNum').textContent=S.bento; }
@@ -407,22 +456,41 @@ function finishDrive(){
 function openGarage(){
   const M=MISSIONS[S.mission];
   const gRow=document.getElementById('garageRow');
+  const isTire = M.garageType==='tire';
+  document.querySelector('#sGarage h2').textContent =
+    isTire? '🔧 工坊 — 換輪胎' : '🔧 工坊 — 換車身';
   gRow.innerHTML='';
   M.garage.forEach(id=>{
-    const c=CAR_SPECS[id];
-    const isNew = (S.mission==='B' && id==='narrow');
     const d=document.createElement('div');
-    d.className='carCard'+(id===S.body?' sel':'');
-    const descs={sq:'轉彎靈活<br>直線會飄', rect:'直線穩定<br>轉彎半徑大', narrow:'巷弄靈活<br>穩又能載貨'};
-    d.innerHTML=`${isNew?'<span class="newTag">NEW</span>':''}
-      <div class="carShape ${id}"></div>
-      <div class="nm">${c.nm}</div><div class="desc">${descs[id]}</div>`;
-    d.onclick=()=>{
-      S.body=id;
-      document.querySelectorAll('.carCard').forEach(x=>x.classList.remove('sel'));
-      d.classList.add('sel');
-      document.getElementById('garageGo').disabled=false;
-    };
+    if(isTire){
+      const t=TIRES[id];
+      const isNew = id==='grip';
+      const cur = id===S.tire;
+      d.className='carCard'+(cur?' sel':'');
+      d.innerHTML=`${isNew?'<span class="newTag">NEW</span>':''}
+        <div style="font-size:52px">${id==='grip'?'🛞':'⚪'}</div>
+        <div class="nm">${t.nm}</div><div class="desc">${t.desc}</div>`;
+      d.onclick=()=>{
+        S.tire=id;
+        document.querySelectorAll('.carCard').forEach(x=>x.classList.remove('sel'));
+        d.classList.add('sel');
+        document.getElementById('garageGo').disabled=false;
+      };
+    } else {
+      const c=CAR_SPECS[id];
+      const isNew = (S.mission==='B' && id==='narrow');
+      d.className='carCard'+(id===S.body?' sel':'');
+      const descs={sq:'轉彎靈活<br>直線會飄', rect:'直線穩定<br>轉彎半徑大', narrow:'巷弄靈活<br>穩又能載貨'};
+      d.innerHTML=`${isNew?'<span class="newTag">NEW</span>':''}
+        <div class="carShape ${id}"></div>
+        <div class="nm">${c.nm}</div><div class="desc">${descs[id]}</div>`;
+      d.onclick=()=>{
+        S.body=id;
+        document.querySelectorAll('.carCard').forEach(x=>x.classList.remove('sel'));
+        d.classList.add('sel');
+        document.getElementById('garageGo').disabled=false;
+      };
+    }
     gRow.appendChild(d);
   });
   document.getElementById('garageGo').disabled=true;
@@ -447,18 +515,15 @@ function confetti(){
 function winScreen(){
   confetti();
   const M=MISSIONS[S.mission];
-  document.getElementById('winMedal').textContent = S.mission==='A'?'🎓':'🏆';
+  document.getElementById('winMedal').textContent = {A:'🎓',B:'🏆',C:'🛡️'}[S.mission];
   document.getElementById('winTitle').textContent=M.winT;
   document.getElementById('winSub').textContent=M.winS;
   document.getElementById('hookText').textContent=M.hook;
   document.getElementById('winNext').textContent=M.nextBtn;
   document.getElementById('winNext').onclick=()=>{
-    if(S.mission==='A'){
-      S.mission='B';
-      launchMission('B');
-    } else {
-      location.href='index.html?from=k01&cert=2';
-    }
+    if(S.mission==='A'){ S.mission='B'; launchMission('B'); }
+    else if(S.mission==='B'){ S.mission='C'; launchMission('C'); }
+    else { location.href='index.html?from=k01&cert=3'; }
   };
   show('sWin');
 }
@@ -488,6 +553,11 @@ function animate(){
       swayAcc+=(Math.random()-.5)*spec.sway*dt; swayAcc*=.985;
     } else swayAcc*=.9;
     heading+=swayAcc*dt*2;
+    /* 颱風側風:固定方向推力,防滑寬胎抗 65% */
+    const Mw = MISSIONS[S.mission];
+    if(Mw.wind && speed>2){
+      car.position.x += Mw.wind * TIRES[S.tire].windRes * dt * (speed/8);
+    }
 
     car.rotation.y=heading;
     car.position.x+=Math.sin(heading)*-speed*dt;
@@ -507,6 +577,19 @@ function animate(){
     if(Math.abs(swayAcc)>1.15 && speed>12){ dropBento(); swayAcc=0; }
     wheels.forEach(w=>w.rotation.x+=speed*dt*2);
     if(car.position.distanceTo(FINISH)<5) finishDrive();
+  }
+  /* 雨落下 */
+  if(rainPts){
+    const pa = rainPts.geometry.attributes.position;
+    for(let i=0;i<pa.count;i++){
+      let y = pa.getY(i) - 28*dt;
+      if(y<0) y = 40;
+      pa.setY(i, y);
+      pa.setX(i, pa.getX(i) + 6*dt);
+      if(pa.getX(i)>60) pa.setX(i,-60);
+    }
+    pa.needsUpdate = true;
+    rainPts.position.z = car.position.z - 80;
   }
   const camT=new THREE.Vector3(
     car.position.x+Math.sin(heading)*10*.4 + Math.sin(heading)*0,
