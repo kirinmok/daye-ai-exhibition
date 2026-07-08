@@ -95,6 +95,20 @@ h2{font-size:clamp(22px,4.5vw,32px);font-weight:900;letter-spacing:1px;text-alig
 
 #fade{position:fixed;inset:0;background:var(--cream);z-index:30;opacity:1;
   transition:opacity .8s;pointer-events:none}
+
+/* 觸控按鈕(手機/平板):只在偵測到觸控裝置時顯示 */
+#touchCtrl{position:fixed;inset:0;z-index:8;pointer-events:none;display:none}
+#touchCtrl.show{display:block}
+.tbtn{position:fixed;bottom:34px;width:76px;height:76px;border-radius:50%;
+  background:rgba(255,255,255,.55);border:3px solid rgba(74,55,40,.25);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  pointer-events:auto;-webkit-tap-highlight-color:transparent;user-select:none;
+  transition:transform .1s,background .1s}
+.tbtn.active{background:rgba(255,179,71,.75);transform:scale(.9)}
+#tLeft{left:24px}
+#tRight{left:112px}
+#tGas{right:28px;width:92px;height:92px;bottom:30px;background:rgba(255,140,66,.6)}
+#tGas.active{background:rgba(255,107,66,.9)}
 </style>
 </head>
 <body>
@@ -105,6 +119,12 @@ h2{font-size:clamp(22px,4.5vw,32px);font-weight:900;letter-spacing:1px;text-alig
 <div id="keyHint">🎮 W 前進 · A / D 方向</div>
 <div id="bentoHud">📦 <span id="bentoNum">3</span></div>
 <div id="dropMsg">💦 便當掉了！</div>
+
+<div id="touchCtrl">
+  <div class="tbtn" id="tLeft">◀</div>
+  <div class="tbtn" id="tRight">▶</div>
+  <div class="tbtn" id="tGas">▲</div>
+</div>
 
 <div class="screen" id="sResult">
   <div class="card">
@@ -193,6 +213,54 @@ const MISSIONS = {
 };
 
 const S = { mission:'A', body:'sq', tire:'std', bento:3 };
+
+/* ── 音效(Web Audio API,合成音,不掛外部音檔) ── */
+let audioCtx = null;
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone(freq, dur, type, gainPeak, delay){
+  const ctx = ensureAudio();
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = type||'sine';
+  const t0 = ctx.currentTime + (delay||0);
+  o.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(gainPeak||0.25, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0+dur);
+  o.start(t0); o.stop(t0+dur);
+  return o;
+}
+function playDropSound(){
+  /* 便當掉落:低沉下滑音,可愛不刺耳 */
+  const ctx = ensureAudio();
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type='sine';
+  o.frequency.setValueAtTime(340, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(140, ctx.currentTime+.28);
+  g.gain.setValueAtTime(.22, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.3);
+  o.start(); o.stop(ctx.currentTime+.3);
+}
+function playPickupSound(){
+  /* 撿回便當:兩個上升音階,像小確幸 */
+  tone(660, .12, 'sine', .22, 0);
+  tone(880, .16, 'sine', .22, .09);
+}
+function playCorrectSound(){
+  /* 猜對假設:清脆確認音 */
+  tone(988, .1, 'triangle', .2, 0);
+  tone(1318, .18, 'triangle', .2, .07);
+}
+function playWinSound(){
+  /* 過關:三音上行小號角 */
+  tone(523, .16, 'square', .18, 0);
+  tone(659, .16, 'square', .18, .13);
+  tone(784, .3, 'square', .2, .26);
+}
 
 /* ── Three.js ── */
 const canvas = document.getElementById('c3d');
@@ -380,9 +448,16 @@ function buildBento(){
         new THREE.MeshLambertMaterial({color:0xC0392B}));
       lid.position.y=.33; b.add(box,lid);
     }
-    b.position.set(0, 1.1+i*.62, -0.4);
     car.add(b); bentoBoxes.push(b);
   }
+  reflowBento();
+}
+function reflowBento(){
+  const n=bentoBoxes.length;
+  bentoBoxes.forEach((b,i)=>{
+    b.position.set(0, 1.0, (i-(n-1)/2)*0.95);
+    b.rotation.set(0,0,0);
+  });
 }
 scene.add(car);
 
@@ -391,6 +466,27 @@ const key={};
 addEventListener('keydown',e=>key[e.key.toLowerCase()]=true);
 addEventListener('keyup',e=>key[e.key.toLowerCase()]=false);
 let speed=0, heading=0, swayAcc=0, driving=false, wallCooldown=0;
+
+/* ── 觸控按鈕:只在觸控裝置顯示,綁進同一個 key 狀態 ── */
+if('ontouchstart' in window || navigator.maxTouchPoints>0){
+  document.getElementById('touchCtrl').classList.add('show');
+  document.getElementById('keyHint').textContent='🎮 按住方向鍵駕駛';
+}
+function bindTouchBtn(id, keyName){
+  const el = document.getElementById(id);
+  const on = e=>{ e.preventDefault(); key[keyName]=true; el.classList.add('active'); };
+  const off = e=>{ e.preventDefault(); key[keyName]=false; el.classList.remove('active'); };
+  el.addEventListener('touchstart', on, {passive:false});
+  el.addEventListener('touchend', off, {passive:false});
+  el.addEventListener('touchcancel', off, {passive:false});
+  /* 滑鼠也能按(桌機測試方便) */
+  el.addEventListener('mousedown', on);
+  el.addEventListener('mouseup', off);
+  el.addEventListener('mouseleave', off);
+}
+bindTouchBtn('tLeft','a');
+bindTouchBtn('tRight','d');
+bindTouchBtn('tGas','w');
 
 function resetCar(){
   const p0=PATH[0], p1=PATH[1];
@@ -405,6 +501,7 @@ const droppedItems=[];
 function dropBento(){
   if(S.bento<=0) return;
   S.bento--;
+  playDropSound();
   const b=bentoBoxes.pop();
   const dir=Math.random()>.5?1:-1;
   scene.attach(b);
@@ -445,6 +542,7 @@ function pickupBento(b){
   droppedItems.splice(i,1);
   scene.remove(b);
   S.bento++;
+  playPickupSound();
   car.attach(b);
   b.rotation.set(0,0,0);
   b.position.set(0, 1.1+(bentoBoxes.length)*.62, -0.4);
@@ -486,7 +584,7 @@ function finishDrive(){
     const b=document.createElement('button');
     b.className='opt'; b.textContent=o.t;
     b.onclick=()=>{
-      if(o.ok) openGarage();
+      if(o.ok){ playCorrectSound(); openGarage(); }
       else{ b.classList.add('dim');
         document.getElementById('resQ').textContent='嗯…好像不是這個原因。再想想？'; }
     };
@@ -555,6 +653,7 @@ function confetti(){
 }
 
 function winScreen(){
+  playWinSound();
   confetti();
   const M=MISSIONS[S.mission];
   document.getElementById('winMedal').textContent = {A:'🎓',B:'🏆',C:'🛡️'}[S.mission];
