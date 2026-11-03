@@ -13,7 +13,7 @@ window.SITE_CONFIG = {
   // apiUrl 空白 = 不顯示；貼上網頁應用程式網址後卡片與詳情頁就會出現「人氣 N」
   // ========================================
   hits: {
-    apiUrl: "",
+    apiUrl: "https://script.google.com/macros/s/AKfycbz1xWGW3ZrR3fBINx84eS_uyhBeUedeYND0foyMCmPQtd4ki3Eks2B1bhf40O0sobTs1Q/exec",
     label: "人氣",
     cooldownMinutes: 10, // 同一裝置同一作品 N 分鐘內只計 1 次
     refreshSeconds: 60,
