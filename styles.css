@@ -2474,3 +2474,7 @@ body.is-editing {
 .btn-icon { display: inline-flex; align-items: center; }
 .game-warn-icon .ico { width: 44px; height: 44px; margin: 0; stroke-width: 1.5; color: #f1f5f9; }
 .info-strip .device-badge { vertical-align: 1px; margin: 0 2px; }
+
+/* ===== 首頁時程卡：標籤不換行、不斷句 ===== */
+.hero-console div { padding: 16px 14px; }
+.hero-console span { white-space: nowrap; font-size: 13px; letter-spacing: 0.02em; }

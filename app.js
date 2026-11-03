@@ -512,15 +512,15 @@ function renderHome() {
         ${isVotingEnded() ? `
         <div>
           <strong class="hero-date">${escapeHtml(deadline.date)} <small>(${escapeHtml(deadline.weekday)})</small></strong>
-          <span>投票截止・已結束</span>
+          <span>投票已結束</span>
         </div>
         <div>
           <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
-          <span>得獎名單已公布</span>
+          <span>名單已公布</span>
         </div>
         <div class="deadline-card">
-          <strong class="hero-date">${projects.length} 款</strong>
-          <span>回顧展・歡迎試玩</span>
+          <strong class="hero-date">${projects.length} 款 <small>作品</small></strong>
+          <span>歡迎試玩</span>
         </div>` : `
         <div>
           <strong class="hero-date">${escapeHtml(start.date)} <small>(${escapeHtml(start.weekday)})</small></strong>

@@ -7,7 +7,7 @@
  *   - 其他（Google 表單、投票 API、非 GET）：不碰
  * 改版時把 VERSION 改掉，舊快取會自動清除；index.html 裡的 ?v= 參數也一起改，靜態檔才會重新抓。
  */
-const VERSION = "daye-exh-2026-11-03b";
+const VERSION = "daye-exh-2026-11-03c";
 const CACHE = `${VERSION}`;
 const SCOPE_PATH = new URL(self.registration.scope).pathname; // e.g. /daye-ai-exhibition/
 
