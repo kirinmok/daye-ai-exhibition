@@ -34,7 +34,7 @@ G04、G10 兩款都用 `https://unpkg.com/@babel/standalone/babel.min.js` 這條
 |---|---|
 | `works.js` | 16 件作品加 `device`（tablet／desktop）與 `controls`（含前進後退等完整按鍵）；K01 文案還原 |
 | `app.js` | 卡片徽章「📱 平板可玩／💻 建議電腦」、詳情頁「操作方式」一行＋鍵盤遊戲提示（輸入法切英文、先點畫面）、左側「適合裝置」篩選、`#browse/tablet` iPad 專用入口、平板點鍵盤類作品時跳提示 |
-| `styles.css` | `.device-badge`、`.device-line`、`.device-hint` 樣式 |
+| `styles.css` | `.device-badge`、`.device-line`、`.device-hint` 樣式；徽章與操作標示改為單色線條 icon（內嵌 SVG，各平台一致，不用 emoji） |
 
 ### 2-3 投票已結束標示
 | 檔案 | 變更 |
@@ -92,7 +92,7 @@ G04、G10 兩款都用 `https://unpkg.com/@babel/standalone/babel.min.js` 這條
 
 ## 四、展前檢查清單（交給學校／自己照做）
 
-1. **上線**：用 FULL 包整個覆蓋 repo（或 CHANGED 包逐檔覆蓋）後 push，等 1–2 分鐘。之後再改任何檔案，記得把 `sw.js` 的 `VERSION` 改一下，舊快取才會換新。
+1. **上線**：已於 2026-11-03 13:11–13:24 推上 `main`（f0b9596、adc64cb、e4156e2、a939015）。之後再改任何檔案：把 `sw.js` 的 `VERSION` 與 `index.html` 的 `?v=` 一起改，訪客重新整理兩次就會拿到新版。
 2. **校內網路實測（最重要）**：所有作品都靠外部 CDN（unpkg、cdnjs、esm.sh、cdn.tailwindcss.com、gstatic、fonts.googleapis）。開展前一天，用**展場要用的那台電腦和那台平板**、接**學校的網路**，把 16 件作品各開一次。若校網有內容過濾擋到其中任一網域，整款會白屏。
 3. **瀏覽器用 Chrome 或 Edge**：FPS 類需要滑鼠鎖定；K01 手把需要 Web Serial，Safari 不支援。電腦**輸入法預設英文**（遊戲內已加保護，英文仍最保險）。
 4. **電腦區 vs 平板區**：9 款建議電腦，7 款平板可玩。iPad 用 `#browse/tablet` 入口（只列 7 款）。戶外熱點場景請照 `ipad_outdoor_checklist` 預熱。
