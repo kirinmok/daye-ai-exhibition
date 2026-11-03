@@ -1,13 +1,50 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script>
+/* 2026-11-03 鍵盤統一層（大業成果展）
+   1) 輸入法保護：中文輸入法下鍵盤事件 key 會是 "Process"／keyCode 229，遊戲讀不到；這裡依實體按鍵還原。
+   2) 方向鍵＝WASD：讓每款都能用 WASD 或方向鍵移動（本頁別名表見 DAYE_KEY_ALIAS）。
+   英文輸入法＋原本按鍵時完全不影響遊戲。 */
+(function () {
+  if (window.__dayeKeys) return; window.__dayeKeys = true;
+  var ALIAS = window.DAYE_KEY_ALIAS || { ArrowUp: "KeyW", ArrowDown: "KeyS", ArrowLeft: "KeyA", ArrowRight: "KeyD" };
+  var MAP = { Space: [" ", 32], Enter: ["Enter", 13], Escape: ["Escape", 27], Tab: ["Tab", 9], Backspace: ["Backspace", 8],
+    ShiftLeft: ["Shift", 16], ShiftRight: ["Shift", 16], ControlLeft: ["Control", 17], ControlRight: ["Control", 17], AltLeft: ["Alt", 18], AltRight: ["Alt", 18],
+    ArrowUp: ["ArrowUp", 38], ArrowDown: ["ArrowDown", 40], ArrowLeft: ["ArrowLeft", 37], ArrowRight: ["ArrowRight", 39] };
+  function translate(code) {
+    if (MAP[code]) return MAP[code];
+    var m = /^Key([A-Z])$/.exec(code); if (m) return [m[1].toLowerCase(), m[1].charCodeAt(0)];
+    m = /^Digit([0-9])$/.exec(code); if (m) return [m[1], 48 + Number(m[1])];
+    return null;
+  }
+  function synth(type, code, src) {
+    var t = translate(code); if (!t) return;
+    var init = { key: t[0], code: code, keyCode: t[1], which: t[1], bubbles: true, cancelable: true,
+      shiftKey: src.shiftKey, ctrlKey: src.ctrlKey, altKey: src.altKey, metaKey: src.metaKey, repeat: src.repeat };
+    var ev = new KeyboardEvent(type, init);
+    try { Object.defineProperty(ev, "keyCode", { get: function () { return t[1]; } }); Object.defineProperty(ev, "which", { get: function () { return t[1]; } }); } catch (_) {}
+    ev.__dayeSynth = true;
+    (src.target || document).dispatchEvent(ev);
+  }
+  function handler(e) {
+    if (e.__dayeSynth || e.isTrusted === false || !e.code) return;
+    var ime = (e.key === "Process" || e.key === "Unidentified" || e.keyCode === 229);
+    if (ime) { e.stopImmediatePropagation(); e.preventDefault(); synth(e.type, e.code, e); }
+    var alias = ALIAS[e.code]; if (alias) synth(e.type, alias, e);
+  }
+  window.addEventListener("keydown", handler, true);
+  window.addEventListener("keyup", handler, true);
+})();
+</script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>G10 微型死域</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
   <style>
     html, body, #root {
       width: 100%;
@@ -548,5 +585,68 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
+<script>
+/* 離線快取註冊（與主站共用 ../../sw.js） */
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  navigator.serviceWorker.register("../../sw.js", { scope: "../../" }).catch(function () {});
+}
+</script>
+<script>
+/* 2026-11-03 操作提示列：進場自動顯示 12 秒，左上「⌨️ 操作」可再叫出來。全展統一：WASD／方向鍵 移動、滑鼠 視角、左鍵 射擊、空白鍵 跳。 */
+(function () {
+  if (document.querySelector("[data-daye-legend]")) return;
+  var legend = [["WASD / 方向鍵", "移動"], ["滑鼠", "視角"], ["左鍵", "射擊"], ["1 / 2", "切換武器"], ["ESC", "解鎖滑鼠"]];
+  var bar = document.createElement("div"); bar.setAttribute("data-daye-legend", "1"); bar.setAttribute("role", "note");
+  bar.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:2147483646;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;max-width:min(92vw,980px);padding:10px 16px;border-radius:12px;background:rgba(0,0,0,.78);color:#fff;border:1px solid rgba(255,255,255,.3);font:700 14px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;box-shadow:0 10px 28px rgba(0,0,0,.35);backdrop-filter:blur(10px);pointer-events:none;transition:opacity .4s";
+  legend.forEach(function (p) { var s = document.createElement("span"); s.innerHTML = "<kbd style='display:inline-block;padding:1px 7px;margin-right:5px;border-radius:5px;background:#fff;color:#111;font:800 13px system-ui'>" + p[0] + "</kbd>" + p[1]; bar.appendChild(s); });
+  var btn = document.createElement("button"); btn.type = "button"; btn.textContent = "⌨️ 操作"; btn.setAttribute("aria-label", "顯示操作說明");
+  btn.style.cssText = "position:fixed;top:14px;left:118px;z-index:2147483647;min-height:40px;padding:0 12px;border-radius:8px;background:rgba(0,0,0,.72);color:#fff;border:1px solid rgba(255,255,255,.35);font:800 14px system-ui,-apple-system,'Segoe UI',sans-serif;cursor:pointer;backdrop-filter:blur(10px)";
+  var shown = true, timer = null;
+  function show(v) { shown = v; bar.style.opacity = v ? "1" : "0"; bar.style.visibility = v ? "visible" : "hidden"; }
+  btn.addEventListener("click", function (ev) { ev.stopPropagation(); show(!shown); clearTimeout(timer); if (shown) timer = setTimeout(function () { show(false); }, 12000); btn.blur(); });
+  document.body.appendChild(bar); document.body.appendChild(btn);
+  timer = setTimeout(function () { show(false); }, 12000);
+})();
+</script>
+
+<script>
+(() => {
+  const existing = document.querySelector('[data-daye-home]');
+  if (existing) return;
+
+  const link = document.createElement('a');
+  link.dataset.dayeHome = 'true';
+  link.href = '../../index.html';
+  link.textContent = '回主畫面';
+  link.setAttribute('aria-label', '回主畫面');
+  link.style.cssText = [
+    'position:fixed',
+    'top:14px',
+    'left:14px',
+    'z-index:2147483647',
+    'display:inline-flex',
+    'align-items:center',
+    'justify-content:center',
+    'min-height:40px',
+    'padding:0 14px',
+    'border-radius:8px',
+    'background:rgba(0,0,0,.72)',
+    'color:#fff',
+    'border:1px solid rgba(255,255,255,.35)',
+    'font:800 14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'text-decoration:none',
+    'box-shadow:0 10px 28px rgba(0,0,0,.35)',
+    'backdrop-filter:blur(10px)'
+  ].join(';');
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && document.pointerLockElement) {
+      document.exitPointerLock?.();
+    }
+  });
+
+  document.body.appendChild(link);
+})();
+</script>
 </body>
 </html>

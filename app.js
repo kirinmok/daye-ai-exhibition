@@ -218,6 +218,7 @@ const state = {
   genres: new Set(),
   tags: new Set(),
   platforms: new Set(),
+  devices: new Set(),
   sort: "popular",
   dashboardGenre: "all",
   compareOverall: true,
@@ -234,6 +235,8 @@ function getResultsConfig() {
 }
 
 function isVotingEnded() {
+  const status = (typeof window !== "undefined" && window.SITE_CONFIG && window.SITE_CONFIG.eventStatus) || {};
+  if (status.closed) return true;
   const cfg = (typeof window !== "undefined" && window.SITE_CONFIG && window.SITE_CONFIG.voting) || {};
   if (!cfg.endDate) return false;
   const end = new Date(`${cfg.endDate}T23:59:59+08:00`);
@@ -371,7 +374,8 @@ function filteredProjects() {
     const matchesGenres = !state.genres.size || project.genre.some((genre) => state.genres.has(genre));
     const matchesTags = !state.tags.size || project.tags.some((tag) => state.tags.has(tag));
     const matchesPlatforms = !state.platforms.size || state.platforms.has(project.platform);
-    return matchesQuery && matchesGenres && matchesTags && matchesPlatforms;
+    const matchesDevices = !state.devices.size || state.devices.has(deviceInfo(project).label);
+    return matchesQuery && matchesGenres && matchesTags && matchesPlatforms && matchesDevices;
   });
 
   return filtered.sort((a, b) => {
@@ -387,11 +391,39 @@ function uniqueValues(selector) {
   return [...new Set(getProjects().flatMap(selector))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
 }
 
+// 📱/💻 裝置標示：works.js 的 device 欄位（"tablet" = 平板可玩，其餘視為建議電腦）
+const DEVICE_LABELS = { tablet: "📱 平板可玩", desktop: "💻 建議電腦" };
+function deviceInfo(project) {
+  const tablet = project.device === "tablet";
+  return {
+    tablet,
+    key: tablet ? "tablet" : "desktop",
+    label: tablet ? DEVICE_LABELS.tablet : DEVICE_LABELS.desktop,
+    cls: tablet ? "device-badge device-tablet" : "device-badge device-desktop",
+    controls: project.controls || (tablet ? "觸控點擊" : "鍵盤＋滑鼠"),
+  };
+}
+
+function renderEventStatusBanner() {
+  const status = (window.SITE_CONFIG && window.SITE_CONFIG.eventStatus) || {};
+  if (!status.closed || document.querySelector(".event-status-banner")) return;
+  const banner = document.createElement("div");
+  banner.className = "event-status-banner";
+  banner.setAttribute("role", "status");
+  banner.innerHTML = `<strong>🏁 ${escapeHtml(status.label || "投票已結束")}</strong><span>${escapeHtml(status.notice || "")}</span><a href="#awards">看得獎名單</a>`;
+  app.parentNode.insertBefore(banner, app);
+}
+
 function route() {
+  renderEventStatusBanner();
   const hash = window.location.hash.replace(/^#/, "") || "home";
   const [page, id] = hash.split("/");
   setActiveNav(page);
-  if (page === "browse") renderBrowse();
+  if (page === "browse") {
+    // #browse/tablet：iPad 展示專用入口，預先只篩「📱 平板可玩」
+    if (id === "tablet") { state.devices.clear(); state.devices.add(DEVICE_LABELS.tablet); }
+    renderBrowse();
+  }
   else if (page === "detail") renderDetail(id || PROJECTS[0].id);
   else if (page === "results") renderResults();
   else if (page === "about") renderAbout();
@@ -446,12 +478,16 @@ function renderHome() {
   app.innerHTML = `
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">${EVENT_CONFIG.subtitle}</p>
+        <p class="eyebrow">${isVotingEnded() ? "遊戲創作 × AI 視覺 × 成果回顧" : EVENT_CONFIG.subtitle}</p>
         <h1 class="event-title"><span>大業 AI 繪圖社</span><span>期末成果展</span></h1>
-        <p>${escapeHtml(EVENT_CONFIG.purpose)}</p>
+        <p>${isVotingEnded() ? "學生自製遊戲正式上線。AI 視覺、遊戲企劃、互動程式，全部變成可以試玩的作品。投票已經結束，這一次就放心玩。" : escapeHtml(EVENT_CONFIG.purpose)}</p>
         <div class="hero-actions">
+          ${isVotingEnded() ? `
+          <a class="btn primary" href="#browse">🎮 瀏覽作品試玩</a>
+          <a class="btn ghost" href="#browse/tablet">📱 平板可玩作品</a>
+          <a class="btn ghost" href="#awards">🏆 得獎名單</a>` : `
           <a class="btn primary" href="#browse">立刻試玩投票</a>
-          <a class="btn ghost" href="#rules">先看投票 Q&A</a>
+          <a class="btn ghost" href="#rules">先看投票 Q&A</a>`}
           ${SITE_CONFIG.lottery && SITE_CONFIG.lottery.enabled && SITE_CONFIG.lottery.formUrl
             ? `<a class="btn ghost lottery-cta" href="${escapeAttr(SITE_CONFIG.lottery.formUrl)}" target="_blank" rel="noreferrer">🎁 在校學生・登記抽獎</a>`
             : ""}
@@ -461,6 +497,19 @@ function renderHome() {
           : ""}
       </div>
       <div class="hero-console" aria-label="成果展摘要">
+        ${isVotingEnded() ? `
+        <div>
+          <strong class="hero-date hero-date-range">${escapeHtml(start.date)}–${escapeHtml(deadline.date)}</strong>
+          <span>投票期（已結束）</span>
+        </div>
+        <div>
+          <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
+          <span>得獎名單已公布</span>
+        </div>
+        <div class="deadline-card">
+          <strong class="hero-date">${projects.length} 款</strong>
+          <span>回顧展・歡迎試玩</span>
+        </div>` : `
         <div>
           <strong class="hero-date">${escapeHtml(start.date)} <small>(${escapeHtml(start.weekday)})</small></strong>
           <span>投票開始</span>
@@ -472,11 +521,24 @@ function renderHome() {
         <div>
           <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
           <span>結果公布${publish.suffix ? `・${escapeHtml(publish.suffix)}` : ""}</span>
-        </div>
+        </div>`}
       </div>
     </section>
 
     <section class="info-strip">
+      ${isVotingEnded() ? `
+      <article>
+        <h2>${projects.length} 款作品，歡迎試玩</h2>
+        <p>這些是大業 AI 繪圖社學生本學期完成的遊戲作品。投票已於 6/19 結束，現在不必投票，直接挑一款玩就好。</p>
+      </article>
+      <article>
+        <h2>平板還是電腦？</h2>
+        <p>每張卡片都標了「📱 平板可玩」或「💻 建議電腦」。FPS 與鍵盤操作類作品需要滑鼠鍵盤，請到電腦區體驗。</p>
+      </article>
+      <article>
+        <h2>得獎名單已公布</h2>
+        <p>金獎、銀獎、銅獎與三項專業評選獎已於 6/29 公布，點「獎項說明」可以看到各獎項與評審回饋。</p>
+      </article>` : `
       <article>
         <h2>${projects.length} 款作品，等你試玩評選</h2>
         <p>這場成果展不是把作品放上來而已，而是把舞台交給觀眾。誰的畫面最吸睛？誰的玩法最想再玩一次？票選結果會說話。</p>
@@ -488,7 +550,7 @@ function renderHome() {
       <article>
         <h2>投票之外，也留下回饋</h2>
         <p>${EVENT_CONFIG.participationValue} ${EVENT_CONFIG.notice}</p>
-      </article>
+      </article>`}
     </section>
 
     <section class="section-head">
@@ -539,6 +601,7 @@ function renderBrowse() {
           <button class="text-button" data-action="clear-filters">清除篩選</button>
         </div>
         ${renderFilterGroup("genre", "遊戲類型", uniqueValues((project) => project.genre), state.genres)}
+        ${renderFilterGroup("device", "適合裝置", [DEVICE_LABELS.tablet, DEVICE_LABELS.desktop], state.devices)}
         ${renderFilterGroup("platform", "平台", uniqueValues((project) => [project.platform]), state.platforms)}
         ${renderFilterGroup("tag", "標籤", uniqueValues((project) => project.tags).slice(0, 18), state.tags)}
       </aside>
@@ -555,6 +618,7 @@ function renderBrowse() {
           <strong>${projects.length}</strong>
           <span>件作品符合目前條件</span>
         </div>
+        <p class="browse-legend">🎮 鍵盤作品統一：<kbd>WASD</kbd>／<kbd>方向鍵</kbd> 移動・<kbd>滑鼠</kbd> 視角・<kbd>左鍵</kbd> 射擊・<kbd>空白鍵</kbd> 跳　｜　📱 平板作品：直接用手指點。</p>
         <div class="card-grid">
           ${projects.map(renderProjectCard).join("")}
         </div>
@@ -591,7 +655,8 @@ function bindBrowseControls() {
   });
   document.querySelectorAll("[data-filter-type]").forEach((button) => {
     button.addEventListener("click", () => {
-      const set = button.dataset.filterType === "genre" ? state.genres : button.dataset.filterType === "platform" ? state.platforms : state.tags;
+      const type = button.dataset.filterType;
+      const set = type === "genre" ? state.genres : type === "platform" ? state.platforms : type === "device" ? state.devices : state.tags;
       if (set.has(button.dataset.filterValue)) set.delete(button.dataset.filterValue);
       else set.add(button.dataset.filterValue);
       renderBrowse();
@@ -602,7 +667,9 @@ function bindBrowseControls() {
     state.genres.clear();
     state.tags.clear();
     state.platforms.clear();
+    state.devices.clear();
     state.sort = "popular";
+    if (window.location.hash === "#browse/tablet") { history.replaceState(null, "", "#browse"); }
     renderBrowse();
   });
 }
@@ -639,9 +706,11 @@ function renderProjectCard(project) {
       ? `${award.icon} ${award.name}`
       : published
         ? ""
-        : shouldShowPublicVoteCounts()
-          ? `${apiEnabled ? apiVoteCountOf(project.id) : projectStats(project).voteCount} 票`
-          : "投票中";
+        : isVotingEnded()
+          ? ""
+          : shouldShowPublicVoteCounts()
+            ? `${apiEnabled ? apiVoteCountOf(project.id) : projectStats(project).voteCount} 票`
+            : "投票中";
   return `
     <article class="project-card-wrap ${isDemo ? "is-demo" : ""}">
       ${renderAdminEditButton(project.id)}
@@ -655,9 +724,11 @@ function renderProjectCard(project) {
           <div class="card-meta">
             <span>${escapeHtml(project.genre[0])}</span>
             <span>${escapeHtml(project.platform)}</span>
+            <span class="${deviceInfo(project).cls}">${deviceInfo(project).label}</span>
           </div>
           <h2>${escapeHtml(project.title)}</h2>
           <p>${escapeHtml(project.shortPitch)}</p>
+          ${project.controlsShort ? `<p class="card-controls">${escapeHtml(project.controlsShort)}</p>` : ""}
           <div class="card-footer">
             <span data-vote-count-for="${project.id}">${voteLabel}</span>
           </div>
@@ -687,7 +758,9 @@ function renderDetail(projectId) {
   const isDemo = nonVotableIds.includes(project.id);
   const voteAction = isDemo
     ? `<span class="btn ghost is-disabled" aria-disabled="true">🎓 教師示範作品 · 不參賽</span>`
-    : apiEnabled
+    : isVotingEnded()
+      ? `<span class="btn ghost is-disabled" aria-disabled="true">🗳️ 投票已結束</span>`
+      : apiEnabled
       ? `<button class="btn ghost" type="button" data-action="vote" data-project="${escapeAttr(project.id)}" ${voted ? "disabled" : ""}>${voted ? "✓ 已投" : "投這件當人氣王"}</button>`
       : voteUrl
         ? `<a class="btn ghost" href="${voteUrl}" target="_blank" rel="noreferrer">投這件當人氣王</a>`
@@ -708,8 +781,20 @@ function renderDetail(projectId) {
         <h1>${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.description)}</p>
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+        <p class="device-line"><span class="${deviceInfo(project).cls}">${deviceInfo(project).label}</span><span class="device-controls">操作方式：${escapeHtml(deviceInfo(project).controls)}</span></p>
+        ${deviceInfo(project).tablet ? "" : `
+        <div class="unified-controls">
+          <strong>🎮 全展統一操作</strong>
+          <span><kbd>WASD</kbd> 或 <kbd>← ↑ ↓ →</kbd> 移動</span>
+          <span><kbd>滑鼠</kbd> 視角</span>
+          <span><kbd>左鍵</kbd> 射擊／攻擊</span>
+          <span><kbd>空白鍵</kbd> 跳</span>
+          <span><kbd>ESC</kbd> 解鎖滑鼠</span>
+          <small>進入遊戲後左上角「⌨️ 操作」可隨時叫出這款的完整按鍵</small>
+        </div>
+        <p class="device-hint">💡 鍵盤遊戲開始前：輸入法切成<strong>英文</strong>、先點一下遊戲畫面。按了沒反應通常就是這兩件事。</p>`}
         <div class="detail-actions">
-          <a class="btn primary play-game-btn" href="${project.playUrl}" data-title="${escapeAttr(project.title)}" data-id="${escapeAttr(project.id)}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
+          <a class="btn primary play-game-btn" href="${project.playUrl}" data-title="${escapeAttr(project.title)}" data-id="${escapeAttr(project.id)}" data-device="${deviceInfo(project).key}" data-controls="${escapeAttr(deviceInfo(project).controls)}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
           ${voteAction}
           ${state.isAdmin ? `<button class="btn ghost" data-action="edit-project" data-project-id="${escapeAttr(project.id)}">編輯作品</button>` : ""}
         </div>
@@ -755,7 +840,7 @@ function renderResults() {
         </div>
       </section>
       <section class="stats-grid private-results-grid">
-        <article><span>投票狀態</span><strong>開放中</strong><small>${EVENT_CONFIG.deadline} 截止</small></article>
+        <article><span>投票狀態</span><strong>${isVotingEnded() ? "已結束" : "開放中"}</strong><small>${EVENT_CONFIG.deadline} 截止</small></article>
         <article><span>結果公布</span><strong>${escapeHtml(publish.date)}</strong><small>${escapeHtml(publishDetail)}</small></article>
         <article><span>資料來源</span><strong>Google Form</strong><small>不公開原始回覆</small></article>
       </section>
@@ -902,7 +987,8 @@ function renderRules() {
     <section class="section-head">
       <div>
         <p class="eyebrow">Voting Q&A</p>
-        <h1>投票 Q&A</h1>
+        <h1>投票 Q&A${isVotingEnded() ? "（已結束）" : ""}</h1>
+        ${isVotingEnded() ? `<p class="closed-note">🏁 投票已於 6/19 結束、得獎名單已於 6/29 公布。以下為當時的投票規則紀錄。</p>` : ""}
         <p>${escapeHtml(rules.purpose || "")}</p>
       </div>
     </section>
@@ -1157,7 +1243,7 @@ function renderAbout() {
         <p>大業 AI 繪圖社本學期以「AI 視覺、遊戲企劃、互動程式」為主軸，讓學生把想法整理成可以被試玩的作品。本次成果展開放校內試玩、觀眾票選與建議回饋，作品創作者以代號展示。</p>
       </div>
       <div class="info-strip about-strip">
-        <article><h2>展期與時程</h2><p>6/15（一）開展、6/19（五）投票截止。期間每個 Google 帳號可填答 1 次，截止後由主辦整理並公布結果。</p></article>
+        <article><h2>展期與時程</h2><p>6/15（一）開展、6/19（五）投票截止（已結束），6/29 公布得獎名單。目前為成果回顧展，作品持續開放試玩。</p></article>
         <article><h2>課程主題</h2><p>AI 生成視覺、遊戲設計、HTML/CSS/JS 原型、作品包裝與上架展示，本次共展出 ${getProjects().length} 件作品。</p></article>
         <article><h2>觀眾回饋面向</h2><p>表單會蒐集 AI 結合創意、畫面精緻度、遊戲趣味性、操作流暢度與整體體驗等回饋，提供作者作為後續修改參考。</p></article>
       </div>
@@ -1653,8 +1739,12 @@ setInterval(() => {
   function isMobile() {
     return window.matchMedia("(max-width: 768px)").matches;
   }
+  // 平板（觸控、沒有實體鍵盤）也算：鍵盤滑鼠類作品在 iPad 上一樣玩不了
+  function isTouchOnly() {
+    return window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(pointer: fine)").matches;
+  }
 
-  function showGameWarning(url, title, gameId) {
+  function showGameWarning(url, title, gameId, controls) {
     const overlay = document.createElement("div");
     overlay.className = "game-warn-overlay";
     overlay.innerHTML = `
@@ -1663,17 +1753,19 @@ setInterval(() => {
         <h2>這款作品建議用電腦遊玩</h2>
         <p class="game-warn-title">${title}${gameId ? ` <small>(${gameId})</small>` : ""}</p>
         <p class="game-warn-desc">
-          學生以鍵盤、滑鼠為主設計，手機可能會：<br>
+          ${controls ? `這款需要：<strong>${controls}</strong><br>` : ""}
+          全展鍵盤作品統一：WASD／方向鍵 移動・滑鼠 視角・左鍵 射擊・空白鍵 跳<br>
+          學生以鍵盤、滑鼠為主設計，手機或平板可能會：<br>
           • 按鈕難按到 / 畫面被切<br>
           • 部分鍵盤操作無法觸發<br>
           • 載入較慢
         </p>
-        <p class="game-warn-tip">💡 小撇步：把手機<strong>橫向</strong>放、或晚點換電腦試玩</p>
+        <p class="game-warn-tip">💡 展場有電腦的話，這款請到電腦區玩；標示「📱 平板可玩」的作品可直接在平板上玩</p>
         <div class="game-warn-actions">
-          <a class="btn primary" href="${url}" target="_blank" rel="noopener" data-close="1">仍要試玩（橫向手持）</a>
+          <a class="btn primary" href="${url}" target="_blank" rel="noopener" data-close="1">仍要試玩</a>
           <button class="btn ghost" data-close="1">改用電腦再來</button>
         </div>
-        <p class="game-warn-vote">📮 別忘了：投票表單在手機體驗很好！可以直接投票支持這件作品。</p>
+        ${isVotingEnded() ? "" : `<p class="game-warn-vote">📮 別忘了：投票表單在手機體驗很好！可以直接投票支持這件作品。</p>`}
       </div>
     `;
     document.body.appendChild(overlay);
@@ -1690,10 +1782,11 @@ setInterval(() => {
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".play-game-btn");
     if (!btn) return;
-    if (!isMobile()) return;
+    if (btn.dataset.device === "tablet") return; // 平板可玩的作品不攔
+    if (!isMobile() && !isTouchOnly()) return;
     const url = btn.getAttribute("href");
     if (!url || url === "#") return;
     e.preventDefault();
-    showGameWarning(url, btn.dataset.title || "作品", btn.dataset.id || "");
+    showGameWarning(url, btn.dataset.title || "作品", btn.dataset.id || "", btn.dataset.controls || "");
   });
 })();

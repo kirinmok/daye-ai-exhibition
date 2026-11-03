@@ -1,7 +1,16 @@
 window.SITE_CONFIG = {
   clubName: "大業 AI 繪圖社",
+  // ========================================
+  // 🏁 活動狀態：投票與抽獎已於 2026-06-19 結束，現為成果回顧展
+  // ========================================
+  eventStatus: {
+    closed: true,
+    label: "投票與抽獎已結束",
+    notice: "投票與抽獎已於 2026/6/19 截止，得獎名單已於 6/29 公布。本頁現為成果回顧展，歡迎自由試玩作品。",
+  },
   voting: {
-    enabled: true,
+    enabled: false, // 2026-06-19 已截止；改回 true 才會再顯示投票按鈕
+
     // 正式公開版只導向 Google Form，不在網站按鈕先記票，避免未完成表單也被計入。
     apiUrl: "",
     // ✅ 觀眾投票表單（選 1 件投人氣票 + 5 項 1-5 分評分，3 個 A 組獎位由綜合計算決定）
@@ -21,7 +30,7 @@ window.SITE_CONFIG = {
   // 🎁 抽獎登記（與投票表單分開、限在校學生）
   // ========================================
   lottery: {
-    enabled: true,
+    enabled: false, // 抽獎已結束
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSdOnLWt8Z0GflDjWdz1sUTfy_x07XdsISRJmMEz2kCJJGNAnw/viewform",
     eligibility: "限大業實驗中學 2025–2026 學年度在校學生（老師、家長、畢業校友、校外朋友皆無資格）",
     publishDate: "2026-06-29T08:00:00+08:00",
