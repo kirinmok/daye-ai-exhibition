@@ -5,9 +5,9 @@
  *   - 本站靜態檔（js/css/圖/音效）：先快取、背景更新
  *   - 外部 CDN（unpkg、cdnjs、tailwind、gstatic、esm.sh、Google Fonts）：先快取、沒有才抓網路
  *   - 其他（Google 表單、投票 API、非 GET）：不碰
- * 改版時把 VERSION 改掉，舊快取會自動清除。
+ * 改版時把 VERSION 改掉，舊快取會自動清除；index.html 裡的 ?v= 參數也一起改，靜態檔才會重新抓。
  */
-const VERSION = "daye-exh-2026-11-03a";
+const VERSION = "daye-exh-2026-11-03b";
 const CACHE = `${VERSION}`;
 const SCOPE_PATH = new URL(self.registration.scope).pathname; // e.g. /daye-ai-exhibition/
 
@@ -113,7 +113,8 @@ async function networkFirst(req, timeoutMs) {
 
 async function staleWhileRevalidate(req) {
   const cache = await caches.open(CACHE);
-  const hit = await cache.match(req, { ignoreSearch: true });
+  // 精確比對（含 ?v= 參數）：改版時只要換版本參數就一定抓新檔，不會吐舊快取
+  const hit = await cache.match(req);
   const fetching = fetch(req).then((res) => { if (isCacheable(res)) cache.put(req, res.clone()).catch(() => {}); return res; }).catch(() => null);
   return hit || (await fetching) || Response.error();
 }
