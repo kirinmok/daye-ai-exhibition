@@ -2432,8 +2432,9 @@ body.is-editing {
 
 /* ===== 📱/💻 裝置標示（2026-11 新增）===== */
 .device-badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 999px; font-size: 12px; font-weight: 850; letter-spacing: 0.02em; white-space: nowrap; }
-.card-meta span.device-tablet, .device-badge.device-tablet { background: rgba(52, 211, 153, 0.16); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.35); }
-.card-meta span.device-desktop, .device-badge.device-desktop { background: rgba(148, 163, 184, 0.14); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+/* 單色線條風：只靠 icon 與文字區分，不用彩色 */
+.card-meta span.device-tablet, .device-badge.device-tablet { background: transparent; color: #f1f5f9; border: 1px solid rgba(241, 245, 249, 0.55); }
+.card-meta span.device-desktop, .device-badge.device-desktop { background: transparent; color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.45); }
 .device-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 0; }
 .device-controls { color: var(--muted); font-size: 13px; font-weight: 700; }
 
@@ -2444,13 +2445,32 @@ body.is-editing {
 .event-status-banner a { color: #fbbf24; font-weight: 800; text-decoration: underline; }
 .closed-note { margin: 8px 0 4px; padding: 10px 14px; border-radius: 10px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.35); color: #fde68a; font-weight: 700; }
 .device-hint { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-.device-hint strong { color: #fbbf24; }
+.device-hint strong { color: #f1f5f9; }
 
 /* ===== 🎮 統一操作說明 ===== */
-.card-controls { margin: 6px 0 0; font-size: 12px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.01em; }
+.card-controls { margin: 6px 0 0; font-size: 12px; font-weight: 700; color: #94a3b8; letter-spacing: 0.01em; }
 .browse-legend { margin: -6px 0 14px; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--muted); font-size: 13px; font-weight: 700; line-height: 1.7; }
 .browse-legend kbd, .unified-controls kbd { display: inline-block; padding: 1px 7px; border-radius: 5px; background: #f8fafc; color: #0f172a; font: 800 12px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
 .unified-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #e5e7eb; font-size: 13px; font-weight: 700; }
-.unified-controls strong { color: #fbbf24; font-weight: 900; }
+.unified-controls strong { color: #f1f5f9; font-weight: 900; }
 .unified-controls small { flex-basis: 100%; color: var(--muted); font-weight: 600; }
 .hero-console .hero-date-range { font-size: 0.55em; line-height: 1.1; letter-spacing: -0.01em; }
+
+/* ===== 線條 icon ===== */
+.ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; margin-right: 6px; }
+.device-badge .ico { width: 14px; height: 14px; margin-right: 5px; vertical-align: -2px; }
+.card-controls { display: flex; align-items: center; }
+.card-controls .ico { color: #94a3b8; }
+.device-controls { display: inline-flex; align-items: center; }
+.unified-controls strong { display: inline-flex; align-items: center; }
+.unified-controls strong .ico { width: 16px; height: 16px; }
+.browse-legend { display: block; }
+.browse-legend .legend-item { display: inline; line-height: 2.1; }
+.browse-legend .legend-item kbd { margin: 0 3px; }
+.browse-legend .legend-sep { display: inline-block; width: 1px; height: 14px; margin: 0 12px; background: rgba(255,255,255,0.18); vertical-align: -2px; }
+.device-controls { align-items: flex-start; }
+.device-controls .ico { margin-top: 3px; }
+.chip .ico { width: 13px; height: 13px; margin-right: 5px; vertical-align: -2px; }
+.btn-icon { display: inline-flex; align-items: center; }
+.game-warn-icon .ico { width: 44px; height: 44px; margin: 0; stroke-width: 1.5; color: #f1f5f9; }
+.info-strip .device-badge { vertical-align: 1px; margin: 0 2px; }

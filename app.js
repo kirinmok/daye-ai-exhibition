@@ -391,16 +391,28 @@ function uniqueValues(selector) {
   return [...new Set(getProjects().flatMap(selector))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
 }
 
-// 📱/💻 裝置標示：works.js 的 device 欄位（"tablet" = 平板可玩，其餘視為建議電腦）
-const DEVICE_LABELS = { tablet: "📱 平板可玩", desktop: "💻 建議電腦" };
+// 裝置標示：works.js 的 device 欄位（"tablet" = 平板可玩，其餘視為建議電腦）
+const DEVICE_LABELS = { tablet: "平板可玩", desktop: "建議電腦" };
+// 線條極簡 icon（1.75px 描邊、currentColor），各平台顯示一致，不用 emoji
+const ICONS = {
+  tablet: `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><circle cx="12" cy="18" r="0.9" fill="currentColor" stroke="none"/></svg>`,
+  desktop: `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="12" rx="2"/><path d="M9 20h6M12 16v4"/></svg>`,
+  keyboard: `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg>`,
+  touch: `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 10.5a1.5 1.5 0 0 1 3 0V12M15 11.5a1.5 1.5 0 0 1 3 0V13M18 12.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2.5a6 6 0 0 1-4.8-2.4L4 15.5a1.6 1.6 0 0 1 2.5-2L9 16"/></svg>`,
+  mouse: `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="2.5" width="11" height="19" rx="5.5"/><path d="M12 6v4"/></svg>`,
+};
+function deviceIcon(key) { return ICONS[key] || ""; }
 function deviceInfo(project) {
   const tablet = project.device === "tablet";
   return {
     tablet,
     key: tablet ? "tablet" : "desktop",
     label: tablet ? DEVICE_LABELS.tablet : DEVICE_LABELS.desktop,
+    icon: tablet ? ICONS.tablet : ICONS.desktop,
+    inputIcon: tablet ? ICONS.touch : ICONS.keyboard,
     cls: tablet ? "device-badge device-tablet" : "device-badge device-desktop",
     controls: project.controls || (tablet ? "觸控點擊" : "鍵盤＋滑鼠"),
+    controlsShort: String(project.controlsShort || "").replace(/^(⌨️|👆)\s*/, ""),
   };
 }
 
@@ -410,7 +422,7 @@ function renderEventStatusBanner() {
   const banner = document.createElement("div");
   banner.className = "event-status-banner";
   banner.setAttribute("role", "status");
-  banner.innerHTML = `<strong>🏁 ${escapeHtml(status.label || "投票已結束")}</strong><span>${escapeHtml(status.notice || "")}</span><a href="#awards">看得獎名單</a>`;
+  banner.innerHTML = `<strong>${escapeHtml(status.label || "投票已結束")}</strong><span>${escapeHtml(status.notice || "")}</span><a href="#awards">看得獎名單</a>`;
   app.parentNode.insertBefore(banner, app);
 }
 
@@ -483,9 +495,9 @@ function renderHome() {
         <p>${isVotingEnded() ? "學生自製遊戲正式上線。AI 視覺、遊戲企劃、互動程式，全部變成可以試玩的作品。投票已經結束，這一次就放心玩。" : escapeHtml(EVENT_CONFIG.purpose)}</p>
         <div class="hero-actions">
           ${isVotingEnded() ? `
-          <a class="btn primary" href="#browse">🎮 瀏覽作品試玩</a>
-          <a class="btn ghost" href="#browse/tablet">📱 平板可玩作品</a>
-          <a class="btn ghost" href="#awards">🏆 得獎名單</a>` : `
+          <a class="btn primary" href="#browse">瀏覽作品試玩</a>
+          <a class="btn ghost btn-icon" href="#browse/tablet">${ICONS.tablet}平板可玩作品</a>
+          <a class="btn ghost" href="#awards">得獎名單</a>` : `
           <a class="btn primary" href="#browse">立刻試玩投票</a>
           <a class="btn ghost" href="#rules">先看投票 Q&A</a>`}
           ${SITE_CONFIG.lottery && SITE_CONFIG.lottery.enabled && SITE_CONFIG.lottery.formUrl
@@ -499,8 +511,8 @@ function renderHome() {
       <div class="hero-console" aria-label="成果展摘要">
         ${isVotingEnded() ? `
         <div>
-          <strong class="hero-date hero-date-range">${escapeHtml(start.date)}–${escapeHtml(deadline.date)}</strong>
-          <span>投票期（已結束）</span>
+          <strong class="hero-date">${escapeHtml(deadline.date)} <small>(${escapeHtml(deadline.weekday)})</small></strong>
+          <span>投票截止・已結束</span>
         </div>
         <div>
           <strong class="hero-date">${escapeHtml(publish.date)} <small>(${escapeHtml(publish.weekday)})</small></strong>
@@ -533,7 +545,7 @@ function renderHome() {
       </article>
       <article>
         <h2>平板還是電腦？</h2>
-        <p>每張卡片都標了「📱 平板可玩」或「💻 建議電腦」。FPS 與鍵盤操作類作品需要滑鼠鍵盤，請到電腦區體驗。</p>
+        <p>每張卡片都標了 <span class="device-badge device-tablet">${ICONS.tablet}平板可玩</span> 或 <span class="device-badge device-desktop">${ICONS.desktop}建議電腦</span>。鍵盤與滑鼠操作的作品，請到電腦區體驗。</p>
       </article>
       <article>
         <h2>得獎名單已公布</h2>
@@ -618,7 +630,7 @@ function renderBrowse() {
           <strong>${projects.length}</strong>
           <span>件作品符合目前條件</span>
         </div>
-        <p class="browse-legend">🎮 鍵盤作品統一：<kbd>WASD</kbd>／<kbd>方向鍵</kbd> 移動・<kbd>滑鼠</kbd> 視角・<kbd>左鍵</kbd> 射擊・<kbd>空白鍵</kbd> 跳　｜　📱 平板作品：直接用手指點。</p>
+        <p class="browse-legend"><span class="legend-item">${ICONS.keyboard}鍵盤作品統一：<kbd>WASD</kbd>／<kbd>方向鍵</kbd> 移動・<kbd>滑鼠</kbd> 視角・<kbd>左鍵</kbd> 射擊・<kbd>空白鍵</kbd> 跳</span><span class="legend-sep"></span><span class="legend-item">${ICONS.touch}平板作品：直接用手指點</span></p>
         <div class="card-grid">
           ${projects.map(renderProjectCard).join("")}
         </div>
@@ -636,7 +648,7 @@ function renderFilterGroup(type, title, values, selectedSet) {
       <div class="chip-list">
         ${values.map((value) => `
           <button class="chip ${selectedSet.has(value) ? "is-selected" : ""}" data-filter-type="${type}" data-filter-value="${escapeAttr(value)}">
-            ${value}
+            ${type === "device" ? (value === DEVICE_LABELS.tablet ? ICONS.tablet : ICONS.desktop) : ""}${value}
           </button>
         `).join("")}
       </div>
@@ -724,11 +736,11 @@ function renderProjectCard(project) {
           <div class="card-meta">
             <span>${escapeHtml(project.genre[0])}</span>
             <span>${escapeHtml(project.platform)}</span>
-            <span class="${deviceInfo(project).cls}">${deviceInfo(project).label}</span>
+            <span class="${deviceInfo(project).cls}">${deviceInfo(project).icon}${deviceInfo(project).label}</span>
           </div>
           <h2>${escapeHtml(project.title)}</h2>
           <p>${escapeHtml(project.shortPitch)}</p>
-          ${project.controlsShort ? `<p class="card-controls">${escapeHtml(project.controlsShort)}</p>` : ""}
+          ${project.controlsShort ? `<p class="card-controls">${deviceInfo(project).inputIcon}${escapeHtml(deviceInfo(project).controlsShort)}</p>` : ""}
           <div class="card-footer">
             <span data-vote-count-for="${project.id}">${voteLabel}</span>
           </div>
@@ -759,7 +771,7 @@ function renderDetail(projectId) {
   const voteAction = isDemo
     ? `<span class="btn ghost is-disabled" aria-disabled="true">🎓 教師示範作品 · 不參賽</span>`
     : isVotingEnded()
-      ? `<span class="btn ghost is-disabled" aria-disabled="true">🗳️ 投票已結束</span>`
+      ? `<span class="btn ghost is-disabled" aria-disabled="true">投票已結束</span>`
       : apiEnabled
       ? `<button class="btn ghost" type="button" data-action="vote" data-project="${escapeAttr(project.id)}" ${voted ? "disabled" : ""}>${voted ? "✓ 已投" : "投這件當人氣王"}</button>`
       : voteUrl
@@ -781,18 +793,18 @@ function renderDetail(projectId) {
         <h1>${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.description)}</p>
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
-        <p class="device-line"><span class="${deviceInfo(project).cls}">${deviceInfo(project).label}</span><span class="device-controls">操作方式：${escapeHtml(deviceInfo(project).controls)}</span></p>
+        <p class="device-line"><span class="${deviceInfo(project).cls}">${deviceInfo(project).icon}${deviceInfo(project).label}</span><span class="device-controls">${deviceInfo(project).inputIcon}操作方式：${escapeHtml(deviceInfo(project).controls)}</span></p>
         ${deviceInfo(project).tablet ? "" : `
         <div class="unified-controls">
-          <strong>🎮 全展統一操作</strong>
+          <strong>${ICONS.keyboard}全展統一操作</strong>
           <span><kbd>WASD</kbd> 或 <kbd>← ↑ ↓ →</kbd> 移動</span>
           <span><kbd>滑鼠</kbd> 視角</span>
           <span><kbd>左鍵</kbd> 射擊／攻擊</span>
           <span><kbd>空白鍵</kbd> 跳</span>
           <span><kbd>ESC</kbd> 解鎖滑鼠</span>
-          <small>進入遊戲後左上角「⌨️ 操作」可隨時叫出這款的完整按鍵</small>
+          <small>進入遊戲後左上角「操作」按鈕可隨時叫出這款的完整按鍵</small>
         </div>
-        <p class="device-hint">💡 鍵盤遊戲開始前：輸入法切成<strong>英文</strong>、先點一下遊戲畫面。按了沒反應通常就是這兩件事。</p>`}
+        <p class="device-hint">鍵盤遊戲開始前：輸入法切成<strong>英文</strong>、先點一下遊戲畫面。按了沒反應通常就是這兩件事。</p>`}
         <div class="detail-actions">
           <a class="btn primary play-game-btn" href="${project.playUrl}" data-title="${escapeAttr(project.title)}" data-id="${escapeAttr(project.id)}" data-device="${deviceInfo(project).key}" data-controls="${escapeAttr(deviceInfo(project).controls)}" ${project.playUrl === "#" ? "aria-disabled='true'" : ""}>開始遊玩</a>
           ${voteAction}
@@ -988,7 +1000,7 @@ function renderRules() {
       <div>
         <p class="eyebrow">Voting Q&A</p>
         <h1>投票 Q&A${isVotingEnded() ? "（已結束）" : ""}</h1>
-        ${isVotingEnded() ? `<p class="closed-note">🏁 投票已於 6/19 結束、得獎名單已於 6/29 公布。以下為當時的投票規則紀錄。</p>` : ""}
+        ${isVotingEnded() ? `<p class="closed-note">投票已於 6/19 結束、得獎名單已於 6/29 公布。以下為當時的投票規則紀錄。</p>` : ""}
         <p>${escapeHtml(rules.purpose || "")}</p>
       </div>
     </section>
@@ -1749,7 +1761,7 @@ setInterval(() => {
     overlay.className = "game-warn-overlay";
     overlay.innerHTML = `
       <div class="game-warn-modal" role="dialog" aria-modal="true">
-        <div class="game-warn-icon">💻</div>
+        <div class="game-warn-icon">${ICONS.desktop}</div>
         <h2>這款作品建議用電腦遊玩</h2>
         <p class="game-warn-title">${title}${gameId ? ` <small>(${gameId})</small>` : ""}</p>
         <p class="game-warn-desc">
@@ -1760,7 +1772,7 @@ setInterval(() => {
           • 部分鍵盤操作無法觸發<br>
           • 載入較慢
         </p>
-        <p class="game-warn-tip">💡 展場有電腦的話，這款請到電腦區玩；標示「📱 平板可玩」的作品可直接在平板上玩</p>
+        <p class="game-warn-tip">展場有電腦的話，這款請到電腦區玩；標示「平板可玩」的作品可直接在平板上玩</p>
         <div class="game-warn-actions">
           <a class="btn primary" href="${url}" target="_blank" rel="noopener" data-close="1">仍要試玩</a>
           <button class="btn ghost" data-close="1">改用電腦再來</button>
