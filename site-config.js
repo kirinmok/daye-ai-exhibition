@@ -8,6 +8,16 @@ window.SITE_CONFIG = {
     label: "投票與抽獎已結束",
     notice: "投票與抽獎已於 2026/6/19 截止，得獎名單已於 6/29 公布。本頁現為成果回顧展，歡迎自由試玩作品。",
   },
+  // ========================================
+  // 👁 人氣點閱計數（Apps Script + 試算表，部署步驟見 forms/hit_counter_setup.md）
+  // apiUrl 空白 = 不顯示；貼上網頁應用程式網址後卡片與詳情頁就會出現「人氣 N」
+  // ========================================
+  hits: {
+    apiUrl: "",
+    label: "人氣",
+    cooldownMinutes: 10, // 同一裝置同一作品 N 分鐘內只計 1 次
+    refreshSeconds: 60,
+  },
   voting: {
     enabled: false, // 2026-06-19 已截止；改回 true 才會再顯示投票按鈕
 

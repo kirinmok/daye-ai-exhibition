@@ -115,6 +115,95 @@ function refreshVoteCountDisplays(projectId) {
   });
 }
 
+// ============================================
+// 👁 人氣點閱計數（Apps Script 後端，見 forms/hit_counter.gs）
+// ============================================
+const HIT_LOCK_KEY = "daye-hit-lock";
+const HIT_QUEUE_KEY = "daye-hit-queue";
+function getHitsConfig() { return (window.SITE_CONFIG || {}).hits || {}; }
+function hitsEnabled() { return !!getHitsConfig().apiUrl; }
+function hitCountOf(projectId) { return (state.hitCounts && state.hitCounts[projectId]) || 0; }
+function hitIcon() {
+  return `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.6"/></svg>`;
+}
+function formatHits(n) { return n >= 10000 ? `${(n / 10000).toFixed(1)} 萬` : String(n); }
+function renderHitBadge(projectId, extraClass = "") {
+  if (!hitsEnabled()) return "";
+  const label = getHitsConfig().label || "人氣";
+  return `<span class="hit-badge ${extraClass}" data-hit-for="${escapeAttr(projectId)}" title="試玩次數">${hitIcon()}<span class="hit-label">${escapeHtml(label)}</span> <b>${formatHits(hitCountOf(projectId))}</b></span>`;
+}
+function refreshHitDisplays() {
+  document.querySelectorAll("[data-hit-for]").forEach((el) => {
+    const b = el.querySelector("b");
+    if (b) b.textContent = formatHits(hitCountOf(el.getAttribute("data-hit-for")));
+  });
+}
+async function fetchHitCounts() {
+  const url = getHitsConfig().apiUrl;
+  if (!url) return {};
+  try {
+    const r = await fetch(url, { method: "GET", cache: "no-store" });
+    const data = await r.json();
+    const cleaned = {};
+    Object.entries(data || {}).forEach(([k, v]) => { if (/^[GK]\d{2}$/.test(k)) cleaned[k] = Number(v) || 0; });
+    return cleaned;
+  } catch (err) {
+    return null; // 連線失敗：保留舊數字
+  }
+}
+function hitLockMap() { try { return JSON.parse(localStorage.getItem(HIT_LOCK_KEY) || "{}"); } catch (err) { return {}; } }
+function hitQueue() { try { return JSON.parse(localStorage.getItem(HIT_QUEUE_KEY) || "[]"); } catch (err) { return []; } }
+function saveHitQueue(q) { try { localStorage.setItem(HIT_QUEUE_KEY, JSON.stringify(q.slice(-50))); } catch (err) {} }
+async function postHit(projectId) {
+  const url = getHitsConfig().apiUrl;
+  if (!url) return false;
+  try {
+    await fetch(url, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ id: projectId, fp: deviceFingerprint() }).toString(), keepalive: true });
+    return true;
+  } catch (err) { return false; }
+}
+async function flushHitQueue() {
+  if (!hitsEnabled() || !navigator.onLine) return;
+  const q = hitQueue();
+  if (!q.length) return;
+  saveHitQueue([]);
+  for (const id of q) { if (!(await postHit(id))) { saveHitQueue([...hitQueue(), id]); } }
+}
+function recordHit(projectId) {
+  if (!hitsEnabled() || !/^[GK]\d{2}$/.test(projectId)) return;
+  const cooldown = Math.max(0, Number(getHitsConfig().cooldownMinutes || 0)) * 60 * 1000;
+  const map = hitLockMap();
+  if (cooldown && map[projectId] && Date.now() - map[projectId] < cooldown) return; // 同裝置短時間重複點不計
+  map[projectId] = Date.now();
+  try { localStorage.setItem(HIT_LOCK_KEY, JSON.stringify(map)); } catch (err) {}
+  // 先在畫面上 +1，再送出；離線就排隊
+  state.hitCounts[projectId] = hitCountOf(projectId) + 1;
+  refreshHitDisplays();
+  if (navigator.onLine) { postHit(projectId).then((ok) => { if (!ok) saveHitQueue([...hitQueue(), projectId]); }); }
+  else saveHitQueue([...hitQueue(), projectId]);
+}
+function setupHitCounter() {
+  if (!hitsEnabled()) return;
+  const refresh = async () => {
+    const c = await fetchHitCounts();
+    if (!c) return;
+    const firstLoad = !state.hitsLoaded;
+    state.hitCounts = { ...state.hitCounts, ...c };
+    state.hitsLoaded = true;
+    refreshHitDisplays();
+    // 第一次拿到數字後，若正在看作品瀏覽且是人氣排序，重排一次（之後只更新數字，不打亂順序）
+    if (firstLoad && state.sort === "popular" && /^#browse/.test(window.location.hash)) renderBrowse();
+  };
+  refresh();
+  window.setInterval(refresh, Math.max(20, Number(getHitsConfig().refreshSeconds || 60)) * 1000);
+  window.addEventListener("online", flushHitQueue);
+  flushHitQueue();
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".play-game-btn");
+    if (btn && btn.dataset.id && btn.getAttribute("href") && btn.getAttribute("href") !== "#") recordHit(btn.dataset.id);
+  }, true);
+}
+
 function refreshVoteButtonStates(projectId) {
   const voted = hasVotedLocal(projectId);
   document.querySelectorAll(`[data-action="vote"][data-project="${projectId}"]`).forEach((btn) => {
@@ -228,6 +317,8 @@ const state = {
   resultsSyncMessage: "",
   apiVoteCounts: {},
   apiVoteLoaded: false,
+  hitCounts: {},
+  hitsLoaded: false,
 };
 
 function getResultsConfig() {
@@ -383,6 +474,7 @@ function filteredProjects() {
     const bStats = projectStats(b);
     if (state.sort === "rating") return bStats.averageScore - aStats.averageScore;
     if (state.sort === "latest") return new Date(b.createdAt) - new Date(a.createdAt);
+    if (hitsEnabled()) return hitCountOf(b.id) - hitCountOf(a.id) || bStats.voteCount - aStats.voteCount;
     return bStats.voteCount - aStats.voteCount;
   });
 }
@@ -743,6 +835,7 @@ function renderProjectCard(project) {
           ${project.controlsShort ? `<p class="card-controls">${deviceInfo(project).inputIcon}${escapeHtml(deviceInfo(project).controlsShort)}</p>` : ""}
           <div class="card-footer">
             <span data-vote-count-for="${project.id}">${voteLabel}</span>
+            ${renderHitBadge(project.id)}
           </div>
         </div>
       </a>
@@ -793,7 +886,7 @@ function renderDetail(projectId) {
         <h1>${escapeHtml(project.title)}</h1>
         <p>${escapeHtml(project.description)}</p>
         <div class="tag-row">${project.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
-        <p class="device-line"><span class="${deviceInfo(project).cls}">${deviceInfo(project).icon}${deviceInfo(project).label}</span><span class="device-controls">${deviceInfo(project).inputIcon}操作方式：${escapeHtml(deviceInfo(project).controls)}</span></p>
+        <p class="device-line"><span class="${deviceInfo(project).cls}">${deviceInfo(project).icon}${deviceInfo(project).label}</span>${renderHitBadge(project.id, "hit-badge-detail")}<span class="device-controls">${deviceInfo(project).inputIcon}操作方式：${escapeHtml(deviceInfo(project).controls)}</span></p>
         ${deviceInfo(project).tablet ? "" : `
         <div class="unified-controls">
           <strong>${ICONS.keyboard}全展統一操作</strong>
@@ -1726,6 +1819,7 @@ function escapeAttr(value) {
 window.addEventListener("hashchange", route);
 loadExternalVotes().finally(() => {
   setupExternalVoteRefresh();
+  setupHitCounter();
   route();
 });
 

@@ -2478,3 +2478,11 @@ body.is-editing {
 /* ===== 首頁時程卡：標籤不換行、不斷句 ===== */
 .hero-console div { padding: 16px 14px; }
 .hero-console span { white-space: nowrap; font-size: 13px; letter-spacing: 0.02em; }
+
+/* ===== 👁 人氣點閱 ===== */
+.card-footer { align-items: center; justify-content: space-between; }
+.hit-badge { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(241, 245, 249, 0.22); color: #cbd5e1; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.hit-badge .ico { width: 14px; height: 14px; margin-right: 1px; }
+.hit-badge b { color: #f8fafc; font-weight: 900; font-variant-numeric: tabular-nums; }
+.hit-badge .hit-label { color: #94a3b8; font-weight: 700; }
+.hit-badge-detail { margin-left: 0; padding: 5px 11px; font-size: 13px; }

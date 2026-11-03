@@ -62,6 +62,13 @@ G04、G10 兩款都用 `https://unpkg.com/@babel/standalone/babel.min.js` 這條
 **統一後的規則**（所有鍵盤作品一致）：`WASD` 或 `方向鍵` 移動・`滑鼠` 視角・`左鍵` 射擊／攻擊・`空白鍵` 跳・`ESC` 解鎖滑鼠。
 各款自己的動作鍵（撿東西 F、背包 E、換彈 R、衝刺 Shift／K…）因為每款語意不同，沒有強制改成一樣，改以卡片、詳情頁與遊戲內提示列三處一致說明。
 
+### 2-6 人氣點閱數（需 KIRIN 部署一次 Apps Script）
+| 檔案 | 變更 |
+|---|---|
+| `forms/hit_counter.gs`、`forms/hit_counter_setup.md`（新增） | Apps Script 計數後端（試算表 `hits` 工作表）＋ 3 分鐘部署步驟 |
+| `site-config.js` | `hits: { apiUrl, label, cooldownMinutes, refreshSeconds }`；`apiUrl` 空白則整個功能不顯示 |
+| `app.js` | 按「開始遊玩」+1（同裝置同作品 10 分鐘內只計 1 次、離線排隊補送）；卡片右下與詳情頁顯示「人氣 N」；人氣排序改用點閱數；每 60 秒更新 |
+
 操作文件：`docs/ipad_outdoor_checklist_2026-11-03.md`（展前預熱步驟、iPad 設定、現場排障）。
 
 ## 三、逐款體檢表
