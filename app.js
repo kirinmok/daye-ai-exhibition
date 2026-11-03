@@ -714,7 +714,6 @@ function renderBrowse() {
           <input id="searchInput" type="search" value="${escapeAttr(state.query)}" placeholder="搜尋作品名稱、代號、類型、關鍵字" />
           <select id="sortSelect" aria-label="排序">
             <option value="popular"${state.sort === "popular" ? " selected" : ""}>人氣排序</option>
-            <option value="rating"${state.sort === "rating" ? " selected" : ""}>評分排序</option>
             <option value="latest"${state.sort === "latest" ? " selected" : ""}>最新排序</option>
           </select>
         </div>
